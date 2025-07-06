@@ -8,6 +8,6 @@ import com.example.musicplayer.data.db.AppDatabase
 class DefaultAppContainer(private val context: Context) : AppContainer {
     override val musicRepository: MusicRepository by lazy {
         val db = AppDatabase.getDatabase(context)
-        LocalMusicRepository(db.trackDao(), db.playlistDao(), db.albumDao())
+        LocalMusicRepository(db.trackDao(), db.playlistDao(), db.albumDao(), db.queueDao())
     }
 }

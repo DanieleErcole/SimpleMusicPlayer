@@ -9,25 +9,26 @@ import kotlin.String
 class MusicScanner(private val musicRepo: MusicRepository, private val userPrefsRepo: UserPreferencesRepository) {
 
     suspend fun scanDirectories() {
-        val albums = musicRepo.getAllAlbums()
-        val tracks = musicRepo.getAllTracks()
+        // This will automatically run when the scannedDirectories changes
+        userPrefsRepo.scannedDirectories.collect { dirs ->
+            val albums = musicRepo.getAllAlbums()
+            val tracks = musicRepo.getAllTracks()
 
-        userPrefsRepo.scannedDirectories.collect { dirString ->
-            dirString.split("$").forEach {
+            dirs.forEach {
                 scanDir(it).forEach { (path, audioFile) ->
                     audioFile.mediaMetadata.let {
-                        var album = albums.find { a -> it.albumTitle.toString() == a.name }
-                        var track = tracks.find { it.track.location == path }
+                        val album = albums.find { a -> it.albumTitle.toString() == a.name }
+                        val track = tracks.find { it.track.location == path }
 
-                        var albumId = if (album == null) {
-                            var a = Album(
+                        val albumId = if (album == null) {
+                            val a = Album(
                                 name = it.albumTitle.toString(),
                                 thumbnail = it.artworkUri.toString(),
                                 artist = it.albumArtist.toString()
                             )
                             musicRepo.newAlbum(a)
                             a.id
-                        } else album.id //TODO: check and rewrite this, I think this is kinda stupid, it will be always 0 right?
+                        } else album.id
 
                         Log.d(MusicScanner::class.simpleName, "Adding album: $albumId")
 
@@ -56,8 +57,8 @@ class MusicScanner(private val musicRepo: MusicRepository, private val userPrefs
     }
 
     private fun scanDir(dirPath: String): List<Pair<String, MediaItem>> {
-        var dir = File(dirPath)
-        var fileList = mutableListOf<Pair<String, MediaItem>>()
+        val dir = File(dirPath)
+        val fileList = mutableListOf<Pair<String, MediaItem>>()
 
         if (dir.isDirectory) {
             dir.listFiles()?.forEach { file ->

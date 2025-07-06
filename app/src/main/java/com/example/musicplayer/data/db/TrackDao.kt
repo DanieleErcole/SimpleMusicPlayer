@@ -26,9 +26,9 @@ interface TrackDao {
     fun getArtistTracks(name: String): Flow<List<TrackWithAlbum>>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun newTrack(t: Track)
+    suspend fun insert(t: Track)
 
     @Delete
-    suspend fun deleteTrack(t: Track)
+    suspend fun delete(t: Track)
 
 }

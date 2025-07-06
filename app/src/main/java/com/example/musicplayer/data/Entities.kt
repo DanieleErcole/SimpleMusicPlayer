@@ -80,7 +80,7 @@ data class AlbumWithTracks(
     val tracks: List<Track>
 )
 
-@Entity(primaryKeys = ["playlistId", "trackId"])
+@Entity(tableName = "trackAddedTOPlaylist", primaryKeys = ["playlistId", "trackId"])
 data class TrackAddedToPlaylist(
     val playlistId: Int,
     val trackId: Int
@@ -93,5 +93,24 @@ data class PlaylistWithTracks(
         entityColumn = "trackId",
         associateBy = Junction(TrackAddedToPlaylist::class)
     )
-    val track: List<Track>
+    val tracks: List<Track>
+)
+
+@Entity(primaryKeys = ["track", "added"], tableName = "queue")
+data class QueueItem(
+    @ColumnInfo(name = "trackId")
+    val track: Int,
+    @ColumnInfo(name = "added")
+    val added: LocalDateTime,
+    @ColumnInfo(name = "position")
+    val position: Long? // If position != null the track is the currently played one
+)
+
+data class QueuedTrack(
+    @Embedded val track: Track,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "trackId",
+    )
+    val queuedItem: QueueItem
 )

@@ -22,4 +22,11 @@ interface MusicRepository {
     suspend fun newAlbum(a: Album)
     suspend fun deleteAlbum(a: Album)
 
+    suspend fun getQueueTracks(): List<QueuedTrack>
+    fun getQueueTracksFlow(): Flow<List<QueuedTrack>>
+    suspend fun currentPlaying(): QueuedTrack?
+    fun currentPlayingFlow(): Flow<QueuedTrack?>
+    suspend fun queue(item: QueueItem)
+    suspend fun remove(item: QueueItem)
+
 }

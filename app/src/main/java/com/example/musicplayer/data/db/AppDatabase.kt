@@ -6,15 +6,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.Playlist
+import com.example.musicplayer.data.QueueItem
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackAddedToPlaylist
 
-@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class], version = 1)
+@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class, QueueItem::class], version = 1)
 abstract class AppDatabase: RoomDatabase() {
 
     abstract fun trackDao(): TrackDao
     abstract fun playlistDao(): PlaylistDao
     abstract fun albumDao(): AlbumDao
+    abstract fun queueDao(): QueueDao
 
     companion object {
         @Volatile

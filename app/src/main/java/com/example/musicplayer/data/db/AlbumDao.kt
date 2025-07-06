@@ -20,9 +20,9 @@ interface AlbumDao {
     fun getAlbumTracks(id: Int): Flow<AlbumWithTracks>
 
     @Insert
-    suspend fun newAlbum(a: Album)
+    suspend fun insert(a: Album)
 
     @Delete
-    suspend fun deleteAlbum(a: Album)
+    suspend fun delete(a: Album)
 
 }

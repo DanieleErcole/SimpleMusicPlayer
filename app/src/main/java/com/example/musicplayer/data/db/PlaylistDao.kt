@@ -17,9 +17,9 @@ interface PlaylistDao {
     fun getPlaylistTracks(id: Int): Flow<PlaylistWithTracks>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun newPlaylist(pl: Playlist)
+    suspend fun insert(pl: Playlist)
 
     @Delete
-    suspend fun deletePlaylist(pl: Playlist)
+    suspend fun delete(pl: Playlist)
 
 }
