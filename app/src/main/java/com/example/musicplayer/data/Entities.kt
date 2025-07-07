@@ -6,16 +6,18 @@ import androidx.room.Entity
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity(tableName = "playlist")
 data class Playlist(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val playlistId: Int = 0,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "created")
-    val created: LocalDateTime
+    val created: ZonedDateTime
 )
 
 @Entity(tableName = "album")
@@ -33,7 +35,7 @@ data class Album(
 @Entity(tableName = "track")
 data class Track(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val trackId: Int = 0,
     @ColumnInfo(name = "location")
     val location: String,
     @ColumnInfo(name = "title")
@@ -55,9 +57,9 @@ data class Track(
     @ColumnInfo(name = "duration")
     val durationMs: Long,
     @ColumnInfo(name = "addedToLibrary")
-    val addedToLibrary: LocalDateTime,
+    val addedToLibrary: ZonedDateTime,
     @ColumnInfo(name = "lastPlayed")
-    val lastPlayed: LocalDateTime? = null,
+    val lastPlayed: ZonedDateTime? = null,
     @ColumnInfo(name = "playedCount")
     val playedCount: Int = 0
 )
@@ -68,7 +70,7 @@ data class TrackWithAlbum(
         parentColumn = "album",
         entityColumn = "id"
     )
-    val album: Album
+    val album: Album?
 )
 
 data class AlbumWithTracks(
@@ -96,21 +98,21 @@ data class PlaylistWithTracks(
     val tracks: List<Track>
 )
 
-@Entity(primaryKeys = ["track", "added"], tableName = "queue")
+@Entity(primaryKeys = ["trackId", "added"], tableName = "queue")
 data class QueueItem(
     @ColumnInfo(name = "trackId")
     val track: Int,
     @ColumnInfo(name = "added")
-    val added: LocalDateTime,
+    val added: Instant,
     @ColumnInfo(name = "position")
     val position: Long? // If position != null the track is the currently played one
 )
 
 data class QueuedTrack(
-    @Embedded val track: Track,
+    @Embedded val queuedItem: QueueItem,
     @Relation(
-        parentColumn = "id",
+        parentColumn = "trackId",
         entityColumn = "trackId",
     )
-    val queuedItem: QueueItem
+    val track: Track
 )

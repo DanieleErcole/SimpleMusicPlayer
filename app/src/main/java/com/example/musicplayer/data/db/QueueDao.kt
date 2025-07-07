@@ -1,5 +1,6 @@
 package com.example.musicplayer.data.db
 
+import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -8,6 +9,7 @@ import com.example.musicplayer.data.QueueItem
 import com.example.musicplayer.data.QueuedTrack
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface QueueDao {
 
     @Query("SELECT * FROM queue ORDER BY added ASC")

@@ -1,5 +1,6 @@
 package com.example.musicplayer.data.db
 
+import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -12,6 +13,7 @@ import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackWithAlbum
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface TrackDao {
 
     @Query("SELECT * FROM track ORDER BY addedToLibrary ASC")

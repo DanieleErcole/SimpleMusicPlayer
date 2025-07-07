@@ -1,10 +1,14 @@
-package com.example.musicplayer.data
+package com.example.musicplayer.services
 
 import android.util.Log
 import androidx.media3.common.MediaItem
+import com.example.musicplayer.data.Album
+import com.example.musicplayer.data.MusicRepository
+import com.example.musicplayer.data.Track
+import com.example.musicplayer.data.UserPreferencesRepository
 import java.io.File
 import java.time.LocalDateTime
-import kotlin.String
+import java.time.ZonedDateTime
 
 class MusicScanner(private val musicRepo: MusicRepository, private val userPrefsRepo: UserPreferencesRepository) {
 
@@ -33,21 +37,23 @@ class MusicScanner(private val musicRepo: MusicRepository, private val userPrefs
                         Log.d(MusicScanner::class.simpleName, "Adding album: $albumId")
 
                         if (track == null) // If the track scanned does not exist in the db add it
-                            musicRepo.newTrack(Track(
-                                location = path,
-                                title = it.title.toString(),
-                                album = albumId,
-                                artist = it.artist.toString(),
-                                composer = it.composer.toString(),
-                                genre = it.genre.toString(),
-                                trackNumber = it.trackNumber ?: 1,
-                                discNumber = it.discNumber ?: 1,
-                                year = it.releaseYear ?: 0,
-                                addedToLibrary = LocalDateTime.now(),
-                                lastPlayed = null,
-                                durationMs = it.durationMs ?: 0,
-                                playedCount = 0
-                            ))
+                            musicRepo.newTrack(
+                                Track(
+                                    location = path,
+                                    title = it.title.toString(),
+                                    album = albumId,
+                                    artist = it.artist.toString(),
+                                    composer = it.composer.toString(),
+                                    genre = it.genre.toString(),
+                                    trackNumber = it.trackNumber ?: 1,
+                                    discNumber = it.discNumber ?: 1,
+                                    year = it.releaseYear ?: 0,
+                                    addedToLibrary = ZonedDateTime.now(),
+                                    lastPlayed = null,
+                                    durationMs = it.durationMs ?: 0,
+                                    playedCount = 0
+                                )
+                            )
                         else if (!File(path).exists()) // If it already exists in the db but not in the path anymore delete it
                             musicRepo.deleteTrack(track.track)
                     }

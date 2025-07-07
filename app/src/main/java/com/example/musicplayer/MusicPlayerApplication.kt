@@ -5,7 +5,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.example.musicplayer.data.MusicScanner
+import com.example.musicplayer.services.MusicScanner
 import com.example.musicplayer.data.UserPreferencesRepository
 import com.example.musicplayer.di.AppContainer
 import com.example.musicplayer.di.DefaultAppContainer
