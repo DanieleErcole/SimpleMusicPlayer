@@ -148,7 +148,7 @@ fun SliderToolbar(
 fun PlayerControls(
     //current: QueuedTrack,
     modifier: Modifier = Modifier
-) { //TODO: finish button dimensions
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,

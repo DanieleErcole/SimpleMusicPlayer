@@ -1,14 +1,11 @@
 package com.example.musicplayer.services
 
 import android.util.Log
-import androidx.compose.ui.res.painterResource
 import androidx.media3.common.MediaItem
-import com.example.musicplayer.R
 import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.utils.DefaultAlbum
-import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import java.time.ZonedDateTime
 
@@ -19,7 +16,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
         val tracks = musicRepo.getAllTracks()
         val unknownAlbum = addUnknownAlbum()
 
-        // Delete tracks which location is not present in the scanned dirs (previously deleted)
+        // Delete tracks whose location is not present in the scanned dirs (previously deleted)
         val toDelete = mutableListOf<Track>()
         tracks.forEach {
             val f = File(it.internal.location)

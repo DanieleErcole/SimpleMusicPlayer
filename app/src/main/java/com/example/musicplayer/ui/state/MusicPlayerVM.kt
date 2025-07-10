@@ -8,9 +8,13 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.UserPreferencesRepository
+import com.example.musicplayer.ui.AppScreen
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewModel() {
@@ -28,6 +32,8 @@ class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewMode
             started = SharingStarted.WhileSubscribed(5000)
         )
 
+    var prevScreen: AppScreen? = null
+
     fun updateScannedDirs(list: List<String>) {
         viewModelScope.launch {
             userPrefs.updateScannedDirs(list)
@@ -38,6 +44,10 @@ class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewMode
         viewModelScope.launch {
             userPrefs.firstLaunched()
         }
+    }
+
+    fun updatePrevScreen(screen: AppScreen) {
+        prevScreen = screen
     }
 
     companion object {
