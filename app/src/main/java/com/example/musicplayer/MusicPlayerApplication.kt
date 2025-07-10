@@ -25,7 +25,7 @@ class MusicPlayerApplication() : Application() {
         super.onCreate()
         container = DefaultAppContainer(this)
         userPreferencesRepository = UserPreferencesRepository(dataStore)
-        scanner = MusicScanner(container.musicRepository, userPreferencesRepository)
+        scanner = MusicScanner(container.musicRepository)
     }
 
 }

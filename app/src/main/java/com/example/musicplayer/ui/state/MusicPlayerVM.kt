@@ -7,33 +7,44 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
-import com.example.musicplayer.data.MusicRepository
-import com.example.musicplayer.data.QueuedTrack
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.musicplayer.data.UserPreferencesRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class CurrentPlayingVM(
-    private val musicRepo: MusicRepository
-) : ViewModel() {
+class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewModel() {
 
-    val curTrack: StateFlow<QueuedTrack?> = musicRepo.currentPlayingFlow()
+    val firstLaunch: StateFlow<Boolean> = userPrefs.firstLaunch
         .stateIn(
-            initialValue = null,
+            initialValue = true,
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
+    val scannedDirectories: StateFlow<List<String>> = userPrefs.scannedDirectories
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    fun updateScannedDirs(list: List<String>) {
+        viewModelScope.launch {
+            userPrefs.updateScannedDirs(list)
+        }
+    }
+
+    fun firstLaunched() {
+        viewModelScope.launch {
+            userPrefs.firstLaunched()
+        }
+    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
-                val repo = application.container.musicRepository
-                CurrentPlayingVM(musicRepo = repo)
+                MusicPlayerVM(userPrefs = application.userPreferencesRepository)
             }
         }
     }

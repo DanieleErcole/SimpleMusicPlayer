@@ -1,6 +1,7 @@
 package com.example.musicplayer.ui
 
 import android.os.Environment
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -9,12 +10,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.musicplayer.ui.screens.CurrentPlayingScreen
+import com.example.musicplayer.ui.state.CurrentPlayingVM
+import com.example.musicplayer.ui.state.MusicPlayerVM
 import com.example.musicplayer.utils.app
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,24 +41,24 @@ enum class AppScreen() {
 
 @Composable
 fun MusicPlayerApp(
+    appVm: MusicPlayerVM = viewModel(factory = MusicPlayerVM.Factory),
     navController: NavHostController = rememberNavController()
 ) {
     val app = app(LocalContext.current)
+    val scannedDirs = appVm.scannedDirectories.collectAsState()
+    val firstLaunch = appVm.firstLaunch.collectAsState()
 
-    //TODO: now scan manually and every time the directories are updated
-    LaunchedEffect(Unit) {
-        // If it's the first time the user launches the app we scan the directories
-        app.userPreferencesRepository.firstLaunch.collect {
-            if (it) {
-                app.userPreferencesRepository.updateScannedDirs(
-                    listOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath) // Default Music directory
-                )
-                withContext(Dispatchers.IO) {
-                    app.scanner.scanDirectories()
-                }
-                app.userPreferencesRepository.firstLaunched()
-            }
-        }
+    LaunchedEffect(scannedDirs.value) {
+        Log.i(null, "Scanning dirs")
+        app.scanner.scanDirectories(scannedDirs.value)
+    }
+
+    if (firstLaunch.value) {
+        Log.i(null, "Updating dirs")
+        appVm.updateScannedDirs(
+            listOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath) // Default Music directory
+        )
+        appVm.firstLaunched()
     }
 
     Scaffold(
@@ -65,10 +74,12 @@ fun MusicPlayerApp(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .navigationBarsPadding()
         ) {
             composable(route = AppScreen.Playing.name) {
-
+                CurrentPlayingScreen(
+                    vm = viewModel(factory = CurrentPlayingVM.Factory),
+                    modifier = Modifier
+                )
             }
             composable(route = AppScreen.Tracks.name) {
 

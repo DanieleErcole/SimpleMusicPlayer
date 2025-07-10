@@ -1,13 +1,13 @@
 package com.example.musicplayer.data
 
 import androidx.room.ColumnInfo
+import androidx.room.DatabaseView
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 @Entity(tableName = "playlist")
@@ -28,7 +28,7 @@ data class Album(
     val name: String,
     @ColumnInfo(name = "thumbnail")
     val thumbnail: String?,
-    @ColumnInfo(name = "artist")
+    @ColumnInfo(name = "albumArtist")
     val artist : String = "Unknown"
 )
 
@@ -41,7 +41,7 @@ data class Track(
     @ColumnInfo(name = "title")
     val title: String,
     @ColumnInfo(name = "album")
-    val album: Int? = null,
+    val album: Int,
     @ColumnInfo(name = "artist")
     val artist: String = "Unknown",
     @ColumnInfo(name = "composer")
@@ -64,13 +64,12 @@ data class Track(
     val playedCount: Int = 0
 )
 
+@DatabaseView(
+    value = "SELECT t.*, a.* FROM track t JOIN album a ON t.album = a.id"
+)
 data class TrackWithAlbum(
-    @Embedded val track: Track,
-    @Relation(
-        parentColumn = "album",
-        entityColumn = "id"
-    )
-    val album: Album?
+    @Embedded val internal: Track,
+    @Embedded val album: Album
 )
 
 data class AlbumWithTracks(
@@ -95,7 +94,7 @@ data class PlaylistWithTracks(
         entityColumn = "trackId",
         associateBy = Junction(TrackAddedToPlaylist::class)
     )
-    val tracks: List<Track>
+    val tracks: List<TrackWithAlbum>
 )
 
 @Entity(primaryKeys = ["trackId", "added"], tableName = "queue")
@@ -114,5 +113,5 @@ data class QueuedTrack(
         parentColumn = "trackId",
         entityColumn = "trackId",
     )
-    val track: Track
+    val track: TrackWithAlbum
 )

@@ -10,6 +10,7 @@ interface MusicRepository {
     fun getArtistTracks(name: String): Flow<List<TrackWithAlbum>>
     suspend fun newTrack(t: Track)
     suspend fun deleteTrack(t: Track)
+    suspend fun deleteTrackBlk(trackList: List<Track>)
 
     fun getAllPlaylists(): Flow<List<Playlist>>
     fun getPlaylistTracks(id: Int): Flow<PlaylistWithTracks>
