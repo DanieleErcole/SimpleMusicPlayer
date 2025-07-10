@@ -43,7 +43,7 @@ fun CustomSlider(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(trackSize)
-                        .background(Color.Gray)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
                 Box(
                     modifier = Modifier

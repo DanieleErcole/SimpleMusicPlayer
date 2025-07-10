@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Slider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -32,6 +29,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
 import com.example.musicplayer.ui.components.CustomSlider
+import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 
 @Composable
@@ -76,19 +74,26 @@ fun CurrentPlayingScreen(
             Text(
                 text = "Pleasing Jesus (Salvation)",
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                modifier = Modifier.padding()
+                fontSize = 18.sp
             )
             Text(
                 text = "Eric Cartman",
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 14.sp,
+                lineHeight = 14.sp,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
             )
             Text(
-                text = "Welcome Jesus in your Heart",
-                overflow = TextOverflow.Ellipsis
+                text = "Faith + 1",
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 14.sp,
+                lineHeight = 14.sp,
+                color = MaterialTheme.colorScheme.outline
             )
+            Spacer(modifier.fillMaxWidth().height(10.dp))
             UpperToolbar()
-            Spacer(modifier.fillMaxWidth().height(30.dp))
+            Spacer(modifier.fillMaxWidth().height(10.dp))
             SliderToolbar()
             Spacer(modifier.fillMaxWidth().height(30.dp))
             PlayerControls()
@@ -97,15 +102,38 @@ fun CurrentPlayingScreen(
     }
 }
 
-// Toolbar for favorite, info, add to playlist and shuffle
+// Toolbar for info, add to playlist and shuffle
 @Composable
 fun UpperToolbar(
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxWidth()
     ) {
-
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TransparentButton(
+                onClick = {  },
+                painter = painterResource(R.drawable.info),
+                contentDescription = "Song info",
+                tint = MaterialTheme.colorScheme.outline,
+            )
+            TransparentButton(
+                onClick = {  },
+                painter = painterResource(R.drawable.playlist_add),
+                contentDescription = "Playlist add",
+                tint = MaterialTheme.colorScheme.outline,
+            )
+            TransparentButton(
+                onClick = {  },
+                painter = painterResource(R.drawable.shuffle),
+                contentDescription = "Shuffle",
+                tint = MaterialTheme.colorScheme.outline,
+            )
+        }
     }
 }
 
@@ -154,76 +182,61 @@ fun PlayerControls(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
-        IconButton(
-            onClick = {  }
-        ) {
-            Icon(
-                //TODO: implement volume
-                painter = painterResource(R.drawable.volume_full),
-                contentDescription = "Current queue"
-            )
-        }
-        IconButton(
+        //TODO: implement volume
+        TransparentButton(
             onClick = {  },
+            painter = painterResource(R.drawable.volume_full),
+            contentDescription = "Volume dialog",
+            tint = MaterialTheme.colorScheme.outline
+        )
+        TransparentButton(
+            onClick = {  },
+            painter = painterResource(R.drawable.skip_prev_big),
+            contentDescription = "Skip previous",
+            tint = MaterialTheme.colorScheme.primary,
+            fullSizeIcon = true,
             modifier = Modifier.height(45.dp).width(45.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.skip_prev_big),
-                contentDescription = "Current queue",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        IconButton(
+        )
+        TransparentButton(
             onClick = {  },
+            painter = painterResource(R.drawable.fast_rewind),
+            contentDescription = "Fast rewind",
+            tint = MaterialTheme.colorScheme.outline,
+            fullSizeIcon = true,
             modifier = Modifier.height(35.dp).width(35.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.fast_rewind),
-                contentDescription = "Current queue",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        IconButton(
+        )
+        //TODO: implement play/pause
+        TransparentButton(
             onClick = {  },
+            painter = painterResource(R.drawable.play_big),
+            contentDescription = "Play/pause",
+            tint = MaterialTheme.colorScheme.primary,
+            fullSizeIcon = true,
             modifier = Modifier.height(50.dp).width(50.dp)
-        ) {
-            Icon(
-                //TODO: implement play/pause
-                painter = painterResource(R.drawable.play_big),
-                contentDescription = "Current queue",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        IconButton(
+        )
+        TransparentButton(
             onClick = {  },
+            painter = painterResource(R.drawable.fast_forward),
+            contentDescription = "Fast forward",
+            tint = MaterialTheme.colorScheme.outline,
+            fullSizeIcon = true,
             modifier = Modifier.height(35.dp).width(35.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.fast_forward),
-                contentDescription = "Current queue",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        IconButton(
+        )
+        TransparentButton(
             onClick = {  },
+            painter = painterResource(R.drawable.skip_next_big),
+            contentDescription = "Skip next",
+            tint = MaterialTheme.colorScheme.primary,
+            fullSizeIcon = true,
             modifier = Modifier.height(45.dp).width(45.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.skip_next_big),
-                contentDescription = "Current queue",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-        IconButton(
-            onClick = {  }
-        ) {
-            Icon(
-                //TODO: implement loop
-                painter = painterResource(R.drawable.repeat_one),
-                contentDescription = "Current queue",
-                tint = Color.Red,
-            )
-        }
+        )
+        //TODO: implement loop
+        TransparentButton(
+            onClick = {  },
+            painter = painterResource(R.drawable.repeat_one),
+            contentDescription = "Loop dialog",
+            tint = MaterialTheme.colorScheme.outline
+        )
     }
 }
 

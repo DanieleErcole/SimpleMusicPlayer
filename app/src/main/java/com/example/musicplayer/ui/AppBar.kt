@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.musicplayer.R
+import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.MusicPlayerVM
 
 @Composable
@@ -50,82 +51,64 @@ fun AppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                IconButton(
+                TransparentButton(
                     onClick = {
                         vm.updatePrevScreen(currentScreen)
                         navController.navigate(AppScreen.Queue.name)
                     },
-                    enabled = currentScreen.name != AppScreen.Queue.name
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.queue_icon),
-                        contentDescription = "Current queue",
-                        tint = if (currentScreen.name == AppScreen.Queue.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                IconButton(
+                    painter = painterResource(R.drawable.queue_icon),
+                    contentDescription = "Current queue",
+                    enabled = currentScreen.name != AppScreen.Queue.name,
+                    tint = if (currentScreen.name == AppScreen.Queue.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                TransparentButton(
                     onClick = {
                         vm.updatePrevScreen(currentScreen)
                         navController.navigate(AppScreen.Playing.name)
                     },
-                    enabled = currentScreen.name != AppScreen.Playing.name
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.play_tab_icon),
-                        contentDescription = "Current playing track",
-                        tint = if (currentScreen.name == AppScreen.Playing.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                IconButton(
+                    painter = painterResource(R.drawable.play_tab_icon),
+                    contentDescription = "Current playing track",
+                    enabled = currentScreen.name != AppScreen.Playing.name,
+                    tint = if (currentScreen.name == AppScreen.Playing.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                TransparentButton(
                     onClick = {
                         vm.updatePrevScreen(currentScreen)
                         navController.navigate(AppScreen.Tracks.name)
                     },
-                    enabled = currentScreen.name != AppScreen.Tracks.name
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.tracks_file),
-                        contentDescription = "Tracks",
-                        tint = if (currentScreen.name == AppScreen.Tracks.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                IconButton(
+                    painter = painterResource(R.drawable.tracks_file),
+                    contentDescription = "Tracks",
+                    enabled = currentScreen.name != AppScreen.Tracks.name,
+                    tint = if (currentScreen.name == AppScreen.Tracks.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                TransparentButton(
                     onClick = {
                         vm.updatePrevScreen(currentScreen)
                         navController.navigate(AppScreen.Albums.name)
                     },
-                    enabled = currentScreen.name != AppScreen.Albums.name
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.albums_icon),
-                        contentDescription = "Albums",
-                        tint = if (currentScreen.name == AppScreen.Albums.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                IconButton(
+                    painter = painterResource(R.drawable.albums_icon),
+                    contentDescription = "Albums",
+                    enabled = currentScreen.name != AppScreen.Albums.name,
+                    tint = if (currentScreen.name == AppScreen.Albums.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                TransparentButton(
                     onClick = {
                         vm.updatePrevScreen(currentScreen)
                         navController.navigate(AppScreen.Playlists.name)
                     },
-                    enabled = currentScreen.name != AppScreen.Playlists.name
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.playlists_icon),
-                        contentDescription = "Playlists",
-                        tint = if (currentScreen.name == AppScreen.Playlists.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                IconButton(
+                    painter = painterResource(R.drawable.playlists_icon),
+                    contentDescription = "Playlists",
+                    enabled = currentScreen.name != AppScreen.Playlists.name,
+                    tint = if (currentScreen.name == AppScreen.Playlists.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                TransparentButton(
                     onClick = {
                         //TODO: open the menu
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "Dropdown menu",
-                        tint = if (currentScreen.name == AppScreen.Settings.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+                    },
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = "Dropdown menu",
+                    tint = if (currentScreen.name == AppScreen.Settings.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                )
             }
         }
     }
