@@ -6,12 +6,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +16,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.musicplayer.R
+import com.example.musicplayer.ui.components.CustomContextMenuBtn
+import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.MusicPlayerVM
 
@@ -101,14 +99,34 @@ fun AppBar(
                     enabled = currentScreen.name != AppScreen.Playlists.name,
                     tint = if (currentScreen.name == AppScreen.Playlists.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
-                TransparentButton(
-                    onClick = {
-                        //TODO: open the menu
-                    },
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "Dropdown menu",
+                TransparentBtnWithContextMenu(
+                    painter = painterResource(R.drawable.more),
+                    contentDescription = "More options",
                     tint = if (currentScreen.name == AppScreen.Settings.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                ) {
+                    CustomContextMenuBtn(
+                        onClick = {
+                            val list = vm.scannedDirectories.value
+                            vm.updateScannedDirs(emptyList())
+                            vm.updateScannedDirs(list)
+                        },
+                        painter = painterResource(R.drawable.scan),
+                        text = "scan",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    CustomContextMenuBtn(
+                        onClick = { navController.navigate(AppScreen.Settings.name) },
+                        painter = painterResource(R.drawable.settings),
+                        text = "Settings",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    CustomContextMenuBtn(
+                        onClick = {  },
+                        painter = painterResource(R.drawable.power),
+                        text = "Close app",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

@@ -1,15 +1,8 @@
 package com.example.musicplayer.ui.components
 
-import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.EaseIn
-import androidx.compose.animation.core.EaseInElastic
-import androidx.compose.animation.core.EaseInExpo
-import androidx.compose.animation.core.EaseOut
-import androidx.compose.animation.core.EaseOutElastic
-import androidx.compose.animation.core.EaseOutExpo
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.navigation.NavBackStackEntry
@@ -22,7 +15,7 @@ fun AnimatedContentTransitionScope<NavBackStackEntry>.slideInConditional(from: A
         else if (to.index == from.index) return EnterTransition.None
         else if (to.index > from.index) AnimatedContentTransitionScope.SlideDirection.Left
         else AnimatedContentTransitionScope.SlideDirection.Right
-    return slideIntoContainer(towards = direction, animationSpec = tween(300, easing = EaseInExpo))
+    return slideIntoContainer(towards = direction, animationSpec = tween(500))
 }
 
 fun AnimatedContentTransitionScope<NavBackStackEntry>.slideOutConditional(from: AppScreen, to: AppScreen): ExitTransition {
@@ -31,5 +24,5 @@ fun AnimatedContentTransitionScope<NavBackStackEntry>.slideOutConditional(from: 
         if (to.index == from.index) return ExitTransition.None
         else if (to.index > from.index) AnimatedContentTransitionScope.SlideDirection.Right
         else AnimatedContentTransitionScope.SlideDirection.Left
-    return slideOutOfContainer(towards = direction, animationSpec = tween(300, easing = EaseOutExpo))
+    return slideOutOfContainer(towards = direction, animationSpec = tween(500))
 }

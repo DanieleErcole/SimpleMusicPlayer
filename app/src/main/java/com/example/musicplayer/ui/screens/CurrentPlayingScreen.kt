@@ -15,6 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -29,7 +33,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
 import com.example.musicplayer.ui.components.CustomSlider
+import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
+import com.example.musicplayer.ui.components.dialogs.LoopDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 
 @Composable
@@ -96,7 +102,7 @@ fun CurrentPlayingScreen(
             Spacer(modifier.fillMaxWidth().height(10.dp))
             SliderToolbar()
             Spacer(modifier.fillMaxWidth().height(30.dp))
-            PlayerControls()
+            PlayerControls(vm = vm)
             Spacer(modifier.fillMaxWidth().height(40.dp))
         }
     }
@@ -174,7 +180,7 @@ fun SliderToolbar(
 // Main toolbar, with skip next/previous, fast forward/rewind, play/pause, volume and loop
 @Composable
 fun PlayerControls(
-    //current: QueuedTrack,
+    vm: CurrentPlayingVM,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -183,12 +189,35 @@ fun PlayerControls(
         modifier = modifier.fillMaxWidth()
     ) {
         //TODO: implement volume
-        TransparentButton(
-            onClick = {  },
+        TransparentBtnWithContextMenu(
             painter = painterResource(R.drawable.volume_full),
             contentDescription = "Volume dialog",
             tint = MaterialTheme.colorScheme.outline
-        )
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(200.dp)
+                    .height(20.dp)
+            ) {
+                Text(
+                    text = "50",
+                    fontSize = 14.sp,
+                    lineHeight = 14.sp
+                )
+                CustomSlider(
+                    value = 50f,
+                    valueRange = 0f..100f,
+                    onValueChange = {
+
+                    },
+                    trackSize = 2.dp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
         TransparentButton(
             onClick = {  },
             painter = painterResource(R.drawable.skip_prev_big),
@@ -231,12 +260,13 @@ fun PlayerControls(
             modifier = Modifier.height(45.dp).width(45.dp)
         )
         //TODO: implement loop
-        TransparentButton(
-            onClick = {  },
+        TransparentBtnWithContextMenu(
             painter = painterResource(R.drawable.repeat_one),
             contentDescription = "Loop dialog",
             tint = MaterialTheme.colorScheme.outline
-        )
+        ) {
+            LoopDialog(vm = vm)
+        }
     }
 }
 
