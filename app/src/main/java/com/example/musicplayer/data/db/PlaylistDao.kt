@@ -15,11 +15,15 @@ interface PlaylistDao {
 
     @Transaction
     @Query("SELECT * FROM playlist ORDER BY created ASC")
-    fun getAllPlaylists(): Flow<List<Playlist>>
+    fun getAllPlaylists(): Flow<List<PlaylistWithTracks>>
 
     @Transaction
     @Query("SELECT * FROM playlist WHERE playlistId = :id")
     fun getPlaylistTracks(id: Int): Flow<PlaylistWithTracks>
+
+    @Transaction
+    @Query("SELECT p.* FROM playlist p JOIN trackAddedTOPlaylist t ON t.trackId = :id")
+    fun getTrackPlaylists(id: Int): Flow<List<Playlist>>
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.ABORT)

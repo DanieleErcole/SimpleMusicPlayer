@@ -1,4 +1,44 @@
 package com.example.musicplayer.ui.state
 
-class PlaylistsVM {
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.musicplayer.MusicPlayerApplication
+import com.example.musicplayer.data.MusicRepository
+import com.example.musicplayer.data.PlaylistWithTracks
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+
+class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
+
+    val playlists: StateFlow<List<PlaylistWithTracks>> = musicRepo.getAllPlaylists()
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    private val _openAddDialog = MutableStateFlow(false)
+    val openAddDialog = _openAddDialog.asStateFlow()
+
+    fun toggleDialog() {
+        _openAddDialog.update { !_openAddDialog.value }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
+                PlaylistsVM(musicRepo = application.container.musicRepository)
+            }
+        }
+    }
+
 }

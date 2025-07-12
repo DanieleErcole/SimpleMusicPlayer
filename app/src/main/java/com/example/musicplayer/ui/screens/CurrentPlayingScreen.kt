@@ -15,10 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -32,85 +28,99 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
+import com.example.musicplayer.data.QueuedTrack
 import com.example.musicplayer.ui.components.CustomSlider
 import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
+import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.LoopDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
+import com.example.musicplayer.ui.state.PlaylistsVM
 
 @Composable
 fun CurrentPlayingScreen(
     vm: CurrentPlayingVM,
+    plVm: PlaylistsVM,
     modifier: Modifier
 ) {
     val cur = vm.curTrack.collectAsState()
-    //cur.value?.let {
-    //} ?: NothingPlaying()
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(.6f)
-        ) {
-            AsyncImage(
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .padding(40.dp),
-                model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(null)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Mhanz",
-                error = painterResource(R.drawable.unknown_thumb),
-                placeholder = painterResource(R.drawable.unknown_thumb),
-                contentScale = ContentScale.FillBounds
-            )
-        }
+    cur.value?.let { current ->
+        AddToPlaylistDialog(
+            curTrack = current,
+            plVm = plVm
+        )
+
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
-                .weight(.4f)
         ) {
-            Text(
-                text = "Pleasing Jesus (Salvation)",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "Eric Cartman",
-                overflow = TextOverflow.Ellipsis,
-                fontSize = 14.sp,
-                lineHeight = 14.sp,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
-            )
-            Text(
-                text = "Faith + 1",
-                overflow = TextOverflow.Ellipsis,
-                fontSize = 14.sp,
-                lineHeight = 14.sp,
-                color = MaterialTheme.colorScheme.outline
-            )
-            Spacer(modifier.fillMaxWidth().height(10.dp))
-            UpperToolbar()
-            Spacer(modifier.fillMaxWidth().height(10.dp))
-            SliderToolbar()
-            Spacer(modifier.fillMaxWidth().height(30.dp))
-            PlayerControls(vm = vm)
-            Spacer(modifier.fillMaxWidth().height(40.dp))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(.6f)
+            ) {
+                AsyncImage(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .padding(40.dp),
+                    model = ImageRequest.Builder(context = LocalContext.current)
+                        .data(current.track.album.thumbnail)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = current.track.internal.title,
+                    error = painterResource(R.drawable.unknown_thumb),
+                    placeholder = painterResource(R.drawable.unknown_thumb),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(.4f)
+            ) {
+                Text(
+                    text = current.track.internal.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = current.track.internal.artist,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 14.sp,
+                    lineHeight = 14.sp,
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
+                )
+                Text(
+                    text = current.track.album.name,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 14.sp,
+                    lineHeight = 14.sp,
+                    color = MaterialTheme.colorScheme.outline
+                )
+                Spacer(modifier.fillMaxWidth().height(10.dp))
+                UpperToolbar(
+                    current = current,
+                    plVm = plVm
+                )
+                Spacer(modifier.fillMaxWidth().height(10.dp))
+                SliderToolbar(current = current)
+                Spacer(modifier.fillMaxWidth().height(30.dp))
+                PlayerControls(vm = vm)
+                Spacer(modifier.fillMaxWidth().height(40.dp))
+            }
         }
-    }
+    } ?: NothingPlaying()
 }
 
 // Toolbar for info, add to playlist and shuffle
 @Composable
 fun UpperToolbar(
+    current: QueuedTrack,
+    plVm: PlaylistsVM,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -128,7 +138,7 @@ fun UpperToolbar(
                 tint = MaterialTheme.colorScheme.outline,
             )
             TransparentButton(
-                onClick = {  },
+                onClick = { plVm.toggleDialog() },
                 painter = painterResource(R.drawable.playlist_add),
                 contentDescription = "Playlist add",
                 tint = MaterialTheme.colorScheme.outline,
@@ -146,7 +156,7 @@ fun UpperToolbar(
 // Slider toolbar, with timestamps
 @Composable
 fun SliderToolbar(
-    //current: QueuedTrack,
+    current: QueuedTrack,
     modifier: Modifier = Modifier
 ) {
     Row(

@@ -12,8 +12,9 @@ interface MusicRepository {
     suspend fun deleteTrack(t: Track)
     suspend fun deleteTrackBlk(trackList: List<Track>)
 
-    fun getAllPlaylists(): Flow<List<Playlist>>
+    fun getAllPlaylists(): Flow<List<PlaylistWithTracks>>
     fun getPlaylistTracks(id: Int): Flow<PlaylistWithTracks>
+    fun getTrackPlaylists(id: Int): Flow<List<Playlist>>
     suspend fun newPlaylist(pl: Playlist)
     suspend fun deletePlaylist(pl: Playlist)
 

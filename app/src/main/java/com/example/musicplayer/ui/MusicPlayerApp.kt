@@ -27,6 +27,7 @@ import com.example.musicplayer.ui.components.slideOutConditional
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.MusicPlayerVM
+import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.utils.app
 
 enum class AppScreen(val index: Int) {
@@ -104,6 +105,7 @@ fun MusicPlayerApp(
             ) {
                 CurrentPlayingScreen(
                     vm = viewModel(factory = CurrentPlayingVM.Factory),
+                    plVm = viewModel(factory = PlaylistsVM.Factory),
                     modifier = Modifier
                 )
             }
