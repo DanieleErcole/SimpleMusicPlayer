@@ -22,8 +22,8 @@ data class Playlist(
 
 @Entity(tableName = "album")
 data class Album(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey()
+    val id: Long = 0,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "thumbnail")
@@ -34,14 +34,14 @@ data class Album(
 
 @Entity(tableName = "track")
 data class Track(
-    @PrimaryKey(autoGenerate = true)
-    val trackId: Int = 0,
+    @PrimaryKey()
+    val trackId: Long = 0,
     @ColumnInfo(name = "location")
     val location: String,
     @ColumnInfo(name = "title")
     val title: String,
     @ColumnInfo(name = "album")
-    val album: Int,
+    val album: Long,
     @ColumnInfo(name = "artist")
     val artist: String = "Unknown",
     @ColumnInfo(name = "composer")

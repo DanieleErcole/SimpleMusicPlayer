@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
@@ -36,17 +37,18 @@ import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.LoopDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.PlaylistsVM
+import com.example.musicplayer.utils.formatTimestamp
 
 @Composable
 fun CurrentPlayingScreen(
-    vm: CurrentPlayingVM,
-    plVm: PlaylistsVM,
-    modifier: Modifier
+    modifier: Modifier = Modifier,
+    vm: CurrentPlayingVM = viewModel(factory = CurrentPlayingVM.Factory),
+    plVm: PlaylistsVM = viewModel(factory = PlaylistsVM.Factory),
 ) {
     val cur = vm.curTrack.collectAsState()
     cur.value?.let { current ->
         AddToPlaylistDialog(
-            curTrack = current,
+            track = current.track,
             plVm = plVm
         )
 
@@ -71,7 +73,7 @@ fun CurrentPlayingScreen(
                     contentDescription = current.track.internal.title,
                     error = painterResource(R.drawable.unknown_thumb),
                     placeholder = painterResource(R.drawable.unknown_thumb),
-                    contentScale = ContentScale.FillBounds
+                    contentScale = ContentScale.Crop
                 )
             }
             Column(
@@ -138,7 +140,7 @@ fun UpperToolbar(
                 tint = MaterialTheme.colorScheme.outline,
             )
             TransparentButton(
-                onClick = { plVm.toggleDialog() },
+                onClick = { plVm.toggleAddDialog() },
                 painter = painterResource(R.drawable.playlist_add),
                 contentDescription = "Playlist add",
                 tint = MaterialTheme.colorScheme.outline,
@@ -180,10 +182,10 @@ fun SliderToolbar(
                 .height(10.dp)
         )
         Text(
-            text = "01:00",
+            text = formatTimestamp(current.track.internal.durationMs),
             fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 8.dp)
-        )//formatTimestamp(current.track.internal.durationMs))
+        )
     }
 }
 

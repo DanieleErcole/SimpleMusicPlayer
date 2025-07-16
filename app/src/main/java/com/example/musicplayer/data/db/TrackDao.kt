@@ -29,8 +29,8 @@ interface TrackDao {
     fun getAllArtists(): Flow<List<String>>
 
     @Transaction
-    @Query("SELECT * FROM TrackWithAlbum WHERE artist = :name ORDER BY addedToLibrary ASC")
-    fun getArtistTracks(name: String): Flow<List<TrackWithAlbum>>
+    @Query("SELECT * FROM TrackWithAlbum WHERE artist IN (:names) ORDER BY addedToLibrary ASC")
+    fun getArtistTracks(names: List<String>): Flow<List<TrackWithAlbum>>
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.ABORT)
@@ -42,6 +42,6 @@ interface TrackDao {
     suspend fun delete(t: Track)
     @Transaction
     @Query("DELETE FROM track WHERE trackId IN (:idList)")
-    suspend fun deleteBlk(idList: List<Int>)
+    suspend fun deleteBlk(idList: List<Long>)
 
 }

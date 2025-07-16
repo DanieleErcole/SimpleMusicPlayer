@@ -1,113 +1,164 @@
 package com.example.musicplayer.services
 
+import android.content.ContentUris
+import android.content.Context
+import android.provider.MediaStore
 import android.util.Log
-import androidx.media3.common.MediaItem
 import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.utils.DefaultAlbum
-import java.io.File
+import com.example.musicplayer.utils.albumUriBase
+import com.example.musicplayer.utils.nullableIntColumn
+import com.example.musicplayer.utils.nullableLongColumn
+import com.example.musicplayer.utils.nullableStringColumn
 import java.time.ZonedDateTime
 
 class MusicScanner(private val musicRepo: MusicRepository) {
 
-    suspend fun scanDirectories(scannedDirs: List<String>) {
-        val albums = musicRepo.getAllAlbums()
-        val tracks = musicRepo.getAllTracks()
-        val unknownAlbum = addUnknownAlbum()
+    suspend fun scanDirectories(ctx: Context, scannedDirs: List<String>) {
+        val albums = musicRepo.getAllAlbums().toMutableList()
+        val tracks = musicRepo.getAllTracks().map { it.internal }.toMutableList()
+        addUnknownAlbum()
 
+        //TODO: rewrite this using mediaStore, because it does not detect it
         // Delete tracks whose location is not present in the scanned dirs (previously deleted)
-        val toDelete = mutableListOf<Track>()
+        /*val toDelete = mutableListOf<Track>()
         tracks.forEach {
-            val f = File(it.internal.location)
+            val f = File(it.location)
             if (f.exists() && !scannedDirs.contains(f.parent!!))
-                toDelete.add(it.internal)
+                toDelete.add(it)
         }
-        musicRepo.deleteTrackBlk(toDelete)
+        musicRepo.deleteTrackBlk(toDelete)*/
 
         scannedDirs.forEach { dir ->
             Log.i(MusicScanner::class.simpleName, "Scanning directory $dir")
-            scanDir(dir).forEach { (path, audioFile) ->
-                audioFile.mediaMetadata.let {
-                    // Check whether the track and its album already exists
-                    val album = albums.find { a -> it.albumTitle.toString() == a.name }
-                    val track = tracks.find { it.internal.location == path }
+            scanDir(ctx, dir).forEach { (track, album) ->
+                // Check whether the track and its album already exists
+                if (tracks.find { it.trackId == track.trackId } != null)
+                    return
 
-                    // Get the album id
-                    val albumId = album?.id ?: run {
-                        // if the album title is null or empty we associate it to the unknown album
-                        if (it.albumTitle == null || it.albumTitle.toString().isEmpty())
-                            unknownAlbum.id
-                        else { // If we're here the album is valid and must be added to the db
-                            val a = Album(
-                                name = it.albumTitle.toString(),
-                                thumbnail = it.artworkUri?.toString(),
-                                artist = it.albumArtist.toString()
-                            )
-                            musicRepo.newAlbum(a)
-                            a.id
-                        }
-                    }
-
-                    Log.i(MusicScanner::class.simpleName, "Adding album: $albumId")
-
-                    if (track == null) // If the scanned track does not exist in the db add it
-                        musicRepo.newTrack(
-                            Track(
-                                location = path,
-                                title = it.title?.toString() ?: DefaultAlbum.UNKNOWN,
-                                album = albumId,
-                                artist = it.artist?.toString() ?: DefaultAlbum.UNKNOWN,
-                                composer = it.composer?.toString() ?: DefaultAlbum.UNKNOWN,
-                                genre = it.genre?.toString() ?: DefaultAlbum.UNKNOWN,
-                                trackNumber = it.trackNumber ?: 1,
-                                discNumber = it.discNumber ?: 1,
-                                year = it.releaseYear ?: 0,
-                                addedToLibrary = ZonedDateTime.now(),
-                                lastPlayed = null,
-                                durationMs = it.durationMs ?: 0,
-                                playedCount = 0
-                            )
-                        )
-                    else if (!File(path).exists()) // If it already exists in the db but not in the path anymore delete it
-                        musicRepo.deleteTrack(track.internal)
+                albums.find { a -> album.id == a.id } ?: run {
+                    Log.i(MusicScanner::class.simpleName, "Adding album ${album.name} with id ${album.id}")
+                    musicRepo.newAlbum(album)
+                    albums.add(album)
                 }
+
+                //TODO: move this somewhere else because I took track from the fs, so it exists, this cleanup must be done somewhere else (MusicScannerConnection?)
+                /*if (!File(track.location).exists()) // If it already exists in the db but not in the path anymore delete it
+                    musicRepo.deleteTrack(track)*/
+                Log.i(MusicScanner::class.simpleName, "Adding track ${track.location} with id ${track.trackId}")
+                musicRepo.newTrack(track)
+                tracks.add(track)
             }
         }
         Log.i(MusicScanner::class.simpleName, "Finished scanning dirs")
     }
 
-    private suspend fun addUnknownAlbum(): Album {
-        return musicRepo.getAllAlbums().find { it.name == DefaultAlbum.UNKNOWN_ALBUM_NAME } ?: run {
+    private suspend fun addUnknownAlbum() {
+        musicRepo.getAllAlbums().find { it.name == DefaultAlbum.UNKNOWN_ALBUM_NAME } ?: run {
+            Log.i(MusicScanner::class.simpleName, "Adding unknown album")
             val newAlbum = Album(
                 name = DefaultAlbum.UNKNOWN_ALBUM_NAME,
                 thumbnail = null,
                 artist = DefaultAlbum.UNKNOWN_ARTIST
             )
             musicRepo.newAlbum(newAlbum)
-            newAlbum
         }
     }
 
-    private fun scanDir(dirPath: String): List<Pair<String, MediaItem>> {
-        val dir = File(dirPath)
-        val fileList = mutableListOf<Pair<String, MediaItem>>()
+    private fun scanDir(ctx: Context, dirPath: String): List<Pair<Track, Album>> {
+        val fileList = mutableListOf<Pair<Track, Album>>()
+        val cursor = ctx.contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            arrayOf(
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.DISPLAY_NAME,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.DISC_NUMBER,
+                MediaStore.Audio.Media.COMPOSER,
+                MediaStore.Audio.Media.YEAR,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.ALBUM_ARTIST,
+                MediaStore.Audio.Media.ALBUM_ID,
+            ),
+            "${MediaStore.Audio.Media.DATA} LIKE ?",
+            arrayOf("$dirPath%"),
+            null
+        )
 
-        if (dir.isDirectory) {
-            dir.listFiles()?.forEach { file ->
-                if (file.isFile && isAudioFile(file))
-                    fileList.add(Pair(file.absolutePath, MediaItem.fromUri(file.absolutePath)))
-                else if (file.isDirectory)
-                    fileList.addAll(scanDir(file.absolutePath))
+        Log.i(MusicScanner::class.simpleName, "${cursor?.count}")
+        cursor?.use {
+            val isMusicColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC)
+            val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val dataColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+            val trackNumberColumn = it.getColumnIndex(MediaStore.Audio.Media.TRACK)
+            val discNumberColumn = it.getColumnIndex(MediaStore.Audio.Media.DISC_NUMBER)
+            val composerColumn = it.getColumnIndex(MediaStore.Audio.Media.COMPOSER)
+            val yearColumn = it.getColumnIndex(MediaStore.Audio.Media.YEAR)
+            val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
+            val durationColumn = it.getColumnIndex(MediaStore.Audio.Media.DURATION)
+            val artistColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+            val albumColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+            val albumArtistColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ARTIST)
+            val albumIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+
+            while (it.moveToNext()) {
+                if (it.getInt(isMusicColumn) == 0) continue
+
+                val id = it.getLong(idColumn)
+
+                val data = it.getString(dataColumn)
+                val name = it.getString(nameColumn)
+                val trackNumber = it.nullableIntColumn(trackNumberColumn)
+                val discNumber = it.nullableIntColumn(discNumberColumn)
+                val composer = it.nullableStringColumn(composerColumn)
+                val year = it.nullableIntColumn(yearColumn)
+                val title = it.nullableStringColumn(titleColumn)
+                val duration = it.nullableLongColumn(durationColumn)
+                val artist = it.nullableStringColumn(artistColumn)
+                val albumTitle = it.nullableStringColumn(albumColumn)
+                val albumArtist = it.nullableStringColumn(albumArtistColumn)
+
+                val albumId = it.nullableLongColumn(albumIdColumn)
+                val albumUri = albumId?.let { ContentUris.withAppendedId(albumUriBase, albumId).toString() }
+
+                Log.i(MusicScanner::class.simpleName, "Found audio file: $name at $data")
+
+                val aId = albumId ?: DefaultAlbum.UNKNOWN_ID
+                fileList.add(Pair(
+                    second = Album(
+                        id = aId,
+                        name = albumTitle?.ifEmpty { DefaultAlbum.UNKNOWN_ALBUM_NAME } ?: DefaultAlbum.UNKNOWN_ALBUM_NAME,
+                        thumbnail = albumUri,
+                        artist = albumArtist ?: DefaultAlbum.UNKNOWN_ARTIST
+                    ),
+                    first = Track(
+                        trackId = id,
+                        location = data,
+                        title = title ?: DefaultAlbum.UNKNOWN,
+                        album = aId,
+                        artist = artist ?: DefaultAlbum.UNKNOWN,
+                        composer = composer ?: DefaultAlbum.UNKNOWN,
+                        genre = DefaultAlbum.UNKNOWN, //TODO. decide whether to remove it or set minSdk == 30
+                        trackNumber = trackNumber ?: 1,
+                        discNumber = discNumber ?: 1,
+                        year = year ?: 0,
+                        addedToLibrary = ZonedDateTime.now(),
+                        lastPlayed = null,
+                        durationMs = duration ?: 0,
+                        playedCount = 0
+                    )
+                ))
             }
         }
-
         return fileList
-    }
-
-    private fun isAudioFile(file: File): Boolean {
-        val audioExtensions = listOf("flac", "ogg", "mp3", "wav")
-        return audioExtensions.any { file.extension.contentEquals(it, ignoreCase = true) }
     }
 
 }

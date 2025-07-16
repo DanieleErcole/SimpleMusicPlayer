@@ -1,7 +1,11 @@
 package com.example.musicplayer.ui
 
+import android.Manifest
+import android.os.Build
 import android.os.Environment
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,6 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,10 +32,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.musicplayer.ui.components.slideInConditional
 import com.example.musicplayer.ui.components.slideOutConditional
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
-import com.example.musicplayer.ui.state.CurrentPlayingVM
+import com.example.musicplayer.ui.screens.TracksScreen
 import com.example.musicplayer.ui.state.MusicPlayerVM
-import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.utils.app
+import com.example.musicplayer.utils.hasPermission
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class AppScreen(val index: Int) {
     Queue(0),
@@ -47,19 +56,40 @@ fun MusicPlayerApp(
     appVm: MusicPlayerVM = viewModel(factory = MusicPlayerVM.Factory),
     navController: NavHostController = rememberNavController()
 ) {
-    val app = app(LocalContext.current)
+    val ctx = LocalContext.current
+    val app = app(ctx)
     val scannedDirs = appVm.scannedDirectories.collectAsState()
     val firstLaunch = appVm.firstLaunch.collectAsState()
 
-    LaunchedEffect(scannedDirs.value) {
-        Log.i(null, "Scanning dirs")
-        app.scanner.scanDirectories(scannedDirs.value)
+    val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
+    else Manifest.permission.READ_EXTERNAL_STORAGE
+
+    var relaunchPermission by remember { mutableStateOf(false) }
+    var hasPermission by remember {
+        mutableStateOf(ctx.applicationContext.hasPermission(permission))
+    }
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { hasPermission = it }
+    )
+
+    if (!hasPermission)
+        LaunchedEffect(Unit, relaunchPermission) { permissionsLauncher.launch(permission) }
+
+    LaunchedEffect(scannedDirs.value, hasPermission) {
+        if (hasPermission) {
+            Log.i(null, "Scanning dirs")
+            withContext(Dispatchers.IO) {
+                app.scanner.scanDirectories(ctx, scannedDirs.value)
+            }
+        }
     }
 
     if (firstLaunch.value) {
         Log.i(null, "Updating dirs")
         appVm.updateScannedDirs(
-            listOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath) // Default Music directory
+            // Default Music directory
+            listOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath)
         )
         appVm.firstLaunched()
     }
@@ -103,18 +133,14 @@ fun MusicPlayerApp(
                 exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Playing) },
                 popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Playing) }
             ) {
-                CurrentPlayingScreen(
-                    vm = viewModel(factory = CurrentPlayingVM.Factory),
-                    plVm = viewModel(factory = PlaylistsVM.Factory),
-                    modifier = Modifier
-                )
+                CurrentPlayingScreen()
             }
             composable(
                 route = AppScreen.Tracks.name,
                 exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Tracks) },
                 popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Tracks) }
             ) {
-
+                TracksScreen()
             }
             composable(
                 route = AppScreen.Albums.name,
@@ -142,7 +168,8 @@ fun MusicPlayerApp(
                 exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.TrackList) },
                 popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.TrackList) }
             ) {
-                //TODO: use Gson JSON serialization to pass the album/playlist/queue here as a string, or create an object with a title or the track list
+                //TODO: use Gson JSON serialization to pass the album/playlist here as a string, or create an object with a title or the track list
+                //TODO: or pass only the mode
             }
         }
     }

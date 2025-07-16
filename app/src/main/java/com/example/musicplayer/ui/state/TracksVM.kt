@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui.state
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -8,52 +9,47 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.MusicRepository
-import com.example.musicplayer.data.Playlist
-import com.example.musicplayer.data.PlaylistWithTracks
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import java.time.ZonedDateTime
 
-class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
+class TracksVM(private val musicRepo: MusicRepository) : ViewModel() {
 
-    val playlists: StateFlow<List<PlaylistWithTracks>> = musicRepo.getAllPlaylists()
+    private val _selectedFilters = MutableStateFlow<List<String>>(emptyList())
+    val selectedFilters = _selectedFilters.asStateFlow()
+
+    val artistFilters = musicRepo.getAllArtists()
+        .stateIn(
+            initialValue = emptyList(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+    val tracks = musicRepo.getAllTracksFlow()
+        .combine(_selectedFilters) { allTracks, filters ->
+            if (filters.isEmpty()) allTracks
+            else allTracks.filter { filters.contains(it.internal.artist) }
+        }
         .stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    private val _openAddDialog = MutableStateFlow(false)
-    val openAddDialog = _openAddDialog.asStateFlow()
-
-    private val _openNewDialog = MutableStateFlow(false)
-    val openNewDialog = _openNewDialog.asStateFlow()
-
-    fun toggleAddDialog() = _openAddDialog.update { !_openAddDialog.value }
-
-    fun toggleNewDialog() = _openNewDialog.update { !_openNewDialog.value }
-
-    fun newPlaylist(name: String) {
-        viewModelScope.launch {
-            musicRepo.newPlaylist(
-                Playlist(
-                    name = name,
-                    created = ZonedDateTime.now()
-                )
-            )
+    fun selectFilter(name: String) =
+        _selectedFilters.update {
+            if (it.contains(name))
+                it - name
+            else it + name
         }
-    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
-                PlaylistsVM(musicRepo = application.container.musicRepository)
+                TracksVM(musicRepo = application.container.musicRepository)
             }
         }
     }

@@ -16,7 +16,6 @@ class LocalMusicRepository(
     override suspend fun getAllTracks(): List<TrackWithAlbum> = trackDao.getAllTracks()
     override fun getAllTracksFlow(): Flow<List<TrackWithAlbum>> = trackDao.getAllTracksFlow()
     override fun getAllArtists(): Flow<List<String>> = trackDao.getAllArtists()
-    override fun getArtistTracks(name: String): Flow<List<TrackWithAlbum>> = trackDao.getArtistTracks(name)
     override suspend fun newTrack(t: Track) = trackDao.insert(t)
     override suspend fun deleteTrack(t: Track) = trackDao.delete(t)
     override suspend fun deleteTrackBlk(trackList: List<Track>) = trackDao.deleteBlk(trackList.map { it.trackId })
