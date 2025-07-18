@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.musicplayer.data.Album
-import com.example.musicplayer.data.AlbumWithTracks
+import com.example.musicplayer.data.TrackWithAlbum
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,8 +20,12 @@ interface AlbumDao {
     fun getAllAlbumsFlow(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE id = :id")
-    fun getAlbumTracks(id: Int): Flow<AlbumWithTracks>
+    @Query("""
+        SELECT * FROM TrackWithAlbum 
+        WHERE album = :id 
+            AND (:searchString IS NULL OR title LIKE '%' || :searchString || '%' OR name LIKE '%' || :searchString || '%')
+    """)
+    fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
 
     @Transaction
     @Insert

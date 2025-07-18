@@ -13,7 +13,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,11 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.musicplayer.R
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.components.CustomContextMenuCheckboxBtn
 import com.example.musicplayer.ui.components.TransparentButton
-import com.example.musicplayer.ui.state.Divider
+import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.state.PlaylistsVM
 
 @Composable
@@ -36,14 +36,14 @@ fun AddToPlaylistDialog(
     plVm: PlaylistsVM,
     modifier: Modifier = Modifier
 ) {
-    val openAddDialog = plVm.openAddDialog.collectAsState()
+    val openAddDialog = plVm.openAddDialog.collectAsStateWithLifecycle()
     if (openAddDialog.value) {
         BaseDialog(onDismissRequest = { plVm.toggleAddDialog() }) {
-            val playlists = plVm.playlists.collectAsState()
+            val playlists = plVm.playlists.collectAsStateWithLifecycle()
             val itemsState = remember {
-                mutableStateMapOf<Int, Boolean>().apply {
+                mutableStateMapOf<Long, Boolean>().apply {
                     playlists.value.forEach { pl ->
-                        put(pl.playlist.playlistId, false)
+                        put(pl.playlistId, false)
                     }
                 }
             }
@@ -64,15 +64,14 @@ fun AddToPlaylistDialog(
                         verticalArrangement = Arrangement.SpaceEvenly
                     ) {
                         items(playlists.value) { pl ->
-                            if (pl.tracks.find { it.internal.trackId == track.internal.trackId } == null) {
-                                CustomContextMenuCheckboxBtn(
-                                    onClick = { itemsState[pl.playlist.playlistId]?.let { itemsState[pl.playlist.playlistId] = !it } },
-                                    text = pl.playlist.name,
-                                    isChecked = false,
-                                    tint = MaterialTheme.colorScheme.outline,
-                                    Modifier.padding(vertical = 8.dp)
-                                )
-                            }
+                            //TODO: decide whether to search if the track is already present or not in the playlists
+                            CustomContextMenuCheckboxBtn(
+                                onClick = { itemsState[pl.playlistId]?.let { itemsState[pl.playlistId] = !it } },
+                                text = pl.name,
+                                isChecked = false,
+                                tint = MaterialTheme.colorScheme.outline,
+                                Modifier.padding(vertical = 8.dp)
+                            )
                         }
                     }
                     OutlinedButton(

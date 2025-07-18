@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -20,14 +22,21 @@ import com.example.musicplayer.ui.components.CustomContextMenuBtn
 import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.MusicPlayerVM
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppBar(
     vm: MusicPlayerVM,
+    pagerState: PagerState,
     navController: NavController,
     currentScreen: AppScreen,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
+    val isInPage: (Int) -> Boolean = { page ->
+        pagerState.currentPage == page && currentScreen.name != AppScreen.Settings.name
+    }
+
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.background,
         contentPadding = PaddingValues(0.dp),
@@ -51,53 +60,68 @@ fun AppBar(
             ) {
                 TransparentButton(
                     onClick = {
-                        vm.updatePrevScreen(currentScreen)
-                        navController.navigate(AppScreen.Queue.name)
+                        scope.launch {
+                            pagerState.animateScrollToPage(AppScreen.Queue.index)
+                            if (currentScreen.name == AppScreen.Settings.name)
+                                navController.navigate(AppScreen.Main.name)
+                        }
                     },
                     painter = painterResource(R.drawable.queue_icon),
                     contentDescription = "Current queue",
-                    enabled = currentScreen.name != AppScreen.Queue.name,
-                    tint = if (currentScreen.name == AppScreen.Queue.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                    enabled = !isInPage(AppScreen.Queue.index),
+                    tint = if (isInPage(AppScreen.Queue.index)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 TransparentButton(
                     onClick = {
-                        vm.updatePrevScreen(currentScreen)
-                        navController.navigate(AppScreen.Playing.name)
+                        scope.launch {
+                            pagerState.animateScrollToPage(AppScreen.Playing.index)
+                            if (currentScreen.name == AppScreen.Settings.name)
+                                navController.navigate(AppScreen.Main.name)
+                        }
                     },
                     painter = painterResource(R.drawable.play_tab_icon),
                     contentDescription = "Current playing track",
-                    enabled = currentScreen.name != AppScreen.Playing.name,
-                    tint = if (currentScreen.name == AppScreen.Playing.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                    enabled = !isInPage(AppScreen.Playing.index),
+                    tint = if (isInPage(AppScreen.Playing.index)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 TransparentButton(
                     onClick = {
-                        vm.updatePrevScreen(currentScreen)
-                        navController.navigate(AppScreen.Tracks.name)
+                        scope.launch {
+                            pagerState.animateScrollToPage(AppScreen.Tracks.index)
+                            if (currentScreen.name == AppScreen.Settings.name)
+                                navController.navigate(AppScreen.Main.name)
+                        }
                     },
                     painter = painterResource(R.drawable.tracks_file),
                     contentDescription = "Tracks",
-                    enabled = currentScreen.name != AppScreen.Tracks.name,
-                    tint = if (currentScreen.name == AppScreen.Tracks.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                    enabled = !isInPage(AppScreen.Tracks.index),
+                    tint = if (isInPage(AppScreen.Tracks.index)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 TransparentButton(
                     onClick = {
-                        vm.updatePrevScreen(currentScreen)
-                        navController.navigate(AppScreen.Albums.name)
+                        scope.launch {
+                            pagerState.animateScrollToPage(AppScreen.Albums.index)
+                            if (currentScreen.name == AppScreen.Settings.name)
+                                navController.navigate(AppScreen.Main.name)
+                        }
                     },
                     painter = painterResource(R.drawable.albums_icon),
                     contentDescription = "Albums",
-                    enabled = currentScreen.name != AppScreen.Albums.name,
-                    tint = if (currentScreen.name == AppScreen.Albums.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                    enabled = !isInPage(AppScreen.Albums.index),
+                    tint = if (isInPage(AppScreen.Albums.index)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 TransparentButton(
                     onClick = {
-                        vm.updatePrevScreen(currentScreen)
-                        navController.navigate(AppScreen.Playlists.name)
+                        scope.launch {
+                            pagerState.animateScrollToPage(AppScreen.Playlists.index)
+                            if (currentScreen.name == AppScreen.Settings.name)
+                                navController.navigate(AppScreen.Main.name)
+                        }
                     },
                     painter = painterResource(R.drawable.playlists_icon),
                     contentDescription = "Playlists",
-                    enabled = currentScreen.name != AppScreen.Playlists.name,
-                    tint = if (currentScreen.name == AppScreen.Playlists.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                    enabled = !isInPage(AppScreen.Playlists.index),
+                    tint = if (isInPage(AppScreen.Playlists.index)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 TransparentBtnWithContextMenu(
                     painter = painterResource(R.drawable.more),

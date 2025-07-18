@@ -2,16 +2,22 @@ package com.example.musicplayer.ui.state
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicplayer.data.TrackWithAlbum
-import kotlinx.coroutines.flow.Flow
+import com.example.musicplayer.data.Track
+import com.example.musicplayer.data.TrackFilter
+import com.example.musicplayer.services.Player
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class TrackListVM(trackSource: Flow<List<TrackWithAlbum>>) : ViewModel() {
+class TrackListVM(
+    private val trackSource: TrackFilter,
+    private val player: Player
+) : ViewModel() {
 
     private val _searchString = MutableStateFlow("")
     val searchString = _searchString.asStateFlow()
@@ -19,12 +25,9 @@ class TrackListVM(trackSource: Flow<List<TrackWithAlbum>>) : ViewModel() {
     private val _selectedTracks = MutableStateFlow<List<Long>>(emptyList())
     val selectedTracks = _selectedTracks.asStateFlow()
 
-    val tracks = combine(trackSource, _searchString) { tracks, search ->
-        tracks.filter { track ->
-            search.isEmpty()
-                    || track.internal.title.contains(search, ignoreCase = true)
-                    || track.album.name.contains(search, ignoreCase = true)
-        }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tracks = _searchString.flatMapLatest {
+        trackSource.collectTracks(it)
     }.stateIn(
         initialValue = emptyList(),
         scope = viewModelScope,
@@ -42,5 +45,23 @@ class TrackListVM(trackSource: Flow<List<TrackWithAlbum>>) : ViewModel() {
 
     fun clearSelection() = _selectedTracks.update { emptyList() }
     fun selectList(tracks: List<Long>) = _selectedTracks.update { tracks }
+
+    fun play(track: Track) {
+        viewModelScope.launch {
+            player.queue(track, replace = true)
+        }
+    }
+
+    fun clearQueue() {
+        viewModelScope.launch {
+            player.clearQueue()
+        }
+    }
+
+    fun queue(tracks: List<Track>) {
+        viewModelScope.launch {
+            player.queueAll(tracks)
+        }
+    }
 
 }

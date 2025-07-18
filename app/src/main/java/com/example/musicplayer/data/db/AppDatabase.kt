@@ -15,7 +15,7 @@ import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.utils.InstantConverter
 import com.example.musicplayer.utils.ZonedDateTimeConverter
 
-@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class, QueueItem::class], views = [TrackWithAlbum::class], version = 3)
+@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class, QueueItem::class], views = [TrackWithAlbum::class], version = 5)
 @TypeConverters(ZonedDateTimeConverter::class, InstantConverter::class)
 abstract class AppDatabase: RoomDatabase() {
 

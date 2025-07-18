@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.DatabaseView
 import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.Junction
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.time.Instant
@@ -13,7 +13,7 @@ import java.time.ZonedDateTime
 @Entity(tableName = "playlist")
 data class Playlist(
     @PrimaryKey(autoGenerate = true)
-    val playlistId: Int = 0,
+    val playlistId: Long = 0,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "created")
@@ -57,9 +57,9 @@ data class Track(
     @ColumnInfo(name = "duration")
     val durationMs: Long,
     @ColumnInfo(name = "addedToLibrary")
-    val addedToLibrary: ZonedDateTime,
+    val addedToLibrary: Instant,
     @ColumnInfo(name = "lastPlayed")
-    val lastPlayed: ZonedDateTime? = null,
+    val lastPlayed: Instant? = null,
     @ColumnInfo(name = "playedCount")
     val playedCount: Int = 0
 )
@@ -72,39 +72,33 @@ data class TrackWithAlbum(
     @Embedded val album: Album
 )
 
-data class AlbumWithTracks(
-    @Embedded val album: Album,
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "album"
-    )
-    val tracks: List<Track>
-)
-
 @Entity(tableName = "trackAddedTOPlaylist", primaryKeys = ["playlistId", "trackId"])
 data class TrackAddedToPlaylist(
-    val playlistId: Int,
-    val trackId: Int
+    val playlistId: Long,
+    val trackId: Long
 )
 
-data class PlaylistWithTracks(
-    @Embedded val playlist: Playlist,
-    @Relation(
-        parentColumn = "playlistId",
-        entityColumn = "trackId",
-        associateBy = Junction(TrackAddedToPlaylist::class)
-    )
-    val tracks: List<TrackWithAlbum>
+@Entity(
+    primaryKeys = ["trackId", "added"],
+    tableName = "queue",
+    foreignKeys = [
+        ForeignKey(
+            entity = Track::class,
+            parentColumns = ["trackId"],
+            childColumns = ["trackId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
-
-@Entity(primaryKeys = ["trackId", "added"], tableName = "queue")
 data class QueueItem(
     @ColumnInfo(name = "trackId")
-    val track: Int,
+    val track: Long,
     @ColumnInfo(name = "added")
     val added: Instant,
-    @ColumnInfo(name = "position")
-    val position: Long? // If position != null the track is the currently played one
+    @ColumnInfo(name = "isCurrent")
+    val isCurrent: Boolean,
+    @ColumnInfo(name = "lastPosition")
+    val lastPosition: Long? // If position != null the track is the currently played one
 )
 
 data class QueuedTrack(

@@ -6,31 +6,29 @@ import android.os.Environment
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.musicplayer.ui.components.slideInConditional
-import com.example.musicplayer.ui.components.slideOutConditional
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
 import com.example.musicplayer.ui.screens.TracksScreen
 import com.example.musicplayer.ui.state.MusicPlayerVM
@@ -48,18 +46,22 @@ enum class AppScreen(val index: Int) {
     //Genres, // Genres list and search //TODO: maybe this can be included in the Tracks page as a filter
     Playlists(4), // Playlist grid with tracks
     Settings(5), // Settings page. e.g. scanned directories etc...
-    TrackList(6) // Track list, which can be a playlist, an album or an artist
+    Main(6),
 }
 
 @Composable
 fun MusicPlayerApp(
-    appVm: MusicPlayerVM = viewModel(factory = MusicPlayerVM.Factory),
+    appVm: MusicPlayerVM,
     navController: NavHostController = rememberNavController()
 ) {
     val ctx = LocalContext.current
     val app = app(ctx)
-    val scannedDirs = appVm.scannedDirectories.collectAsState()
-    val firstLaunch = appVm.firstLaunch.collectAsState()
+    LaunchedEffect(Unit) { // Only on first composition
+        app.player.init(ctx)
+    }
+
+    val scannedDirs = appVm.scannedDirectories.collectAsStateWithLifecycle()
+    val firstLaunch = appVm.firstLaunch.collectAsStateWithLifecycle()
 
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
@@ -96,14 +98,16 @@ fun MusicPlayerApp(
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
-        backStackEntry?.destination?.route ?: AppScreen.Playing.name
+        backStackEntry?.destination?.route ?: AppScreen.Main.name
     )
+    val pagerState = rememberPagerState(initialPage = AppScreen.Playing.index, pageCount = { 5 })
 
     Scaffold(
         bottomBar = {
             AppBar(
                 vm = appVm,
                 navController = navController,
+                pagerState = pagerState,
                 currentScreen = currentScreen
             )
         },
@@ -113,63 +117,55 @@ fun MusicPlayerApp(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppScreen.Playing.name,
-            enterTransition = { slideInConditional(from = appVm.prevScreen, to = currentScreen) },
-            popEnterTransition = { slideInConditional(from = appVm.prevScreen, to = currentScreen) },
+            startDestination = AppScreen.Main.name,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
             composable(
-                route = AppScreen.Queue.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Queue) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Queue) }
+                route = AppScreen.Main.name,
+                enterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(500)
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(500)
+                    )
+                }
             ) {
-                Text("Ciao")
-            }
-            composable(
-                route = AppScreen.Playing.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Playing) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Playing) }
-            ) {
-                CurrentPlayingScreen()
-            }
-            composable(
-                route = AppScreen.Tracks.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Tracks) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Tracks) }
-            ) {
-                TracksScreen()
-            }
-            composable(
-                route = AppScreen.Albums.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Albums) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Albums) }
-            ) {
-
-            }
-            composable(
-                route = AppScreen.Playlists.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Playlists) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Playlists) }
-            ) {
-
+                HorizontalPager(
+                    state = pagerState,
+                    beyondViewportPageCount = 2
+                ) { page ->
+                    when (page) {
+                        AppScreen.Queue.index -> {}
+                        AppScreen.Playing.index -> CurrentPlayingScreen()
+                        AppScreen.Tracks.index -> TracksScreen(pagerState = pagerState)
+                        AppScreen.Albums.index -> {}
+                        AppScreen.Playlists.index -> {}
+                    }
+                }
             }
             composable(
                 route = AppScreen.Settings.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Settings) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.Settings) }
+                enterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(500)
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(500)
+                    )
+                }
             ) {
 
-            }
-            composable(
-                route = AppScreen.TrackList.name,
-                exitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.TrackList) },
-                popExitTransition = { slideOutConditional(from = currentScreen, to = AppScreen.TrackList) }
-            ) {
-                //TODO: use Gson JSON serialization to pass the album/playlist here as a string, or create an object with a title or the track list
-                //TODO: or pass only the mode
             }
         }
     }

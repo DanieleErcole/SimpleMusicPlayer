@@ -24,6 +24,7 @@ fun CustomSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
+    onValueChangeFinished: (() -> Unit)? = null,
     thumbSize: Dp = 16.dp,
     trackSize: Dp = 4.dp,
     modifier: Modifier
@@ -32,6 +33,7 @@ fun CustomSlider(
         value = value,
         valueRange = valueRange,
         onValueChange = onValueChange,
+        onValueChangeFinished = onValueChangeFinished,
         track = { sliderState ->
             Box(
                 modifier = Modifier

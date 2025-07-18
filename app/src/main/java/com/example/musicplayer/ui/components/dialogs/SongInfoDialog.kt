@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.musicplayer.R
 import com.example.musicplayer.data.TrackWithAlbum
-import com.example.musicplayer.ui.state.Divider
+import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.utils.formatTimestamp
 
 @Composable

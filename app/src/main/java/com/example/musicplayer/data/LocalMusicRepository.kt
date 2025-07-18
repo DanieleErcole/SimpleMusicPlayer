@@ -14,29 +14,35 @@ class LocalMusicRepository(
 ) : MusicRepository {
 
     override suspend fun getAllTracks(): List<TrackWithAlbum> = trackDao.getAllTracks()
-    override fun getAllTracksFlow(): Flow<List<TrackWithAlbum>> = trackDao.getAllTracksFlow()
+    override fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>> = trackDao.getAllTracksFlow(artists, searchString)
     override fun getAllArtists(): Flow<List<String>> = trackDao.getAllArtists()
     override suspend fun newTrack(t: Track) = trackDao.insert(t)
     override suspend fun deleteTrack(t: Track) = trackDao.delete(t)
     override suspend fun deleteTrackBlk(trackList: List<Track>) = trackDao.deleteBlk(trackList.map { it.trackId })
 
-    override fun getAllPlaylists(): Flow<List<PlaylistWithTracks>> = plDao.getAllPlaylists()
-    override fun getPlaylistTracks(id: Int): Flow<PlaylistWithTracks> = plDao.getPlaylistTracks(id)
-    override fun getTrackPlaylists(id: Int): Flow<List<Playlist>> = plDao.getTrackPlaylists(id)
+    override fun getAllPlaylists(): Flow<List<Playlist>> = plDao.getAllPlaylists()
+    override fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = plDao.getPlaylistTracks(id, searchString)
+    override fun getTrackPlaylists(id: Long): Flow<List<Playlist>> = plDao.getTrackPlaylists(id)
     override suspend fun newPlaylist(pl: Playlist) = plDao.insert(pl)
     override suspend fun deletePlaylist(pl: Playlist) = plDao.delete(pl)
 
     override suspend fun getAllAlbums(): List<Album> = albumDao.getAllAlbums()
     override fun getAllAlbumsFlow(): Flow<List<Album>> = albumDao.getAllAlbumsFlow()
-    override fun getAlbumTracks(id: Int): Flow<AlbumWithTracks> = albumDao.getAlbumTracks(id)
+    override fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = albumDao.getAlbumTracks(id, searchString)
     override suspend fun newAlbum(a: Album) = albumDao.insert(a)
     override suspend fun deleteAlbum(a: Album) = albumDao.delete(a)
 
     override suspend fun getQueueTracks(): List<QueuedTrack> = queueDao.getQueueTracks()
     override fun getQueueTracksFlow(): Flow<List<QueuedTrack>> = queueDao.getQueueTracksFlow()
     override suspend fun currentPlaying(): QueuedTrack? = queueDao.currentPlaying()
+    override suspend fun nextSong(currentAddedDate: Long): QueuedTrack? = queueDao.nextSong(currentAddedDate)
+    override suspend fun storeCurrentPos(trackId: Long, pos: Long) = queueDao.storeCurrentPos(trackId, pos)
+    override suspend fun clearQueue() = queueDao.clear()
     override fun currentPlayingFlow(): Flow<QueuedTrack?> = queueDao.currentPlayingFlow()
     override suspend fun queue(item: QueueItem) = queueDao.insert(item)
     override suspend fun remove(item: QueueItem) = queueDao.delete(item)
-
+    override suspend fun replaceCurrent(new: QueueItem) = queueDao.replaceCurrent(new)
+    override suspend fun play(trackId: Long) = queueDao.play(trackId)
+    override suspend fun queueAndPlay(item: QueueItem) = queueDao.queueAndPlay(item)
+    override suspend fun finishAndPlayNext(): QueuedTrack? = queueDao.finishAndPlayNext()
 }

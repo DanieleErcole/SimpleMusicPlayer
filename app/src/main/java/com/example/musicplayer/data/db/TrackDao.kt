@@ -6,10 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.example.musicplayer.data.Album
-import com.example.musicplayer.data.AlbumWithTracks
-import com.example.musicplayer.data.Playlist
-import com.example.musicplayer.data.PlaylistWithTracks
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackWithAlbum
 import kotlinx.coroutines.flow.Flow
@@ -21,22 +17,22 @@ interface TrackDao {
     @Query("SELECT * FROM TrackWithAlbum ORDER BY addedToLibrary ASC")
     suspend fun getAllTracks(): List<TrackWithAlbum>
     @Transaction
-    @Query("SELECT * FROM TrackWithAlbum ORDER BY addedToLibrary ASC")
-    fun getAllTracksFlow(): Flow<List<TrackWithAlbum>>
+    @Query("""
+        SELECT * FROM TrackWithAlbum 
+        WHERE (:artists IS NULL OR artist in (:artists)) 
+            AND (:searchString IS NULL OR title LIKE '%' || :searchString || '%' OR name LIKE '%' || :searchString || '%')
+        ORDER BY addedToLibrary ASC
+    """)
+    fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>>
 
     @Transaction
     @Query("SELECT DISTINCT artist FROM track ORDER BY artist ASC")
     fun getAllArtists(): Flow<List<String>>
 
     @Transaction
-    @Query("SELECT * FROM TrackWithAlbum WHERE artist IN (:names) ORDER BY addedToLibrary ASC")
-    fun getArtistTracks(names: List<String>): Flow<List<TrackWithAlbum>>
-
-    @Transaction
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(t: Track)
 
-    //TODO: make a bulk delete
     @Delete
     @Transaction
     suspend fun delete(t: Track)

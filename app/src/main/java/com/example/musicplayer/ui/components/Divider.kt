@@ -1,4 +1,4 @@
-package com.example.musicplayer.ui.state
+package com.example.musicplayer.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height

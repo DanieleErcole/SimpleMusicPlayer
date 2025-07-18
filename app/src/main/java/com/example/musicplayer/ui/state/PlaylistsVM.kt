@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.Playlist
-import com.example.musicplayer.data.PlaylistWithTracks
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +20,7 @@ import java.time.ZonedDateTime
 
 class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
 
-    val playlists: StateFlow<List<PlaylistWithTracks>> = musicRepo.getAllPlaylists()
+    val playlists: StateFlow<List<Playlist>> = musicRepo.getAllPlaylists()
         .stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,

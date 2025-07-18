@@ -14,7 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -35,6 +40,7 @@ import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.LoopDialog
+import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.utils.formatTimestamp
@@ -45,12 +51,20 @@ fun CurrentPlayingScreen(
     vm: CurrentPlayingVM = viewModel(factory = CurrentPlayingVM.Factory),
     plVm: PlaylistsVM = viewModel(factory = PlaylistsVM.Factory),
 ) {
-    val cur = vm.curTrack.collectAsState()
+    val playerState = vm.playerState.collectAsStateWithLifecycle()
+    val cur = vm.curTrack.collectAsStateWithLifecycle()
+    var openInfoDialog by remember { mutableStateOf(false) }
+
     cur.value?.let { current ->
         AddToPlaylistDialog(
             track = current.track,
             plVm = plVm
         )
+        if (openInfoDialog)
+            SongInfoDialog(
+                track = current.track,
+                onDismiss = { openInfoDialog = false },
+            )
 
         Column(
             modifier = modifier
@@ -105,13 +119,20 @@ fun CurrentPlayingScreen(
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
-                    current = current,
+                    onInfoClick = { openInfoDialog = true },
                     plVm = plVm
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
-                SliderToolbar(current = current)
+                SliderToolbar(
+                    vm = vm,
+                    current = current
+                )
                 Spacer(modifier.fillMaxWidth().height(30.dp))
-                PlayerControls(vm = vm)
+                PlayerControls(
+                    vm = vm,
+                    volume = playerState.value.volume,
+                    paused = playerState.value.paused
+                )
                 Spacer(modifier.fillMaxWidth().height(40.dp))
             }
         }
@@ -121,7 +142,7 @@ fun CurrentPlayingScreen(
 // Toolbar for info, add to playlist and shuffle
 @Composable
 fun UpperToolbar(
-    current: QueuedTrack,
+    onInfoClick: () -> Unit,
     plVm: PlaylistsVM,
     modifier: Modifier = Modifier
 ) {
@@ -134,7 +155,7 @@ fun UpperToolbar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TransparentButton(
-                onClick = {  },
+                onClick = onInfoClick,
                 painter = painterResource(R.drawable.info),
                 contentDescription = "Song info",
                 tint = MaterialTheme.colorScheme.outline,
@@ -158,24 +179,35 @@ fun UpperToolbar(
 // Slider toolbar, with timestamps
 @Composable
 fun SliderToolbar(
+    vm: CurrentPlayingVM,
     current: QueuedTrack,
     modifier: Modifier = Modifier
 ) {
+    val position = vm.position.collectAsStateWithLifecycle()
+    val sliderValue = vm.sliderValue.collectAsStateWithLifecycle()
+    var sliderPosition by remember { mutableFloatStateOf(0f) }
+    var isChangingValue by remember { mutableStateOf(false) }
+
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = "00:00",
+            text = formatTimestamp(position.value),
             fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
         CustomSlider(
-            value = 50f,
+            value = if (isChangingValue) sliderPosition else sliderValue.value,
             valueRange = 0f..100f,
             onValueChange = {
-
+                isChangingValue = true
+                sliderPosition = it
+            },
+            onValueChangeFinished = {
+                isChangingValue = false
+                vm.seekTo((sliderPosition / 100 * current.track.internal.durationMs).toLong())
             },
             modifier = Modifier
                 .fillMaxWidth(.8f)
@@ -193,8 +225,12 @@ fun SliderToolbar(
 @Composable
 fun PlayerControls(
     vm: CurrentPlayingVM,
+    volume: Float,
+    paused: Boolean,
     modifier: Modifier = Modifier
 ) {
+    var sliderPosition by remember { mutableFloatStateOf(volume) }
+
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -215,16 +251,15 @@ fun PlayerControls(
                     .height(20.dp)
             ) {
                 Text(
-                    text = "50",
+                    text = volume.toString(),
                     fontSize = 14.sp,
                     lineHeight = 14.sp
                 )
                 CustomSlider(
-                    value = 50f,
+                    value = volume,
                     valueRange = 0f..100f,
-                    onValueChange = {
-
-                    },
+                    onValueChange = { sliderPosition = it },
+                    onValueChangeFinished = { vm.setVolume(sliderPosition) },
                     trackSize = 2.dp,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -246,10 +281,9 @@ fun PlayerControls(
             fullSizeIcon = true,
             modifier = Modifier.height(35.dp).width(35.dp)
         )
-        //TODO: implement play/pause
         TransparentButton(
-            onClick = {  },
-            painter = painterResource(R.drawable.play_big),
+            onClick = { vm.togglePauseResume() },
+            painter = painterResource(if (paused) R.drawable.play_big else R.drawable.pause_big),
             contentDescription = "Play/pause",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,

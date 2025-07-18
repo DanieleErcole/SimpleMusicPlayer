@@ -12,6 +12,7 @@ import com.example.musicplayer.utils.albumUriBase
 import com.example.musicplayer.utils.nullableIntColumn
 import com.example.musicplayer.utils.nullableLongColumn
 import com.example.musicplayer.utils.nullableStringColumn
+import java.time.Instant
 import java.time.ZonedDateTime
 
 class MusicScanner(private val musicRepo: MusicRepository) {
@@ -21,12 +22,13 @@ class MusicScanner(private val musicRepo: MusicRepository) {
         val tracks = musicRepo.getAllTracks().map { it.internal }.toMutableList()
         addUnknownAlbum()
 
-        //TODO: rewrite this using mediaStore, because it does not detect it
+        //TODO: move this and do this only on track play for single tracks together with the existence check
+        //TODO: another option is to do this only on scanned directory removal (maybe best option)
         // Delete tracks whose location is not present in the scanned dirs (previously deleted)
         /*val toDelete = mutableListOf<Track>()
         tracks.forEach {
-            val f = File(it.location)
-            if (f.exists() && !scannedDirs.contains(f.parent!!))
+            Log.i(MusicScanner::class.simpleName, "${!fileAncestorIsScannedDir(scannedDirs, it.location)}")
+            if (!fileExists(ctx, it.location) || !fileAncestorIsScannedDir(scannedDirs, it.location))
                 toDelete.add(it)
         }
         musicRepo.deleteTrackBlk(toDelete)*/
@@ -65,6 +67,28 @@ class MusicScanner(private val musicRepo: MusicRepository) {
             )
             musicRepo.newAlbum(newAlbum)
         }
+    }
+
+    fun fileExists(ctx: Context, filePath: String): Boolean {
+        val cursor = ctx.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Files.FileColumns._ID),
+            "${MediaStore.Files.FileColumns.DATA} = ?",
+            arrayOf(filePath),
+            null
+        )
+        return cursor?.use {
+            it.count > 0
+        } ?: false
+    }
+
+    private fun fileAncestorIsScannedDir(scannedDirs: List<String>, filePath: String): Boolean {
+        Log.i(MusicScanner::class.simpleName, filePath)
+        scannedDirs.forEach {
+            Log.i(MusicScanner::class.simpleName, "$it contains: ${filePath.contains(it)}")
+            if (filePath.contains(it))
+                return true
+        }
+        return false
     }
 
     private fun scanDir(ctx: Context, dirPath: String): List<Pair<Track, Album>> {
@@ -150,7 +174,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                         trackNumber = trackNumber ?: 1,
                         discNumber = discNumber ?: 1,
                         year = year ?: 0,
-                        addedToLibrary = ZonedDateTime.now(),
+                        addedToLibrary = Instant.now(),
                         lastPlayed = null,
                         durationMs = duration ?: 0,
                         playedCount = 0

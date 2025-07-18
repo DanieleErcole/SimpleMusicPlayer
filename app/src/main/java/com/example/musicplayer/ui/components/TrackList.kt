@@ -15,15 +15,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,30 +36,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
 import com.example.musicplayer.data.TrackWithAlbum
+import com.example.musicplayer.ui.AppScreen
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
-import com.example.musicplayer.ui.state.Divider
 import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.formatTimestamp
+import kotlinx.coroutines.launch
 
 @Composable
 fun TrackList(
     listVm: TrackListVM,
     plVm: PlaylistsVM,
+    pagerState: PagerState,
     listTitle: String,
     onBackClick: (() -> Unit)? = null,
     filters: (@Composable () -> Unit)? = null,
     objectToolsBtn: (@Composable () -> Unit)? = null,
+    queueAll: Boolean = false,
     modifier: Modifier
 ) {
-    val tracks = listVm.tracks.collectAsState()
-    val searchStr = listVm.searchString.collectAsState()
-    val selectedTracks = listVm.selectedTracks.collectAsState()
+    val scope = rememberCoroutineScope()
+    val tracks = listVm.tracks.collectAsStateWithLifecycle()
+    val searchStr = listVm.searchString.collectAsStateWithLifecycle()
+    val selectedTracks = listVm.selectedTracks.collectAsStateWithLifecycle()
 
     var openInfoDialog by remember { mutableStateOf(false) }
     var dialogTrack by remember { mutableStateOf<TrackWithAlbum?>(null) } // Track used for info and add to playlist dialog
@@ -75,7 +81,6 @@ fun TrackList(
     }
 
     val selectionMode by remember { derivedStateOf { selectedTracks.value.isNotEmpty() } }
-    //TODO: implement onclick behaviour, queue the track placing it on the db and player and in case of albums or playlists context queue the rest of the tracks
     Column(
         modifier = modifier.padding(top = 8.dp)
     ) {
@@ -185,7 +190,20 @@ fun TrackList(
                     onItemClick = {
                         if (selectionMode)
                             listVm.selectTrack(it.internal.trackId)
-                        else { /*TODO: add to queue*/ }
+                        else {
+                            listVm.play(it.internal)
+                            if (queueAll) {
+                                listVm.clearQueue()
+                                listVm.queue(tracks.value
+                                    .map { it.internal }
+                                    .filter { t -> t.trackId != it.internal.trackId }
+                                    .toList()
+                                )
+                            }
+                            scope.launch {
+                                pagerState.animateScrollToPage(AppScreen.Playing.index)
+                            }
+                        }
                     },
                     onLongPress = { listVm.selectTrack(it.internal.trackId) },
                     isSelected = selectedTracks.value.contains(it.internal.trackId),
@@ -274,7 +292,6 @@ fun TrackItem(
     selectionMode: Boolean,
     modifier: Modifier = Modifier
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -8,16 +8,16 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.UserPreferencesRepository
-import com.example.musicplayer.ui.AppScreen
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.musicplayer.services.Player
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewModel() {
+class MusicPlayerVM(
+    private val userPrefs: UserPreferencesRepository,
+    private val player: Player
+) : ViewModel() {
 
     val firstLaunch: StateFlow<Boolean> = userPrefs.firstLaunch
         .stateIn(
@@ -32,8 +32,6 @@ class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewMode
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    var prevScreen: AppScreen? = null
-
     fun updateScannedDirs(list: List<String>) {
         viewModelScope.launch {
             userPrefs.updateScannedDirs(list)
@@ -46,15 +44,20 @@ class MusicPlayerVM(private val userPrefs: UserPreferencesRepository) : ViewMode
         }
     }
 
-    fun updatePrevScreen(screen: AppScreen) {
-        prevScreen = screen
+    fun storeCurrentTrackInfo() {
+        viewModelScope.launch {
+            player.storeCurrentTrackInfo()
+        }
     }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
-                MusicPlayerVM(userPrefs = application.userPreferencesRepository)
+                MusicPlayerVM(
+                    userPrefs = application.userPreferencesRepository,
+                    player = application.player
+                )
             }
         }
     }
