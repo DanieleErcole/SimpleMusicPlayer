@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.session.MediaSession
 import android.os.PowerManager
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
@@ -91,7 +92,8 @@ class Player(
 
         playerScope.launch {
             musicRepo.currentPlaying()?.let {
-                internal.pause()
+                setPaused(true)
+                setVolume(stateRepo.getPlayerState().volume)
                 internal.setMediaItem(MediaItem.fromUri(it.track.internal.location), it.queuedItem.lastPosition ?: 0L)
                 internal.prepare()
             }
@@ -113,7 +115,7 @@ class Player(
         internal.prepare()
     }
 
-    @UnstableApi
+    @OptIn(UnstableApi::class)
     suspend fun queue(track: Track) {
         val isFirst = musicRepo.currentPlaying() == null
         val queued = QueueItem(
@@ -132,7 +134,7 @@ class Player(
         }
     }
 
-    @UnstableApi
+    @OptIn(UnstableApi::class)
     suspend fun queueAll(tracks: List<Track>, mustPlay: Boolean = false) {
         val mutList = tracks.toMutableList()
         if (musicRepo.currentPlaying() == null || mustPlay) {
@@ -200,9 +202,12 @@ class Player(
         stateRepo.updatePaused(v)
     }
 
-    suspend fun setVolume(v: Float) = stateRepo.updateVolume(v)
+    suspend fun setVolume(v: Float) {
+        internal.volume = v / 100f
+        stateRepo.updateVolume(v)
+    }
 
-    @UnstableApi
+    @OptIn(UnstableApi::class)
     suspend fun setLoop(mode: Loop) {
         when (mode) {
             Loop.None -> {

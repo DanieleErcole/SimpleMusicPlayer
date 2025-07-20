@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -171,7 +173,7 @@ fun UpperToolbar(
                 tint = MaterialTheme.colorScheme.outline,
             )
             TransparentButton(
-                onClick = {  },
+                onClick = { /*TODO: implement shuffle mode*/ },
                 painter = painterResource(R.drawable.shuffle),
                 contentDescription = "Shuffle",
                 tint = MaterialTheme.colorScheme.outline,
@@ -192,6 +194,11 @@ fun SliderToolbar(
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var isChangingValue by remember { mutableStateOf(false) }
 
+    LaunchedEffect(sliderValue.value) {
+        if (!isChangingValue)
+            sliderPosition = sliderValue.value
+    }
+
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -203,15 +210,15 @@ fun SliderToolbar(
             modifier = Modifier.padding(horizontal = 8.dp)
         )
         CustomSlider(
-            value = if (isChangingValue) sliderPosition else sliderValue.value,
+            value = sliderPosition,
             valueRange = 0f..100f,
             onValueChange = {
                 isChangingValue = true
                 sliderPosition = it
             },
             onValueChangeFinished = {
-                isChangingValue = false
                 vm.seekTo(toPosition(sliderPosition, current.track.internal.durationMs))
+                isChangingValue = false
             },
             modifier = Modifier
                 .fillMaxWidth(.8f)
@@ -236,7 +243,6 @@ fun PlayerControls(
 ) {
     val intVolume = floor(volume).toInt()
     var sliderPosition by remember { mutableFloatStateOf(volume) }
-    var isChangingValue by remember { mutableStateOf(false) }
 
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -244,7 +250,11 @@ fun PlayerControls(
         modifier = modifier.fillMaxWidth()
     ) {
         TransparentBtnWithContextMenu(
-            painter = painterResource(R.drawable.volume_full),
+            painter = painterResource(when {
+                intVolume == 0 -> R.drawable.volume_mute
+                intVolume < 50 -> R.drawable.volume_low
+                else -> R.drawable.volume_full
+            }),
             contentDescription = "Volume dialog",
             tint = MaterialTheme.colorScheme.outline
         ) {
@@ -262,16 +272,10 @@ fun PlayerControls(
                     lineHeight = 14.sp
                 )
                 CustomSlider(
-                    value = if (isChangingValue) sliderPosition else volume,
+                    value = sliderPosition,
                     valueRange = 0f..100f,
-                    onValueChange = {
-                        isChangingValue = true
-                        sliderPosition = it
-                    },
-                    onValueChangeFinished = {
-                        isChangingValue = false
-                        vm.setVolume(sliderPosition)
-                    },
+                    onValueChange = { sliderPosition = it },
+                    onValueChangeFinished = { vm.setVolume(sliderPosition) },
                     trackSize = 2.dp,
                     modifier = Modifier.fillMaxWidth()
                 )
