@@ -21,7 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.time.Instant
 
 class Player(
     private val musicRepo: MusicRepository,
@@ -45,7 +44,7 @@ class Player(
             )
             .build()
 
-        //TODO: on loop set None set pauseWhenFinished to true if queue not empty, set false otherwise
+        //TODO: on loop set None set pauseWhenFinished to true if queue not empty or if on last track, set false otherwise
         //TODO: if a track's file doesn't exits notify the user and delete it from the db
         internal.addListener(
             object : Player.Listener {
@@ -53,21 +52,28 @@ class Player(
                     if (isPlaying) {
                         Log.i(this::class.simpleName, "Track started")
                     } else {
-                        // Not playing because playback is paused, ended, suppressed, or the player
-                        // is buffering, stopped or failed. Check player.playWhenReady,
-                        // player.playbackState, player.playbackSuppressionReason and
-                        // player.playerError for details.
-                        // Ended, I must play the next one or do nothing if there's no more tracks in the queue (check loop state)
                         if (internal.playbackState == Player.STATE_ENDED) {
+                            // Track ended, not resumed or stopped
                             Log.i(this::class.simpleName, "Track ended")
                             playerScope.launch {
                                 // Finish track and play next song
-                                val next = musicRepo.finishAndPlayNext()
                                 val state = stateRepo.getPlayerState()
                                 when (state.loopMode) {
-                                    Loop.None -> {TODO()}
-                                    Loop.Queue -> {TODO()}
-                                    Loop.Track -> {TODO()}
+                                    Loop.None -> musicRepo.finishAndPlayNext()?.let {
+                                        play(it.track.internal)
+                                        internal.play()
+                                    } // Here there will be always at least a track, because if not, the player will simply pause the current one and won't release it
+                                    Loop.Queue -> musicRepo.finishAndPlayNext()?.let { // play the next one regularly
+                                        play(it.track.internal)
+                                        internal.play()
+                                    } ?: musicRepo.restartQueue()?.let { // get the first queue's track and play it
+                                        play(it.track.internal)
+                                        internal.play()
+                                    }
+                                    Loop.Track -> musicRepo.currentPlaying()?.let { // Replay the track that ended
+                                        play(it.track.internal)
+                                        internal.play()
+                                    }
                                 }
                             }
                         }
@@ -76,6 +82,8 @@ class Player(
 
                 override fun onPlayerError(error: PlaybackException) {
                     Log.e(this::class.simpleName, "Playback error: $error")
+                    //TODO: On error notify it and play the next one
+                    // if the error is about the existence of the file remove it from the db entirely
                 }
             }
         )
@@ -86,14 +94,13 @@ class Player(
                 internal.pause()
                 internal.setMediaItem(MediaItem.fromUri(it.track.internal.location), it.queuedItem.lastPosition ?: 0L)
                 internal.prepare()
-                //TODO: decide how to implement loop
             }
         }
     }
 
     suspend fun storeCurrentTrackInfo() {
         musicRepo.currentPlaying()?.let {
-            musicRepo.storeCurrentPos(it.track.internal.trackId, getCurrentPosition())
+            musicRepo.storeCurrentPos(getCurrentPosition())
         }
     }
 
@@ -106,32 +113,80 @@ class Player(
         internal.prepare()
     }
 
-    suspend fun queue(track: Track, replace: Boolean = false) {
-        val queue = musicRepo.getQueueTracks()
-        if (queue.find { it.queuedItem.track == track.trackId } != null)
-            return
-
-        //TODO: implement transactions everywhere, it's necessary to reduce lag
+    @UnstableApi
+    suspend fun queue(track: Track) {
         val isFirst = musicRepo.currentPlaying() == null
         val queued = QueueItem(
             track = track.trackId,
-            added = Instant.now(),
+            position = musicRepo.queueSize(),
             isCurrent = isFirst,
             lastPosition = null
         )
-        if (replace && !isFirst)
-            musicRepo.replaceCurrent(queued)
-        else if (isFirst)
+        if (isFirst) {
             musicRepo.queueAndPlay(queued)
-        else musicRepo.queue(queued)
-
-        if (isFirst || replace)
-            play(track, replace)
+            play(track)
+        } else {
+            musicRepo.queue(queued)
+            if (internal.pauseAtEndOfMediaItems)
+                internal.pauseAtEndOfMediaItems = false
+        }
     }
 
-    suspend fun queueAll(tracks: List<Track>) = tracks.forEach { queue(it) }
+    @UnstableApi
+    suspend fun queueAll(tracks: List<Track>, mustPlay: Boolean = false) {
+        val mutList = tracks.toMutableList()
+        if (musicRepo.currentPlaying() == null || mustPlay) {
+            val first = mutList.removeAt(0)
+            musicRepo.queueAndPlay(QueueItem(
+                track = first.trackId,
+                position = musicRepo.queueSize(),
+                isCurrent = true,
+                lastPosition = null
+            ))
 
-    suspend fun clearQueue() = musicRepo.clearQueue()
+            play(first, replace = true)
+        }
+
+        if (tracks.isNotEmpty())
+            musicRepo.queueAll(mutList.mapIndexed { pos, item ->
+                QueueItem(
+                    track = item.trackId,
+                    position = musicRepo.queueSize() + pos,
+                    isCurrent = false,
+                    lastPosition = null
+                )
+            })
+
+        if (internal.pauseAtEndOfMediaItems)
+            internal.pauseAtEndOfMediaItems = false
+    }
+
+    suspend fun replaceQueue(new: List<Track>, newCurrent: Long) {
+        musicRepo.replaceQueue(new.mapIndexed { pos, item ->
+            QueueItem(
+                track = item.trackId,
+                position = pos,
+                isCurrent = item.trackId == newCurrent,
+                lastPosition = null
+            )
+        })
+        play(new.find { it.trackId == newCurrent }!!)
+    }
+
+    suspend fun clearQueue() {
+        internal.stop()
+        musicRepo.clearQueue()
+    }
+
+    suspend fun skipNext() =
+        musicRepo.finishAndPlayNext(replayCurrentIfNull = true)?.let {
+            play(it.track.internal, replace = true)
+        }
+
+    suspend fun skipPrev() =
+        musicRepo.finishAndPlayPrev()?.let {
+            play(it.track.internal, replace = true)
+        }
 
     suspend fun togglePauseResume() {
         if (internal.isPlaying)
@@ -150,14 +205,23 @@ class Player(
     @UnstableApi
     suspend fun setLoop(mode: Loop) {
         when (mode) {
-            Loop.None -> internal.pauseAtEndOfMediaItems = musicRepo.getQueueTracks().isNotEmpty()
+            Loop.None -> {
+                val size = musicRepo.queueSize()
+                internal.pauseAtEndOfMediaItems = size == 0
+                        || musicRepo.currentPlaying()?.let { it.queuedItem.position == size - 1 } ?: false
+            }
             Loop.Queue, Loop.Track -> internal.pauseAtEndOfMediaItems = false
         }
         stateRepo.updateLoop(mode)
     }
 
-    fun getCurrentPosition() = if (::internal.isInitialized) internal.currentPosition else 0L
+    fun getCurrentPosition() = if (isReady()) internal.currentPosition else 0L
 
     fun seekTo(position: Long) = internal.seekTo(position)
+
+    fun seekTenSecs(rewind: Boolean) = internal
+        .seekTo(internal.currentPosition + if (rewind) -10000 else 10000)
+
+    fun releasePlayer() = internal.release()
 
 }

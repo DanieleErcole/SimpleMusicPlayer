@@ -23,17 +23,19 @@ interface MusicRepository {
     suspend fun newAlbum(a: Album)
     suspend fun deleteAlbum(a: Album)
 
+    suspend fun queueSize(): Int
     suspend fun getQueueTracks(): List<QueuedTrack>
     fun getQueueTracksFlow(): Flow<List<QueuedTrack>>
     suspend fun currentPlaying(): QueuedTrack?
-    suspend fun nextSong(currentAddedDate: Long): QueuedTrack?
-    suspend fun storeCurrentPos(trackId: Long, pos: Long)
+    suspend fun storeCurrentPos(pos: Long)
     fun currentPlayingFlow(): Flow<QueuedTrack?>
     suspend fun clearQueue()
     suspend fun queue(item: QueueItem)
+    suspend fun queueAll(items: List<QueueItem>)
     suspend fun remove(item: QueueItem)
-    suspend fun replaceCurrent(new: QueueItem)
-    suspend fun play(trackId: Long)
     suspend fun queueAndPlay(item: QueueItem)
-    suspend fun finishAndPlayNext(): QueuedTrack?
+    suspend fun finishAndPlayNext(replayCurrentIfNull: Boolean = false): QueuedTrack?
+    suspend fun finishAndPlayPrev(): QueuedTrack?
+    suspend fun replaceQueue(new: List<QueueItem>)
+    suspend fun restartQueue(): QueuedTrack?
 }

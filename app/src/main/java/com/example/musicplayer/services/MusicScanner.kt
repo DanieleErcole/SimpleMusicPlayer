@@ -36,19 +36,17 @@ class MusicScanner(private val musicRepo: MusicRepository) {
         scannedDirs.forEach { dir ->
             Log.i(MusicScanner::class.simpleName, "Scanning directory $dir")
             scanDir(ctx, dir).forEach { (track, album) ->
-                // Check whether the track and its album already exists
+                // Check whether the track already exists
                 if (tracks.find { it.trackId == track.trackId } != null)
                     return
 
+                // Check if the album it's not already stored in the db
                 albums.find { a -> album.id == a.id } ?: run {
                     Log.i(MusicScanner::class.simpleName, "Adding album ${album.name} with id ${album.id}")
                     musicRepo.newAlbum(album)
                     albums.add(album)
                 }
 
-                //TODO: move this somewhere else because I took track from the fs, so it exists, this cleanup must be done somewhere else (MusicScannerConnection?)
-                /*if (!File(track.location).exists()) // If it already exists in the db but not in the path anymore delete it
-                    musicRepo.deleteTrack(track)*/
                 Log.i(MusicScanner::class.simpleName, "Adding track ${track.location} with id ${track.trackId}")
                 musicRepo.newTrack(track)
                 tracks.add(track)

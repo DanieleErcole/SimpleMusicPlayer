@@ -32,7 +32,7 @@ import com.example.musicplayer.ui.state.PlaylistsVM
 
 @Composable
 fun AddToPlaylistDialog(
-    track: TrackWithAlbum,
+    tracks: List<TrackWithAlbum>,
     plVm: PlaylistsVM,
     modifier: Modifier = Modifier
 ) {
@@ -53,7 +53,7 @@ fun AddToPlaylistDialog(
                     modifier = modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp)
                 ) {
                     Text(
-                        text = track.internal.title,
+                        text = if (tracks.size == 1) tracks.first().internal.title else "${tracks.size} songs",
                         fontSize = 14.sp,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -64,7 +64,7 @@ fun AddToPlaylistDialog(
                         verticalArrangement = Arrangement.SpaceEvenly
                     ) {
                         items(playlists.value) { pl ->
-                            //TODO: decide whether to search if the track is already present or not in the playlists
+                            //TODO: decide whether to search if the tracks are already present or not in the playlists
                             CustomContextMenuCheckboxBtn(
                                 onClick = { itemsState[pl.playlistId]?.let { itemsState[pl.playlistId] = !it } },
                                 text = pl.name,
@@ -103,7 +103,7 @@ fun AddToPlaylistDialog(
                     ) {
                         TransparentButton(
                             onClick = {
-                                //TODO: add the track to the checked playlists
+                                //TODO: add the tracks to the checked playlists
                                 plVm.toggleAddDialog()
                             },
                             text = "Add",

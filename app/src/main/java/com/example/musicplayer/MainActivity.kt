@@ -37,6 +37,11 @@ class MainActivity : ComponentActivity() {
         vm.storeCurrentTrackInfo()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        vm.releaseRes()
+    }
+
 }
 
 @Preview(showBackground = true)

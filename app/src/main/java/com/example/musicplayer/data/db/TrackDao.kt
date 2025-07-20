@@ -13,10 +13,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TrackDao {
 
-    @Transaction
     @Query("SELECT * FROM TrackWithAlbum ORDER BY addedToLibrary ASC")
     suspend fun getAllTracks(): List<TrackWithAlbum>
-    @Transaction
     @Query("""
         SELECT * FROM TrackWithAlbum 
         WHERE (:artists IS NULL OR artist in (:artists)) 
@@ -25,18 +23,14 @@ interface TrackDao {
     """)
     fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>>
 
-    @Transaction
     @Query("SELECT DISTINCT artist FROM track ORDER BY artist ASC")
     fun getAllArtists(): Flow<List<String>>
 
-    @Transaction
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(t: Track)
 
     @Delete
-    @Transaction
     suspend fun delete(t: Track)
-    @Transaction
     @Query("DELETE FROM track WHERE trackId IN (:idList)")
     suspend fun deleteBlk(idList: List<Long>)
 

@@ -1,6 +1,5 @@
 package com.example.musicplayer.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -265,9 +264,7 @@ fun MusicPlayerTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> darkScheme
-        else -> lightScheme
+        else -> darkScheme
     }
 
     MaterialTheme(

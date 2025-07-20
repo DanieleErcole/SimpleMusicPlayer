@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.musicplayer.R
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.components.Divider
+import com.example.musicplayer.utils.formatInstantToHuman
 import com.example.musicplayer.utils.formatTimestamp
 
 @Composable
@@ -72,8 +73,8 @@ fun SongInfoDialog(
                     Divider(modifier.padding(vertical = 8.dp))
                     InfoField(title = "Duration", text = formatTimestamp(track.internal.durationMs))
                     Divider(modifier.padding(vertical = 8.dp))
-                    InfoField(title = "Date added to library", text = track.internal.addedToLibrary.toString())
-                    InfoField(title = "Date last played", text = track.internal.lastPlayed?.toString() ?: "Never")
+                    InfoField(title = "Date added to library", text = formatInstantToHuman(track.internal.addedToLibrary))
+                    InfoField(title = "Date last played", text = track.internal.lastPlayed?.let { formatInstantToHuman(it) } ?: "Never")
                 }
             }
         }

@@ -46,21 +46,21 @@ class TrackListVM(
     fun clearSelection() = _selectedTracks.update { emptyList() }
     fun selectList(tracks: List<Long>) = _selectedTracks.update { tracks }
 
-    fun play(track: Track) {
+    fun replaceQueue(tracks: List<Track>, currentId: Long) {
         viewModelScope.launch {
-            player.queue(track, replace = true)
+            player.replaceQueue(tracks, currentId)
         }
     }
 
-    fun clearQueue() {
+    fun queue(track: Track) {
         viewModelScope.launch {
-            player.clearQueue()
+            player.queue(track)
         }
     }
 
-    fun queue(tracks: List<Track>) {
+    fun queueAll(tracks: List<Track>, mustPlay: Boolean = false) {
         viewModelScope.launch {
-            player.queueAll(tracks)
+            player.queueAll(tracks, mustPlay = mustPlay)
         }
     }
 

@@ -7,11 +7,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
+import com.example.musicplayer.data.Loop
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.PlayerState
 import com.example.musicplayer.data.PlayerStateRepository
 import com.example.musicplayer.data.QueuedTrack
 import com.example.musicplayer.services.Player
+import com.example.musicplayer.utils.floatPosition
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -53,7 +55,7 @@ class CurrentPlayingVM(
     val sliderValue: StateFlow<Float> = position
         .combine(curTrack) { pos, track ->
             track?.let {
-                ((pos * 100) / it.track.internal.durationMs).toFloat()
+                floatPosition(pos, it.track.internal.durationMs)
             } ?: 0f
         }.stateIn(
             initialValue = 0f,
@@ -67,13 +69,31 @@ class CurrentPlayingVM(
         }
     }
 
+    fun skipNext() {
+        viewModelScope.launch { player.skipNext() }
+    }
+
+    fun skipPrev() {
+        viewModelScope.launch { player.skipPrev() }
+    }
+
     fun setVolume(v: Float) {
         viewModelScope.launch {
             player.setVolume(v)
         }
     }
 
+    fun setLoopMode(mode: Loop) {
+        viewModelScope.launch {
+            player.setLoop(mode)
+        }
+    }
+
     fun seekTo(pos: Long) = player.seekTo(pos)
+
+    fun seekForward() = player.seekTenSecs(false)
+
+    fun seekRewind() = player.seekTenSecs(true)
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

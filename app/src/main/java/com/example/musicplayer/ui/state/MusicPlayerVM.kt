@@ -50,6 +50,10 @@ class MusicPlayerVM(
         }
     }
 
+    fun releaseRes() {
+        player.releasePlayer()
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

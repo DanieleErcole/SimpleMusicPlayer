@@ -34,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
+import com.example.musicplayer.data.Loop
 import com.example.musicplayer.data.QueuedTrack
 import com.example.musicplayer.ui.components.CustomSlider
 import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
@@ -44,6 +45,8 @@ import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.utils.formatTimestamp
+import com.example.musicplayer.utils.toPosition
+import kotlin.math.floor
 
 @Composable
 fun CurrentPlayingScreen(
@@ -57,7 +60,7 @@ fun CurrentPlayingScreen(
 
     cur.value?.let { current ->
         AddToPlaylistDialog(
-            track = current.track,
+            tracks = listOf(current.track),
             plVm = plVm
         )
         if (openInfoDialog)
@@ -131,7 +134,8 @@ fun CurrentPlayingScreen(
                 PlayerControls(
                     vm = vm,
                     volume = playerState.value.volume,
-                    paused = playerState.value.paused
+                    paused = playerState.value.paused,
+                    loopMode = playerState.value.loopMode
                 )
                 Spacer(modifier.fillMaxWidth().height(40.dp))
             }
@@ -207,7 +211,7 @@ fun SliderToolbar(
             },
             onValueChangeFinished = {
                 isChangingValue = false
-                vm.seekTo((sliderPosition / 100 * current.track.internal.durationMs).toLong())
+                vm.seekTo(toPosition(sliderPosition, current.track.internal.durationMs))
             },
             modifier = Modifier
                 .fillMaxWidth(.8f)
@@ -227,16 +231,18 @@ fun PlayerControls(
     vm: CurrentPlayingVM,
     volume: Float,
     paused: Boolean,
+    loopMode: Loop,
     modifier: Modifier = Modifier
 ) {
+    val intVolume = floor(volume).toInt()
     var sliderPosition by remember { mutableFloatStateOf(volume) }
+    var isChangingValue by remember { mutableStateOf(false) }
 
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
-        //TODO: implement volume
         TransparentBtnWithContextMenu(
             painter = painterResource(R.drawable.volume_full),
             contentDescription = "Volume dialog",
@@ -251,22 +257,28 @@ fun PlayerControls(
                     .height(20.dp)
             ) {
                 Text(
-                    text = volume.toString(),
+                    text = "$intVolume",
                     fontSize = 14.sp,
                     lineHeight = 14.sp
                 )
                 CustomSlider(
-                    value = volume,
+                    value = if (isChangingValue) sliderPosition else volume,
                     valueRange = 0f..100f,
-                    onValueChange = { sliderPosition = it },
-                    onValueChangeFinished = { vm.setVolume(sliderPosition) },
+                    onValueChange = {
+                        isChangingValue = true
+                        sliderPosition = it
+                    },
+                    onValueChangeFinished = {
+                        isChangingValue = false
+                        vm.setVolume(sliderPosition)
+                    },
                     trackSize = 2.dp,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         }
         TransparentButton(
-            onClick = {  },
+            onClick = { vm.skipPrev() },
             painter = painterResource(R.drawable.skip_prev_big),
             contentDescription = "Skip previous",
             tint = MaterialTheme.colorScheme.primary,
@@ -274,7 +286,7 @@ fun PlayerControls(
             modifier = Modifier.height(45.dp).width(45.dp)
         )
         TransparentButton(
-            onClick = {  },
+            onClick = { vm.seekRewind() },
             painter = painterResource(R.drawable.fast_rewind),
             contentDescription = "Fast rewind",
             tint = MaterialTheme.colorScheme.outline,
@@ -290,7 +302,7 @@ fun PlayerControls(
             modifier = Modifier.height(50.dp).width(50.dp)
         )
         TransparentButton(
-            onClick = {  },
+            onClick = { vm.seekForward() },
             painter = painterResource(R.drawable.fast_forward),
             contentDescription = "Fast forward",
             tint = MaterialTheme.colorScheme.outline,
@@ -298,20 +310,23 @@ fun PlayerControls(
             modifier = Modifier.height(35.dp).width(35.dp)
         )
         TransparentButton(
-            onClick = {  },
+            onClick = { vm.skipNext() },
             painter = painterResource(R.drawable.skip_next_big),
             contentDescription = "Skip next",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
             modifier = Modifier.height(45.dp).width(45.dp)
         )
-        //TODO: implement loop
         TransparentBtnWithContextMenu(
-            painter = painterResource(R.drawable.repeat_one),
+            painter = painterResource(when(loopMode) {
+                Loop.None -> R.drawable.next_song
+                Loop.Queue -> R.drawable.repeat_queue
+                Loop.Track -> R.drawable.repeat_one
+            }),
             contentDescription = "Loop dialog",
             tint = MaterialTheme.colorScheme.outline
         ) {
-            LoopDialog(vm = vm)
+            LoopDialog(vm = vm, currentMode = loopMode)
         }
     }
 }

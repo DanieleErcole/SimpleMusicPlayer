@@ -11,10 +11,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
 import com.example.musicplayer.ui.screens.TracksScreen
 import com.example.musicplayer.ui.state.MusicPlayerVM
+import com.example.musicplayer.ui.state.QueueVM
 import com.example.musicplayer.utils.app
 import com.example.musicplayer.utils.hasPermission
 import kotlinx.coroutines.Dispatchers
@@ -42,8 +47,6 @@ enum class AppScreen(val index: Int) {
     Playing(1), // Current playing screen with player controls
     Tracks(2), // All track list with search and favorites filter etc.
     Albums(3), // Albums grid, with tracks inside
-    //Artists, // Artist list and search //TODO: maybe this can be included in the Tracks page as a filter
-    //Genres, // Genres list and search //TODO: maybe this can be included in the Tracks page as a filter
     Playlists(4), // Playlist grid with tracks
     Settings(5), // Settings page. e.g. scanned directories etc...
     Main(6),
@@ -142,7 +145,15 @@ fun MusicPlayerApp(
                     beyondViewportPageCount = 2
                 ) { page ->
                     when (page) {
-                        AppScreen.Queue.index -> {}
+                        AppScreen.Queue.index -> {
+                            val vm = viewModel<QueueVM>(factory = QueueVM.Factory)
+                            val items = vm.queue.collectAsStateWithLifecycle()
+                            LazyColumn {
+                                items(items.value) {
+                                    Text(it.track.internal.title)
+                                }
+                            }
+                        }
                         AppScreen.Playing.index -> CurrentPlayingScreen()
                         AppScreen.Tracks.index -> TracksScreen(pagerState = pagerState)
                         AppScreen.Albums.index -> {}

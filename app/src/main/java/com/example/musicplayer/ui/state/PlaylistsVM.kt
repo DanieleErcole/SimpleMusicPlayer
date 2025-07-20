@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZonedDateTime
 
 class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
@@ -42,7 +43,7 @@ class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
             musicRepo.newPlaylist(
                 Playlist(
                     name = name,
-                    created = ZonedDateTime.now()
+                    created = Instant.now()
                 )
             )
         }

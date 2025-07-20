@@ -8,7 +8,6 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.time.Instant
-import java.time.ZonedDateTime
 
 @Entity(tableName = "playlist")
 data class Playlist(
@@ -17,7 +16,7 @@ data class Playlist(
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "created")
-    val created: ZonedDateTime
+    val created: Instant
 )
 
 @Entity(tableName = "album")
@@ -79,7 +78,7 @@ data class TrackAddedToPlaylist(
 )
 
 @Entity(
-    primaryKeys = ["trackId", "added"],
+    primaryKeys = ["trackId", "position"],
     tableName = "queue",
     foreignKeys = [
         ForeignKey(
@@ -93,8 +92,8 @@ data class TrackAddedToPlaylist(
 data class QueueItem(
     @ColumnInfo(name = "trackId")
     val track: Long,
-    @ColumnInfo(name = "added")
-    val added: Instant,
+    @ColumnInfo(name = "position")
+    val position: Int,
     @ColumnInfo(name = "isCurrent")
     val isCurrent: Boolean,
     @ColumnInfo(name = "lastPosition")

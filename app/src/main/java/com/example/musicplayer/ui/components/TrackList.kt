@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +49,7 @@ import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.formatTimestamp
 import kotlinx.coroutines.launch
+import kotlin.collections.map
 
 @Composable
 fun TrackList(
@@ -58,7 +60,7 @@ fun TrackList(
     onBackClick: (() -> Unit)? = null,
     filters: (@Composable () -> Unit)? = null,
     objectToolsBtn: (@Composable () -> Unit)? = null,
-    queueAll: Boolean = false,
+    mustReplaceQueue: Boolean = false,
     modifier: Modifier
 ) {
     val scope = rememberCoroutineScope()
@@ -67,15 +69,16 @@ fun TrackList(
     val selectedTracks = listVm.selectedTracks.collectAsStateWithLifecycle()
 
     var openInfoDialog by remember { mutableStateOf(false) }
-    var dialogTrack by remember { mutableStateOf<TrackWithAlbum?>(null) } // Track used for info and add to playlist dialog
-    dialogTrack?.let {
+    var dialogTracks by remember { mutableStateOf<List<TrackWithAlbum>>(emptyList()) } // Track(s) used for info and add to playlist dialog
+
+    if (dialogTracks.isNotEmpty()) {
         AddToPlaylistDialog(
-            track = it,
-            plVm = plVm
+            tracks = dialogTracks,
+            plVm = plVm,
         )
         if (openInfoDialog)
             SongInfoDialog(
-                track = it,
+                track = dialogTracks.first(),
                 onDismiss = { openInfoDialog = false },
             )
     }
@@ -151,9 +154,37 @@ fun TrackList(
         }
         if (selectionMode)
             SelectionToolbar(
-                listVm = listVm,
-                tracks = tracks.value,
-                selection = selectedTracks.value,
+                whileSelectedClick = {
+                    if (tracks.value.size == selectedTracks.value.size)
+                        listVm.clearSelection()
+                    else listVm.selectList(tracks.value.map { it.internal.trackId })
+                },
+                onCloseClick = { listVm.clearSelection() },
+                onQueueClick = {
+                    listVm.queueAll(tracks.value
+                        .filter { selectedTracks.value.contains(it.internal.trackId) }
+                        .map { it.internal }
+                    )
+                    listVm.clearSelection()
+                },
+                onAddClick = {
+                    dialogTracks = tracks.value.filter { selectedTracks.value.contains(it.internal.trackId) }
+                    plVm.toggleAddDialog()
+                },
+                onPlayClick = {
+                    listVm.queueAll(
+                        tracks.value
+                            .filter { selectedTracks.value.contains(it.internal.trackId) }
+                            .map { it.internal },
+                        mustPlay = true
+                    )
+                    listVm.clearSelection()
+                    scope.launch {
+                        pagerState.animateScrollToPage(AppScreen.Playing.index)
+                    }
+                },
+                selectionSize = selectedTracks.value.size,
+                allSelected = tracks.value.size == selectedTracks.value.size,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(.06f)
@@ -191,15 +222,14 @@ fun TrackList(
                         if (selectionMode)
                             listVm.selectTrack(it.internal.trackId)
                         else {
-                            listVm.play(it.internal)
-                            if (queueAll) {
-                                listVm.clearQueue()
-                                listVm.queue(tracks.value
-                                    .map { it.internal }
-                                    .filter { t -> t.trackId != it.internal.trackId }
-                                    .toList()
-                                )
-                            }
+                            val tracksToPlay =
+                                if (mustReplaceQueue)
+                                    tracks.value.map { it.internal }
+                                else listOf(it.internal)
+                            listVm.replaceQueue(
+                                tracks = tracksToPlay,
+                                currentId = it.internal.trackId,
+                            )
                             scope.launch {
                                 pagerState.animateScrollToPage(AppScreen.Playing.index)
                             }
@@ -209,13 +239,14 @@ fun TrackList(
                     isSelected = selectedTracks.value.contains(it.internal.trackId),
                     selectionMode = selectionMode,
                     onAddClick = {
-                        dialogTrack = it
+                        dialogTracks = listOf(it)
                         plVm.toggleAddDialog()
                     },
                     onInfoClick = {
-                        dialogTrack = it
+                        dialogTracks = listOf(it)
                         openInfoDialog = true
-                    }
+                    },
+                    onQueueClick = { listVm.queue(it.internal) }
                 )
             }
         }
@@ -224,9 +255,13 @@ fun TrackList(
 
 @Composable
 fun SelectionToolbar(
-    listVm: TrackListVM,
-    tracks: List<TrackWithAlbum>,
-    selection: List<Long>,
+    onAddClick: () -> Unit,
+    onQueueClick: () -> Unit,
+    whileSelectedClick: () -> Unit,
+    onCloseClick: () -> Unit,
+    onPlayClick: () -> Unit,
+    selectionSize: Int,
+    allSelected: Boolean,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -239,12 +274,8 @@ fun SelectionToolbar(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TransparentButton(
-                onClick = {
-                    if (selection.size == tracks.size)
-                        listVm.clearSelection()
-                    else listVm.selectList(tracks.map { it.internal.trackId })
-                },
-                painter = painterResource(if (selection.size == tracks.size) R.drawable.selected else R.drawable.not_selected),
+                onClick = whileSelectedClick,
+                painter = painterResource(if (allSelected) R.drawable.selected else R.drawable.not_selected),
                 contentDescription = "Select/Deselect all",
                 tint = MaterialTheme.colorScheme.primary,
                 fullSizeIcon = true,
@@ -253,7 +284,7 @@ fun SelectionToolbar(
                     .height(26.dp)
             )
             Text(
-                text = "${selection.size} selected",
+                text = "$selectionSize selected",
                 fontSize = 14.sp,
                 lineHeight = 14.sp,
                 color = MaterialTheme.colorScheme.secondary,
@@ -264,14 +295,32 @@ fun SelectionToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            TransparentButton(
-                onClick = { /*TODO: implement options*/ },
+            TransparentBtnWithContextMenu(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "Selection options",
-                tint = MaterialTheme.colorScheme.primary
-            )
+                tint = MaterialTheme.colorScheme.primary,
+            ) {
+                CustomContextMenuBtn(
+                    onClick = onAddClick,
+                    painter = painterResource(R.drawable.playlist_add),
+                    text = "Add to a playlist",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                CustomContextMenuBtn(
+                    onClick = onQueueClick,
+                    painter = painterResource(R.drawable.queue_icon),
+                    text = "Add to queue",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                CustomContextMenuBtn(
+                    onClick = onPlayClick,
+                    painter = painterResource(R.drawable.play),
+                    text = "Play",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             TransparentButton(
-                onClick = { listVm.clearSelection() },
+                onClick = onCloseClick,
                 painter = painterResource(R.drawable.close),
                 contentDescription = "Close selection",
                 tint = MaterialTheme.colorScheme.primary
@@ -288,6 +337,7 @@ fun TrackItem(
     onLongPress: () -> Unit,
     onAddClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onQueueClick: () -> Unit,
     isSelected: Boolean,
     selectionMode: Boolean,
     modifier: Modifier = Modifier
@@ -394,6 +444,12 @@ fun TrackItem(
                 onClick = onAddClick,
                 painter = painterResource(R.drawable.playlist_add),
                 text = "Add to a playlist",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            CustomContextMenuBtn(
+                onClick = onQueueClick,
+                painter = painterResource(R.drawable.queue_icon),
+                text = "Add to queue",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
