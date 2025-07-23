@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -125,7 +124,9 @@ fun CurrentPlayingScreen(
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
                     onInfoClick = { openInfoDialog = true },
-                    plVm = plVm
+                    onShuffleClick = { vm.toggleShuffleMode() },
+                    plVm = plVm,
+                    shuffle = playerState.value.shuffle
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 SliderToolbar(
@@ -149,7 +150,9 @@ fun CurrentPlayingScreen(
 @Composable
 fun UpperToolbar(
     onInfoClick: () -> Unit,
+    onShuffleClick: () -> Unit,
     plVm: PlaylistsVM,
+    shuffle: Boolean,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -173,8 +176,8 @@ fun UpperToolbar(
                 tint = MaterialTheme.colorScheme.outline,
             )
             TransparentButton(
-                onClick = { /*TODO: implement shuffle mode*/ },
-                painter = painterResource(R.drawable.shuffle),
+                onClick = onShuffleClick,
+                painter = painterResource(if (shuffle) R.drawable.shuffle else R.drawable.shuffle_off),
                 contentDescription = "Shuffle",
                 tint = MaterialTheme.colorScheme.outline,
             )

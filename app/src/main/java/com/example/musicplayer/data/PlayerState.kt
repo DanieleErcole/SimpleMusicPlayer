@@ -1,6 +1,6 @@
 package com.example.musicplayer.data
 
-import com.example.musicplayer.utils.PlayerStateDefaults
+import com.example.musicplayer.utils.DEFAULT_VOLUME
 
 enum class Loop {
     None,
@@ -11,14 +11,16 @@ enum class Loop {
 data class PlayerState(
     val volume: Float,
     val paused: Boolean,
-    val loopMode: Loop
+    val loopMode: Loop,
+    val shuffle: Boolean
 ) {
     companion object {
         fun default(): PlayerState =
             PlayerState(
-                volume = PlayerStateDefaults.VOLUME,
-                paused = PlayerStateDefaults.PAUSED,
-                loopMode = PlayerStateDefaults.LOOP
+                volume = DEFAULT_VOLUME,
+                paused = false,
+                loopMode = Loop.Track,
+                shuffle = false
             )
     }
 }

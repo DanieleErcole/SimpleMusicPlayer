@@ -1,0 +1,144 @@
+package com.example.musicplayer.services.player
+
+import android.os.PowerManager
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.media3.session.MediaSession.Callback
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
+import androidx.media3.common.C.USAGE_MEDIA
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
+import com.example.musicplayer.data.LocalMusicRepository
+import com.example.musicplayer.data.MusicRepository
+import com.example.musicplayer.data.PlayerStateRepository
+import com.example.musicplayer.data.db.AppDatabase
+import com.example.musicplayer.utils.dataStore
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.future.future
+import kotlinx.coroutines.launch
+
+@OptIn(UnstableApi::class)
+class PlayerService : MediaSessionService(), Callback {
+
+    private var session: MediaSession? = null
+
+    val musicRepo: MusicRepository by lazy {
+        val db = AppDatabase.getDatabase(applicationContext)
+        LocalMusicRepository(db.trackDao(), db.playlistDao(), db.albumDao(), db.queueDao())
+    }
+    val stateRepo: PlayerStateRepository by lazy {
+        PlayerStateRepository(applicationContext.dataStore)
+    }
+
+    // The queue elements are present in both the db and the player, the player one even in shuffleMode still maintain the original queue positions
+    // I maintain consistency by replacing/removing/swapping positions both in the db and in the player queue
+
+    private val playerScope = CoroutineScope(Dispatchers.Main + Job())
+
+    @OptIn(UnstableApi::class)
+    override fun onCreate() {
+        super.onCreate()
+
+        val player = ExoPlayer.Builder(this)
+            .setWakeMode(PowerManager.PARTIAL_WAKE_LOCK)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setContentType(AUDIO_CONTENT_TYPE_MUSIC)
+                    .setUsage(USAGE_MEDIA)
+                    .build(),
+                true
+            )
+            .setPauseAtEndOfMediaItems(true)
+            .setSeekBackIncrementMs(10000L)
+            .setSeekForwardIncrementMs(10000L)
+            .build()
+
+        // Save battery, offload the audio processing to the dedicated hardware if supported
+        player.trackSelectionParameters =
+            player.trackSelectionParameters
+                .buildUpon()
+                .setAudioOffloadPreferences(
+                    TrackSelectionParameters.AudioOffloadPreferences.Builder()
+                        .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)
+                        .setIsGaplessSupportRequired(true)
+                        .build()
+                )
+                .build()
+
+        player.playWhenReady = false
+
+        player.addListener(
+            object : Player.Listener {
+                override fun onVolumeChanged(volume: Float) {
+                    playerScope.launch { stateRepo.updateVolume(volume) }
+                }
+
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    playerScope.launch {
+                        if (isPlaying) {
+                            if (stateRepo.getPlayerState().paused)
+                                stateRepo.updatePaused(false)
+                        } else if (player.playbackState == Player.STATE_READY) // Paused
+                            stateRepo.updatePaused(true)
+                    }
+                }
+            }
+        )
+
+        session = MediaSession.Builder(this, player)
+            .setCallback(this)
+            .build()
+    }
+
+    override fun onPlaybackResumption(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        val settable = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+        val defaultRes =
+            MediaSession.MediaItemsWithStartPosition(
+                emptyList(),
+                0,
+                0
+            )
+
+        playerScope.future {
+            settable.set(musicRepo.getQueueTracks().let {
+                if (it.isEmpty())
+                    defaultRes
+                else {
+                    val cur = musicRepo.currentPlaying()
+                    MediaSession.MediaItemsWithStartPosition(
+                        it.map { MediaItem.fromUri(it.track.internal.location) },
+                        cur?.queuedItem?.position ?: 0,
+                        cur?.queuedItem?.lastPosition ?: 0L
+                    )
+                }
+            })
+        }
+        return settable
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i(this::class.simpleName, "Shutting down, releasing player and session...")
+        session?.run {
+            player.release()
+            release()
+            session = null
+        }
+    }
+
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
+
+}

@@ -12,7 +12,7 @@ import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.PlayerState
 import com.example.musicplayer.data.PlayerStateRepository
 import com.example.musicplayer.data.QueuedTrack
-import com.example.musicplayer.services.Player
+import com.example.musicplayer.services.player.PlayerController
 import com.example.musicplayer.utils.floatPosition
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 class CurrentPlayingVM(
     private val musicRepo: MusicRepository,
     private val plStateRepo: PlayerStateRepository,
-    private val player: Player
+    private val playerController: PlayerController
 ) : ViewModel() {
 
     val curTrack: StateFlow<QueuedTrack?> = musicRepo.currentPlayingFlow()
@@ -36,8 +36,7 @@ class CurrentPlayingVM(
         )
     val position: StateFlow<Long> = flow {
         while (true) {
-            if (player.isReady())
-                emit(player.getCurrentPosition())
+            emit(playerController.getCurrentPosition())
             delay(1000)
         }
     }.stateIn(
@@ -63,44 +62,36 @@ class CurrentPlayingVM(
             started = SharingStarted.Eagerly
         )
 
-    fun togglePauseResume() {
+    fun togglePauseResume() = playerController.togglePauseResume()
+
+    fun toggleShuffleMode() {
         viewModelScope.launch {
-            player.togglePauseResume()
+            playerController.toggleShuffle()
         }
     }
 
-    fun skipNext() {
-        viewModelScope.launch { player.skipNext() }
-    }
-
-    fun skipPrev() {
-        viewModelScope.launch { player.skipPrev() }
-    }
-
-    fun setVolume(v: Float) {
-        viewModelScope.launch {
-            player.setVolume(v)
-        }
-    }
+    fun skipNext() = playerController.skipNext()
+    fun skipPrev() = playerController.skipPrev()
+    fun setVolume(v: Float) = playerController.setVolume(v)
 
     fun setLoopMode(mode: Loop) {
         viewModelScope.launch {
-            player.setLoop(mode)
+            playerController.setLoop(mode)
         }
     }
 
-    fun seekTo(pos: Long) = player.seekTo(pos)
+    fun seekTo(pos: Long) = playerController.seekTo(pos)
 
-    fun seekForward() = player.seekTenSecs(false)
+    fun seekForward() = playerController.seekTenSecs(false)
 
-    fun seekRewind() = player.seekTenSecs(true)
+    fun seekRewind() = playerController.seekTenSecs(true)
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
                 val repo = application.container.musicRepository
-                CurrentPlayingVM(musicRepo = repo, plStateRepo = application.playerStateRepository, player = application.player)
+                CurrentPlayingVM(musicRepo = repo, plStateRepo = application.playerStateRepository, playerController = application.playerController)
             }
         }
     }

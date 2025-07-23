@@ -33,6 +33,8 @@ interface QueueDao {
     suspend fun prevSong(pos: Int): QueuedTrack?
     @Query("SELECT * FROM queue WHERE position = 0 LIMIT 1")
     suspend fun first(): QueuedTrack?
+    @Query("SELECT * FROM queue WHERE position = :pos LIMIT 1")
+    suspend fun track(pos: Int): QueuedTrack?
     @Query("UPDATE queue SET isCurrent = 1 WHERE trackId = :trackId AND position = :pos")
     suspend fun playQueued(trackId: Long, pos: Int)
     @Query("UPDATE track SET lastPlayed = :playDate WHERE trackId = :trackId")
@@ -68,31 +70,15 @@ interface QueueDao {
     }
 
     @Transaction
-    suspend fun finishAndPlayNext(replayCurrentIfNull: Boolean): QueuedTrack? =
+    suspend fun finishAndPlayNextPos(nextPos: Int, doNothing: Boolean) =
         currentPlaying()?.let {
-            finish()
-            nextSong(it.queuedItem.position)?.let {
+            track(nextPos)?.let {
+                finish()
                 play(it.queuedItem)
                 it
             } ?: run {
-                if (replayCurrentIfNull) { // If there's only one track play the same one
-                    play(it.queuedItem)
-                    it
-                } else null
-            }
-        }
-
-    @Transaction
-    suspend fun finishAndPlayPrev(): QueuedTrack? =
-        currentPlaying()?.let {
-            finish()
-            prevSong(it.queuedItem.position)?.let {
-                play(it.queuedItem)
-                it
-            } ?: run {
-                // If there's only one track play the same one
-                play(it.queuedItem)
-                it
+                if (!doNothing)
+                    finish()
             }
         }
 
@@ -111,13 +97,5 @@ interface QueueDao {
         if (item.position < size() - 1)
             refreshPositions(item.position)
     }
-
-    @Transaction
-    suspend fun restartQueue(): QueuedTrack? =
-        first()?.let {
-            play(it.queuedItem)
-            it
-        }
-
 
 }

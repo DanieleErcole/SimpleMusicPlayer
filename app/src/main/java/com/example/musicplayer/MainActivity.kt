@@ -1,5 +1,7 @@
 package com.example.musicplayer
 
+import android.content.ComponentName
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +12,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.session.SessionToken
+import com.example.musicplayer.services.player.PlayerService
 import com.example.musicplayer.ui.MusicPlayerApp
 import com.example.musicplayer.ui.state.MusicPlayerVM
 import com.example.musicplayer.ui.theme.MusicPlayerTheme
@@ -23,6 +27,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
         )
+
+        //val serviceIntent = Intent(this, PlayerService::class.java)
+        //startService(serviceIntent)
+
+        val app = application as MusicPlayerApplication
+        val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
+        app.playerController.init(applicationContext, sessionToken)
+
         setContent {
             vm = viewModel(factory = MusicPlayerVM.Factory)
             MusicPlayerTheme {
@@ -38,8 +50,11 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         vm.releaseRes()
+        val serviceIntent = Intent(this, PlayerService::class.java)
+        stopService(serviceIntent)
+        Log.d(null, "Destroying the app activity...")
+        super.onDestroy()
     }
 
 }

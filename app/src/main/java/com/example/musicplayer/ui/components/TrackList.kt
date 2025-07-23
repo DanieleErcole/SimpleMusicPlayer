@@ -245,7 +245,7 @@ fun TrackList(
                         dialogTracks = listOf(it)
                         openInfoDialog = true
                     },
-                    onQueueClick = { listVm.queue(it.internal) }
+                    onQueueClick = { listVm.queueAll(listOf(it.internal)) }
                 )
             }
         }

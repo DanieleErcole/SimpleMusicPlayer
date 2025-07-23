@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackFilter
-import com.example.musicplayer.services.Player
+import com.example.musicplayer.services.player.PlayerController
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class TrackListVM(
     private val trackSource: TrackFilter,
-    private val player: Player
+    private val playerController: PlayerController
 ) : ViewModel() {
 
     private val _searchString = MutableStateFlow("")
@@ -48,19 +48,13 @@ class TrackListVM(
 
     fun replaceQueue(tracks: List<Track>, currentId: Long) {
         viewModelScope.launch {
-            player.replaceQueue(tracks, currentId)
-        }
-    }
-
-    fun queue(track: Track) {
-        viewModelScope.launch {
-            player.queue(track)
+            playerController.replaceQueue(tracks, currentId)
         }
     }
 
     fun queueAll(tracks: List<Track>, mustPlay: Boolean = false) {
         viewModelScope.launch {
-            player.queueAll(tracks, mustPlay = mustPlay)
+            playerController.queueAll(tracks, mustPlay = mustPlay)
         }
     }
 

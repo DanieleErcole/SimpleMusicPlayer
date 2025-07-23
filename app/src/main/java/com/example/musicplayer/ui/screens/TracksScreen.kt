@@ -14,7 +14,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.musicplayer.R
 import com.example.musicplayer.data.ListContext
 import com.example.musicplayer.data.ListMode
@@ -48,7 +47,7 @@ fun TracksScreen(
         listVm = viewModel {
             TrackListVM(
                 trackSource = filter,
-                player = app.player
+                playerController = app.playerController
             )
         },
         plVm = plVm,

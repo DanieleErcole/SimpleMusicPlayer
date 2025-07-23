@@ -2,7 +2,6 @@ package com.example.musicplayer.utils
 
 import android.net.Uri
 import androidx.core.net.toUri
-import com.example.musicplayer.data.Loop
 
 object DefaultAlbum {
     const val UNKNOWN_ID = -1L
@@ -17,16 +16,13 @@ object UserPrefKeys {
     const val REPO_TAG = "UserPreferencesRepo"
 }
 
-object PlayerStateDefaults {
-    const val VOLUME = 100f
-    const val PAUSED = false
-    val LOOP = Loop.None
-}
-
 object PlayerStateKeys {
     const val VOLUME = "volume"
     const val PAUSED = "paused"
     const val LOOP = "loop"
+    const val SHUFFLE = "shuffle"
 }
 
+const val DEFAULT_VOLUME = 100f
+const val SCANNED_DIRS_PREFERENCE_NAME = "scanned_dirs_prefs"
 val albumUriBase: Uri = "content://media/external/audio/albumart".toUri()
