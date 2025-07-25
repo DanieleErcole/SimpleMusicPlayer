@@ -13,7 +13,8 @@ import com.example.musicplayer.data.Loop
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.PlayerStateRepository
 import com.example.musicplayer.data.QueueItem
-import com.example.musicplayer.data.Track
+import com.example.musicplayer.data.TrackWithAlbum
+import com.example.musicplayer.utils.toMediaItem
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.withContext
 
 class PlayerController(
     private val musicRepo: MusicRepository,
@@ -34,6 +36,8 @@ class PlayerController(
 
     private val _errorFlow = MutableSharedFlow<String>()
     val errorFlow = _errorFlow.asSharedFlow()
+
+    //val currentMediaItem = MutableStateFlow<MediaItem?>(null)
 
     @OptIn(UnstableApi::class)
     fun init(ctx: Context, token: SessionToken) {
@@ -56,12 +60,19 @@ class PlayerController(
                         }
 
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                            playerScope.launch {
-                                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK)
-                                    musicRepo.finishAndPlayNextPos(
-                                        controller.currentMediaItemIndex,
-                                        doNothingToCurrent = controller.repeatMode == Player.REPEAT_MODE_OFF
-                                    )
+                            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
+                                playerScope.launch {
+                                    val currentIndex = controller.currentMediaItemIndex
+                                    val isRepeatOff = controller.repeatMode == Player.REPEAT_MODE_OFF
+
+                                    withContext(Dispatchers.IO) {
+                                        musicRepo.finishAndPlayNextPos(
+                                            currentIndex,
+                                            doNothingToCurrent = isRepeatOff
+                                        )
+                                    }
+                                    //currentMediaItem.emit(controller.currentMediaItem)
+                                }
                             }
                         }
 
@@ -73,8 +84,10 @@ class PlayerController(
                                     musicRepo.currentPlaying()?.let {
                                         musicRepo.deleteTrack(it.track.internal)
                                     }*/
-                                val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
-                                _errorFlow.emit("Failed to load the track at $path")
+                                withContext(Dispatchers.IO) {
+                                    val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
+                                    _errorFlow.emit("Failed to load the track at $path")
+                                }
                                 /*musicRepo.finishAndPlayNext()?.let {
                                     play(it.queuedItem)
                                     controller.play()
@@ -85,6 +98,7 @@ class PlayerController(
                 )
                 playerScope.launch {
                     musicRepo.currentPlaying()?.let {
+                        //currentMediaItem.emit(it.track.toMediaItem())
                         setVolume(stateRepo.getPlayerState().volume)
                         play()
                     }
@@ -94,9 +108,13 @@ class PlayerController(
     }
 
     suspend fun storeCurrentInfo() {
-        stateRepo.updatePaused(true)
-        musicRepo.currentPlaying()?.let {
-            musicRepo.storeCurrentPos(getCurrentPosition())
+        withContext(Dispatchers.IO) {
+            stateRepo.updatePaused(true)
+            musicRepo.currentPlaying()?.let {
+                withContext(Dispatchers.Main) {
+                    musicRepo.storeCurrentPos(getCurrentPosition())
+                }
+            }
         }
     }
 
@@ -109,57 +127,74 @@ class PlayerController(
         controller.prepare()
     }
 
-    suspend fun queueAll(tracks: List<Track>, mustPlay: Boolean = false) {
+    suspend fun queueAll(tracks: List<TrackWithAlbum>, mustPlay: Boolean = false) {
         val mutList = tracks.toMutableList()
-        if (musicRepo.currentPlaying() == null || mustPlay) {
-            val first = mutList.removeAt(0)
-            val size = musicRepo.queueSize()
-            musicRepo.queueAndPlay(
-                QueueItem(
-                    track = first.trackId,
-                    position = size,
-                    isCurrent = true,
-                    lastPosition = null
+        withContext(Dispatchers.IO) {
+            if (musicRepo.currentPlaying() == null || mustPlay) {
+                val first = mutList.removeAt(0)
+                val size = musicRepo.queueSize()
+                musicRepo.queueAndPlay(
+                    QueueItem(
+                        track = first.internal.trackId,
+                        position = size,
+                        isCurrent = true,
+                        lastPosition = null
+                    )
                 )
-            )
 
-            //play(first, replace = true)
-            controller.addMediaItem(MediaItem.fromUri(first.location))
-            play(if (mustPlay) size else null)
-        }
+                withContext(Dispatchers.Main) {
+                    controller.addMediaItem(first.toMediaItem())
+                }
+                play(if (mustPlay) size else null)
+            }
 
-        if (mutList.isNotEmpty()) {
-            musicRepo.queueAll(mutList.mapIndexed { pos, item ->
-                QueueItem(
-                    track = item.trackId,
-                    position = musicRepo.queueSize() + pos,
-                    isCurrent = false,
-                    lastPosition = null
-                )
-            })
-            controller.addMediaItems(mutList.map { MediaItem.fromUri(it.location) })
+            if (mutList.isNotEmpty()) {
+                musicRepo.queueAll(mutList.mapIndexed { pos, item ->
+                    QueueItem(
+                        track = item.internal.trackId,
+                        position = musicRepo.queueSize() + pos,
+                        isCurrent = false,
+                        lastPosition = null
+                    )
+                })
+                withContext(Dispatchers.Main) {
+                    controller.addMediaItems(mutList.map { it.toMediaItem() })
+                }
+            }
         }
     }
 
-    suspend fun replaceQueue(new: List<Track>, newCurrent: Long) {
+    suspend fun replaceQueue(new: List<TrackWithAlbum>, newCurrent: Long) {
         val items = new.mapIndexed { pos, item ->
             QueueItem(
-                track = item.trackId,
+                track = item.internal.trackId,
                 position = pos,
-                isCurrent = item.trackId == newCurrent,
+                isCurrent = item.internal.trackId == newCurrent,
                 lastPosition = null
             )
         }
 
-        musicRepo.replaceQueue(items)
+        withContext(Dispatchers.IO) {
+            musicRepo.replaceQueue(items)
+        }
 
         val curPos = items.first { it.isCurrent }.position
         controller.setMediaItems(
-            new.map { MediaItem.fromUri(it.location) },
+            new.map { it.toMediaItem() },
             curPos,
             0L
         )
         play(curPos)
+    }
+
+    suspend fun moveTrack(from: Int, to: Int) {
+        Log.i(this::class.simpleName, "$from - $to")
+        if (from == to)
+            return
+        controller.moveMediaItem(from, to)
+        withContext(Dispatchers.IO) {
+            musicRepo.moveTrack(from, to)
+        }
     }
 
     suspend fun clearQueue() {

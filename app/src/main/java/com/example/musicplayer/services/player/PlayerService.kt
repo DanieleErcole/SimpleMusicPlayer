@@ -19,6 +19,7 @@ import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.PlayerStateRepository
 import com.example.musicplayer.data.db.AppDatabase
 import com.example.musicplayer.utils.dataStore
+import com.example.musicplayer.utils.toMediaItem
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
@@ -119,7 +120,7 @@ class PlayerService : MediaSessionService(), Callback {
                 else {
                     val cur = musicRepo.currentPlaying()
                     MediaSession.MediaItemsWithStartPosition(
-                        it.map { MediaItem.fromUri(it.track.internal.location) },
+                        it.map { it.track.toMediaItem() },
                         cur?.queuedItem?.position ?: 0,
                         cur?.queuedItem?.lastPosition ?: 0L
                     )

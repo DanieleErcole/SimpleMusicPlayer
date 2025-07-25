@@ -24,8 +24,14 @@ interface QueueDao {
     suspend fun currentPlaying(): QueuedTrack?
     @Query("SELECT * FROM queue WHERE isCurrent = 1")
     fun currentPlayingFlow(): Flow<QueuedTrack?>
-    @Query("UPDATE queue SET position = :removedPos - 1 WHERE position > :removedPos")
-    suspend fun refreshPositions(removedPos: Int)
+    @Query("UPDATE queue SET position = position - 1 WHERE position > :removedPos")
+    suspend fun refreshPositionsOnRemove(removedPos: Int)
+    @Query("UPDATE queue SET position = position - 1 WHERE position > :fromPos AND position <= :toPos")
+    suspend fun refreshPositionsOnMoveGreater(fromPos: Int, toPos: Int)
+    @Query("UPDATE queue SET position = position + 1 WHERE position >= :toPos AND position < :fromPos")
+    suspend fun refreshPositionsOnMoveLower(fromPos: Int, toPos: Int)
+    @Query("UPDATE queue SET position = :new WHERE position = :old")
+    suspend fun updatePos(old: Int, new: Int)
 
     @Query("SELECT * FROM queue WHERE position > :pos ORDER BY position ASC LIMIT 1")
     suspend fun nextSong(pos: Int): QueuedTrack?
@@ -95,7 +101,17 @@ interface QueueDao {
     suspend fun deleteAndRefresh(item: QueueItem) {
         delete(item)
         if (item.position < size() - 1)
-            refreshPositions(item.position)
+            refreshPositionsOnRemove(item.position)
+    }
+
+    @Transaction
+    suspend fun moveTrack(from: Int, to: Int) {
+        // Set the item to -1 because it could be the same track as the one in the position it's moving to (position, trackId are primary key)
+        updatePos(from, -1)
+        if (from < to)
+            refreshPositionsOnMoveGreater(from, to)
+        else refreshPositionsOnMoveLower(from, to)
+        updatePos(-1, to)
     }
 
 }

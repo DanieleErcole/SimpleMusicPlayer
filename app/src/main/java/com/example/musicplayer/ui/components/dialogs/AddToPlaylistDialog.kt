@@ -13,6 +13,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,21 +26,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.musicplayer.R
-import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.components.CustomContextMenuCheckboxBtn
 import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.components.Divider
+import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 
 @Composable
 fun AddToPlaylistDialog(
-    tracks: List<TrackWithAlbum>,
     plVm: PlaylistsVM,
+    dialogsVm: DialogsVM,
     modifier: Modifier = Modifier
 ) {
-    val openAddDialog = plVm.openAddDialog.collectAsStateWithLifecycle()
-    if (openAddDialog.value) {
-        BaseDialog(onDismissRequest = { plVm.toggleAddDialog() }) {
+    val state = dialogsVm.addTracks.collectAsStateWithLifecycle()
+    val openAddDialog by remember { derivedStateOf { state.value.isNotEmpty() } }
+
+    if (openAddDialog) {
+        val tracks by remember { derivedStateOf { state.value } }
+
+        BaseDialog(onDismissRequest = { dialogsVm.toggleAddDialog() }) {
             val playlists = plVm.playlists.collectAsStateWithLifecycle()
             val itemsState = remember {
                 mutableStateMapOf<Long, Boolean>().apply {
@@ -104,7 +110,7 @@ fun AddToPlaylistDialog(
                         TransparentButton(
                             onClick = {
                                 //TODO: add the tracks to the checked playlists
-                                plVm.toggleAddDialog()
+                                dialogsVm.toggleAddDialog()
                             },
                             text = "Add",
                             fontSize = 14.sp,

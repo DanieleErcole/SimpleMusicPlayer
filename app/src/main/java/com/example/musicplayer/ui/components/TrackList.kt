@@ -15,17 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,28 +29,28 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.AppScreen
-import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
-import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
-import com.example.musicplayer.ui.state.PlaylistsVM
+import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.formatTimestamp
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import kotlin.collections.map
 
 @Composable
 fun TrackList(
     listVm: TrackListVM,
-    plVm: PlaylistsVM,
-    pagerState: PagerState,
+    dialogsVm: DialogsVM,
+    navController: NavController,
     listTitle: String,
     onBackClick: (() -> Unit)? = null,
     filters: (@Composable () -> Unit)? = null,
@@ -62,29 +58,14 @@ fun TrackList(
     mustReplaceQueue: Boolean = false,
     modifier: Modifier
 ) {
-    val scope = rememberCoroutineScope()
     val tracks = listVm.tracks.collectAsStateWithLifecycle()
     val searchStr = listVm.searchString.collectAsStateWithLifecycle()
     val selectedTracks = listVm.selectedTracks.collectAsStateWithLifecycle()
 
-    var openInfoDialog by remember { mutableStateOf(false) }
-    var dialogTracks by remember { mutableStateOf<List<TrackWithAlbum>>(emptyList()) } // Track(s) used for info and add to playlist dialog
-
-    if (dialogTracks.isNotEmpty()) {
-        AddToPlaylistDialog(
-            tracks = dialogTracks,
-            plVm = plVm,
-        )
-        if (openInfoDialog)
-            SongInfoDialog(
-                track = dialogTracks.first(),
-                onDismiss = { openInfoDialog = false },
-            )
-    }
-
     val selectionMode by remember { derivedStateOf { selectedTracks.value.isNotEmpty() } }
     Column(
-        modifier = modifier.padding(top = 8.dp)
+        modifier = modifier
+            .padding(top = 8.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -156,31 +137,25 @@ fun TrackList(
                 whileSelectedClick = {
                     if (tracks.value.size == selectedTracks.value.size)
                         listVm.clearSelection()
-                    else listVm.selectList(tracks.value.map { it.internal.trackId })
+                    else listVm.selectList(tracks.value.map { it.internal.trackId }.toSet())
                 },
                 onCloseClick = { listVm.clearSelection() },
                 onQueueClick = {
                     listVm.queueAll(tracks.value
-                        .filter { selectedTracks.value.contains(it.internal.trackId) }
-                        .map { it.internal }
+                        .filter { it.internal.trackId in selectedTracks.value }
                     )
                     listVm.clearSelection()
                 },
                 onAddClick = {
-                    dialogTracks = tracks.value.filter { selectedTracks.value.contains(it.internal.trackId) }
-                    plVm.toggleAddDialog()
+                    dialogsVm.toggleAddDialog(tracks.value.filter { it.internal.trackId in selectedTracks.value })
                 },
                 onPlayClick = {
                     listVm.queueAll(
-                        tracks.value
-                            .filter { selectedTracks.value.contains(it.internal.trackId) }
-                            .map { it.internal },
+                        tracks.value.filter { it.internal.trackId in selectedTracks.value },
                         mustPlay = true
                     )
                     listVm.clearSelection()
-                    scope.launch {
-                        pagerState.animateScrollToPage(AppScreen.Playing.index)
-                    }
+                    navController.navigate(AppScreen.Playing.name)
                 },
                 selectionSize = selectedTracks.value.size,
                 allSelected = tracks.value.size == selectedTracks.value.size,
@@ -221,31 +196,23 @@ fun TrackList(
                         if (selectionMode)
                             listVm.selectTrack(it.internal.trackId)
                         else {
-                            val tracksToPlay =
-                                if (mustReplaceQueue)
-                                    tracks.value.map { it.internal }
-                                else listOf(it.internal)
                             listVm.replaceQueue(
-                                tracks = tracksToPlay,
+                                tracks = if (mustReplaceQueue) tracks.value else listOf(it),
                                 currentId = it.internal.trackId,
                             )
-                            scope.launch {
-                                pagerState.animateScrollToPage(AppScreen.Playing.index)
-                            }
+                            navController.navigate(AppScreen.Playing.name)
                         }
                     },
                     onLongPress = { listVm.selectTrack(it.internal.trackId) },
                     isSelected = selectedTracks.value.contains(it.internal.trackId),
                     selectionMode = selectionMode,
                     onAddClick = {
-                        dialogTracks = listOf(it)
-                        plVm.toggleAddDialog()
+                        dialogsVm.toggleAddDialog(listOf(it))
                     },
                     onInfoClick = {
-                        dialogTracks = listOf(it)
-                        openInfoDialog = true
+                        dialogsVm.toggleInfoDialog(it)
                     },
-                    onQueueClick = { listVm.queueAll(listOf(it.internal)) }
+                    onQueueClick = { listVm.queueAll(listOf(it)) }
                 )
             }
         }
@@ -361,6 +328,7 @@ fun TrackItem(
                 modifier = Modifier.fillMaxSize(),
                 model = ImageRequest.Builder(context = LocalContext.current)
                     .data(track.album.thumbnail)
+                    .dispatcher(Dispatchers.IO)
                     .crossfade(true)
                     .build(),
                 contentDescription = track.internal.title,
@@ -418,12 +386,15 @@ fun TrackItem(
                     maxLines = 1,
                     fontSize = 12.sp,
                     lineHeight = 12.sp,
+                    modifier = Modifier.weight(.80f)
                 )
                 Text(
                     text = formatTimestamp(track.internal.durationMs),
+                    textAlign = TextAlign.Right,
                     maxLines = 1,
                     fontSize = 12.sp,
                     lineHeight = 12.sp,
+                    modifier = Modifier.weight(.20f)
                 )
             }
         }

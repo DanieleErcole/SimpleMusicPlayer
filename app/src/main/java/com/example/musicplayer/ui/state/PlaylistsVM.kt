@@ -28,16 +28,6 @@ class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000)
         )
 
-    private val _openAddDialog = MutableStateFlow(false)
-    val openAddDialog = _openAddDialog.asStateFlow()
-
-    private val _openNewDialog = MutableStateFlow(false)
-    val openNewDialog = _openNewDialog.asStateFlow()
-
-    fun toggleAddDialog() = _openAddDialog.update { !_openAddDialog.value }
-
-    fun toggleNewDialog() = _openNewDialog.update { !_openNewDialog.value }
-
     fun newPlaylist(name: String) {
         viewModelScope.launch {
             musicRepo.newPlaylist(

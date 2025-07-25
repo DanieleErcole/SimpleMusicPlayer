@@ -13,6 +13,7 @@ import com.example.musicplayer.utils.DEFAULT_VOLUME
 import com.example.musicplayer.utils.PlayerStateKeys
 import com.example.musicplayer.utils.UserPrefKeys
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -26,22 +27,34 @@ class PlayerStateRepository(private val dataStore: DataStore<Preferences>) {
         val SHUFFLE = booleanPreferencesKey(PlayerStateKeys.SHUFFLE)
     }
 
-    val playerState: Flow<PlayerState> = dataStore.data
-        .catch {
-            if (it is IOException) {
-                Log.e(UserPrefKeys.REPO_TAG, "Error reading player state.", it)
-                emit(emptyPreferences())
-            } else {
-                throw it
-            }
+    private suspend fun FlowCollector<Preferences>.catch(ex: Throwable) {
+        if (ex is IOException) {
+            Log.e(UserPrefKeys.REPO_TAG, "Error reading player state.", ex)
+            emit(emptyPreferences())
+        } else {
+            throw ex
         }
+    }
+
+    val paused: Flow<Boolean> = dataStore.data
+        .catch { catch(it) }
         .map { prefs ->
-            PlayerState(
-                volume = prefs[VOLUME] ?: DEFAULT_VOLUME,
-                paused = prefs[PAUSED] ?: false,
-                loopMode = Loop.valueOf(prefs[LOOP] ?: Loop.None.name),
-                shuffle = prefs[SHUFFLE] ?: false
-            )
+            prefs[PAUSED] ?: false
+        }
+    val volume: Flow<Float> = dataStore.data
+        .catch { catch(it) }
+        .map { prefs ->
+            prefs[VOLUME] ?: DEFAULT_VOLUME
+        }
+    val shuffle: Flow<Boolean> = dataStore.data
+        .catch { catch(it) }
+        .map { prefs ->
+            prefs[SHUFFLE] ?: false
+        }
+    val loop: Flow<Loop> = dataStore.data
+        .catch { catch(it) }
+        .map { prefs ->
+            Loop.valueOf(prefs[LOOP] ?: Loop.None.name)
         }
 
     suspend fun getPlayerState(): PlayerState {

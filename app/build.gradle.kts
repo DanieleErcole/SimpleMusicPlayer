@@ -60,6 +60,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation("androidx.media3:media3-exoplayer:1.7.1")
     implementation("androidx.media3:media3-session:1.7.1")
+    implementation("androidx.media3:media3-extractor:1.7.1")
+    implementation(libs.reorderable)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

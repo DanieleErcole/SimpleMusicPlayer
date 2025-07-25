@@ -31,12 +31,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.musicplayer.R
 import com.example.musicplayer.data.Loop
-import com.example.musicplayer.data.QueuedTrack
+import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.components.CustomSlider
 import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
@@ -44,32 +43,21 @@ import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.LoopDialog
 import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
-import com.example.musicplayer.ui.state.PlaylistsVM
+import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.utils.formatTimestamp
 import com.example.musicplayer.utils.toPosition
+import kotlinx.coroutines.Dispatchers
 import kotlin.math.floor
 
 @Composable
 fun CurrentPlayingScreen(
     modifier: Modifier = Modifier,
-    vm: CurrentPlayingVM = viewModel(factory = CurrentPlayingVM.Factory),
-    plVm: PlaylistsVM = viewModel(factory = PlaylistsVM.Factory),
+    vm: CurrentPlayingVM,
+    dialogsVm: DialogsVM
 ) {
-    val playerState = vm.playerState.collectAsStateWithLifecycle()
     val cur = vm.curTrack.collectAsStateWithLifecycle()
-    var openInfoDialog by remember { mutableStateOf(false) }
 
-    cur.value?.let { current ->
-        AddToPlaylistDialog(
-            tracks = listOf(current.track),
-            plVm = plVm
-        )
-        if (openInfoDialog)
-            SongInfoDialog(
-                track = current.track,
-                onDismiss = { openInfoDialog = false },
-            )
-
+    cur.value?.track?.let { current ->
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -85,10 +73,11 @@ fun CurrentPlayingScreen(
                         .aspectRatio(1f)
                         .padding(40.dp),
                     model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(current.track.album.thumbnail)
+                        .data(current.album.thumbnail)
+                        .dispatcher(Dispatchers.IO)
                         .crossfade(true)
                         .build(),
-                    contentDescription = current.track.internal.title,
+                    contentDescription = current.internal.title,
                     error = painterResource(R.drawable.unknown_thumb),
                     placeholder = painterResource(R.drawable.unknown_thumb),
                     contentScale = ContentScale.Crop
@@ -102,12 +91,12 @@ fun CurrentPlayingScreen(
                     .weight(.4f)
             ) {
                 Text(
-                    text = current.track.internal.title,
+                    text = current.internal.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Text(
-                    text = current.track.internal.artist,
+                    text = current.internal.artist,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
@@ -115,7 +104,7 @@ fun CurrentPlayingScreen(
                     modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
                 )
                 Text(
-                    text = current.track.album.name,
+                    text = current.album.name,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
@@ -123,10 +112,9 @@ fun CurrentPlayingScreen(
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
-                    onInfoClick = { openInfoDialog = true },
-                    onShuffleClick = { vm.toggleShuffleMode() },
-                    plVm = plVm,
-                    shuffle = playerState.value.shuffle
+                    onInfoClick = { dialogsVm.toggleInfoDialog(track = current) },
+                    onAddClick = { dialogsVm.toggleAddDialog(tracks = listOf(current)) },
+                    vm = vm
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 SliderToolbar(
@@ -134,12 +122,7 @@ fun CurrentPlayingScreen(
                     current = current
                 )
                 Spacer(modifier.fillMaxWidth().height(30.dp))
-                PlayerControls(
-                    vm = vm,
-                    volume = playerState.value.volume,
-                    paused = playerState.value.paused,
-                    loopMode = playerState.value.loopMode
-                )
+                PlayerControls(vm = vm)
                 Spacer(modifier.fillMaxWidth().height(40.dp))
             }
         }
@@ -150,11 +133,12 @@ fun CurrentPlayingScreen(
 @Composable
 fun UpperToolbar(
     onInfoClick: () -> Unit,
-    onShuffleClick: () -> Unit,
-    plVm: PlaylistsVM,
-    shuffle: Boolean,
+    onAddClick: () -> Unit,
+    vm: CurrentPlayingVM,
     modifier: Modifier = Modifier
 ) {
+    val shuffle = vm.shuffle.collectAsStateWithLifecycle()
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxWidth()
@@ -170,14 +154,14 @@ fun UpperToolbar(
                 tint = MaterialTheme.colorScheme.outline,
             )
             TransparentButton(
-                onClick = { plVm.toggleAddDialog() },
+                onClick = onAddClick,
                 painter = painterResource(R.drawable.playlist_add),
                 contentDescription = "Playlist add",
                 tint = MaterialTheme.colorScheme.outline,
             )
             TransparentButton(
-                onClick = onShuffleClick,
-                painter = painterResource(if (shuffle) R.drawable.shuffle else R.drawable.shuffle_off),
+                onClick = { vm.toggleShuffleMode() },
+                painter = painterResource(if (shuffle.value) R.drawable.shuffle else R.drawable.shuffle_off),
                 contentDescription = "Shuffle",
                 tint = MaterialTheme.colorScheme.outline,
             )
@@ -189,7 +173,7 @@ fun UpperToolbar(
 @Composable
 fun SliderToolbar(
     vm: CurrentPlayingVM,
-    current: QueuedTrack,
+    current: TrackWithAlbum,
     modifier: Modifier = Modifier
 ) {
     val position = vm.position.collectAsStateWithLifecycle()
@@ -220,7 +204,7 @@ fun SliderToolbar(
                 sliderPosition = it
             },
             onValueChangeFinished = {
-                vm.seekTo(toPosition(sliderPosition, current.track.internal.durationMs))
+                vm.seekTo(toPosition(sliderPosition, current.internal.durationMs))
                 isChangingValue = false
             },
             modifier = Modifier
@@ -228,7 +212,7 @@ fun SliderToolbar(
                 .height(10.dp)
         )
         Text(
-            text = formatTimestamp(current.track.internal.durationMs),
+            text = formatTimestamp(current.internal.durationMs),
             fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
@@ -239,13 +223,14 @@ fun SliderToolbar(
 @Composable
 fun PlayerControls(
     vm: CurrentPlayingVM,
-    volume: Float,
-    paused: Boolean,
-    loopMode: Loop,
     modifier: Modifier = Modifier
 ) {
-    val intVolume = floor(volume).toInt()
-    var sliderPosition by remember { mutableFloatStateOf(volume) }
+    val volume = vm.volume.collectAsStateWithLifecycle()
+    val paused = vm.paused.collectAsStateWithLifecycle()
+    val loop = vm.loop.collectAsStateWithLifecycle()
+
+    val intVolume = floor(volume.value).toInt()
+    var sliderPosition by remember { mutableFloatStateOf(volume.value) }
 
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -302,7 +287,7 @@ fun PlayerControls(
         )
         TransparentButton(
             onClick = { vm.togglePauseResume() },
-            painter = painterResource(if (paused) R.drawable.play_big else R.drawable.pause_big),
+            painter = painterResource(if (paused.value) R.drawable.play_big else R.drawable.pause_big),
             contentDescription = "Play/pause",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
@@ -325,7 +310,7 @@ fun PlayerControls(
             modifier = Modifier.height(45.dp).width(45.dp)
         )
         TransparentBtnWithContextMenu(
-            painter = painterResource(when(loopMode) {
+            painter = painterResource(when(loop.value) {
                 Loop.None -> R.drawable.next_song
                 Loop.Queue -> R.drawable.repeat_queue
                 Loop.Track -> R.drawable.repeat_one
@@ -333,7 +318,7 @@ fun PlayerControls(
             contentDescription = "Loop dialog",
             tint = MaterialTheme.colorScheme.outline
         ) {
-            LoopDialog(vm = vm, currentMode = loopMode)
+            LoopDialog(vm = vm, currentMode = loop.value)
         }
     }
 }

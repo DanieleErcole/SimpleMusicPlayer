@@ -47,4 +47,5 @@ class LocalMusicRepository(
         queueDao.finishAndPlayNextPos(nextPos, doNothingToCurrent)
     }
     override suspend fun replaceQueue(new: List<QueueItem>) = queueDao.replaceQueue(new)
+    override suspend fun moveTrack(from: Int, to: Int) = queueDao.moveTrack(from, to)
 }

@@ -9,18 +9,22 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.Loop
 import com.example.musicplayer.data.MusicRepository
-import com.example.musicplayer.data.PlayerState
 import com.example.musicplayer.data.PlayerStateRepository
 import com.example.musicplayer.data.QueuedTrack
 import com.example.musicplayer.services.player.PlayerController
+import com.example.musicplayer.utils.DEFAULT_VOLUME
 import com.example.musicplayer.utils.floatPosition
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CurrentPlayingVM(
     private val musicRepo: MusicRepository,
@@ -28,37 +32,66 @@ class CurrentPlayingVM(
     private val playerController: PlayerController
 ) : ViewModel() {
 
+    private val positionScope = CoroutineScope(Dispatchers.Default)
+    private val stateScope = CoroutineScope(Dispatchers.Default)
+    private val dbScope = CoroutineScope(Dispatchers.IO)
+
     val curTrack: StateFlow<QueuedTrack?> = musicRepo.currentPlayingFlow()
         .stateIn(
             initialValue = null,
-            scope = viewModelScope,
+            scope = dbScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
     val position: StateFlow<Long> = flow {
-        while (true) {
-            emit(playerController.getCurrentPosition())
-            delay(1000)
+        withContext(Dispatchers.Default) {
+            while (true) {
+                withContext(Dispatchers.Main) {
+                    emit(playerController.getCurrentPosition())
+                }
+                delay(1000)
+            }
         }
-    }.stateIn(
+    }.flowOn(Dispatchers.Main).stateIn(
         initialValue = 0L,
-        scope = viewModelScope,
+        scope = positionScope,
         started = SharingStarted.WhileSubscribed(5000)
     )
-    val playerState = plStateRepo.playerState
+
+    val volume = plStateRepo.volume
         .stateIn(
-            initialValue = PlayerState.default(),
-            scope = viewModelScope,
+            initialValue = DEFAULT_VOLUME,
+            scope = stateScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+    val paused = plStateRepo.paused
+        .stateIn(
+            initialValue = false,
+            scope = stateScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+    val shuffle = plStateRepo.shuffle
+        .stateIn(
+            initialValue = false,
+            scope = stateScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+    val loop = plStateRepo.loop
+        .stateIn(
+            initialValue = Loop.None,
+            scope = stateScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
 
+    //val curTrack = playerController.currentMediaItem.asStateFlow()
+
     val sliderValue: StateFlow<Float> = position
         .combine(curTrack) { pos, track ->
-            track?.let {
-                floatPosition(pos, it.track.internal.durationMs)
+            track?.let { t ->
+                floatPosition(pos, t.track.internal.durationMs)
             } ?: 0f
         }.stateIn(
             initialValue = 0f,
-            scope = viewModelScope,
+            scope = CoroutineScope(Dispatchers.IO),
             started = SharingStarted.Eagerly
         )
 
