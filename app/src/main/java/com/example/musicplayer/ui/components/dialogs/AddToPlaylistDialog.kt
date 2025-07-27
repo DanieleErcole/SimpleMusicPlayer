@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui.components.dialogs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,17 +35,16 @@ import com.example.musicplayer.ui.state.PlaylistsVM
 
 @Composable
 fun AddToPlaylistDialog(
+    onEndAction: (() -> Unit)? = null,
     plVm: PlaylistsVM,
     dialogsVm: DialogsVM,
     modifier: Modifier = Modifier
 ) {
-    val state = dialogsVm.addTracks.collectAsStateWithLifecycle()
-    val openAddDialog by remember { derivedStateOf { state.value.isNotEmpty() } }
+    val state = dialogsVm.addDialog.collectAsStateWithLifecycle()
+    state.value?.let {
+        val tracks by remember { derivedStateOf { it.tracks } }
 
-    if (openAddDialog) {
-        val tracks by remember { derivedStateOf { state.value } }
-
-        BaseDialog(onDismissRequest = { dialogsVm.toggleAddDialog() }) {
+        BaseDialog(onDismissRequest = { dialogsVm.setAddDialog() }) {
             val playlists = plVm.playlists.collectAsStateWithLifecycle()
             val itemsState = remember {
                 mutableStateMapOf<Long, Boolean>().apply {
@@ -56,7 +56,9 @@ fun AddToPlaylistDialog(
 
             Surface {
                 Column(
-                    modifier = modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp)
+                    modifier = modifier
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .padding(top = 12.dp, start = 12.dp, end = 12.dp)
                 ) {
                     Text(
                         text = if (tracks.size == 1) tracks.first().internal.title else "${tracks.size} songs",
@@ -110,7 +112,8 @@ fun AddToPlaylistDialog(
                         TransparentButton(
                             onClick = {
                                 //TODO: add the tracks to the checked playlists
-                                dialogsVm.toggleAddDialog()
+                                dialogsVm.setAddDialog()
+                                onEndAction?.invoke()
                             },
                             text = "Add",
                             fontSize = 14.sp,

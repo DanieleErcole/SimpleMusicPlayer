@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
+import com.example.musicplayer.ui.components.dialogs.ConfirmActionDialog
 import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.components.slideInConditional
 import com.example.musicplayer.ui.components.slideOutConditional
@@ -111,6 +112,12 @@ fun MusicPlayerApp(
     val playlistVm = viewModel<PlaylistsVM>(factory = PlaylistsVM.Factory)
     val queueVm = viewModel<QueueVM>(factory = QueueVM.Factory)
 
+    navController.addOnDestinationChangedListener { _, destination, _ ->
+        val to = AppScreen.valueOf(destination.route ?: AppScreen.Playing.name)
+        if (to == AppScreen.Queue)
+            queueVm.updateUIQueue()
+    }
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(
@@ -131,6 +138,7 @@ fun MusicPlayerApp(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) { innerPadding ->
+        ConfirmActionDialog(dialogsVm = dialogsVm)
         AddToPlaylistDialog(
             plVm = playlistVm,
             dialogsVm = dialogsVm
@@ -147,7 +155,10 @@ fun MusicPlayerApp(
                 .padding(innerPadding)
         ) {
             composable(route = AppScreen.Queue.name) {
-                QueueScreen(vm = queueVm)
+                QueueScreen(
+                    vm = queueVm,
+                    dialogsVm = dialogsVm
+                )
             }
             composable(route = AppScreen.Playing.name) {
                 CurrentPlayingScreen(

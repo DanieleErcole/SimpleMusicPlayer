@@ -147,7 +147,7 @@ fun TrackList(
                     listVm.clearSelection()
                 },
                 onAddClick = {
-                    dialogsVm.toggleAddDialog(tracks.value.filter { it.internal.trackId in selectedTracks.value })
+                    dialogsVm.setAddDialog(tracks.value.filter { it.internal.trackId in selectedTracks.value })
                 },
                 onPlayClick = {
                     listVm.queueAll(
@@ -204,14 +204,10 @@ fun TrackList(
                         }
                     },
                     onLongPress = { listVm.selectTrack(it.internal.trackId) },
-                    isSelected = selectedTracks.value.contains(it.internal.trackId),
+                    isSelected = it.internal.trackId in selectedTracks.value,
                     selectionMode = selectionMode,
-                    onAddClick = {
-                        dialogsVm.toggleAddDialog(listOf(it))
-                    },
-                    onInfoClick = {
-                        dialogsVm.toggleInfoDialog(it)
-                    },
+                    onAddClick = { dialogsVm.setAddDialog(listOf(it)) },
+                    onInfoClick = { dialogsVm.setInfoDialog(it) },
                     onQueueClick = { listVm.queueAll(listOf(it)) }
                 )
             }
@@ -225,7 +221,8 @@ fun SelectionToolbar(
     onQueueClick: () -> Unit,
     whileSelectedClick: () -> Unit,
     onCloseClick: () -> Unit,
-    onPlayClick: () -> Unit,
+    onPlayClick: (() -> Unit)? = null,
+    onDeleteClick: (() -> Unit)? = null,
     selectionSize: Int,
     allSelected: Boolean,
     modifier: Modifier = Modifier
@@ -278,12 +275,22 @@ fun SelectionToolbar(
                     text = "Add to queue",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                CustomContextMenuBtn(
-                    onClick = onPlayClick,
-                    painter = painterResource(R.drawable.play),
-                    text = "Play",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                onPlayClick?.let {
+                    CustomContextMenuBtn(
+                        onClick = it,
+                        painter = painterResource(R.drawable.play),
+                        text = "Play",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                onDeleteClick?.let {
+                    CustomContextMenuBtn(
+                        onClick = it,
+                        painter = painterResource(R.drawable.remove),
+                        text = "Remove from queue",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             TransparentButton(
                 onClick = onCloseClick,

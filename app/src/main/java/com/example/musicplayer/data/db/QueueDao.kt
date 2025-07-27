@@ -60,6 +60,8 @@ interface QueueDao {
 
     @Delete
     suspend fun delete(item: QueueItem)
+    @Delete
+    suspend fun deleteBlk(items: List<QueueItem>)
 
     @Transaction
     suspend fun play(track: QueueItem) {

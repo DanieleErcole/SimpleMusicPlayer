@@ -101,8 +101,10 @@ fun AppBar(
                     CustomContextMenuBtn(
                         onClick = {
                             val list = vm.scannedDirectories.value
-                            vm.updateScannedDirs(emptyList())
-                            vm.updateScannedDirs(list)
+                            vm.apply {
+                                updateScannedDirs(emptyList())
+                                updateScannedDirs(list)
+                            }
                         },
                         painter = painterResource(R.drawable.scan),
                         text = "scan",

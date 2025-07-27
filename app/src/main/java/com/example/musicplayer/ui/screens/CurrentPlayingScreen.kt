@@ -39,9 +39,7 @@ import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.components.CustomSlider
 import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
 import com.example.musicplayer.ui.components.TransparentButton
-import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.LoopDialog
-import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.utils.formatTimestamp
@@ -112,8 +110,8 @@ fun CurrentPlayingScreen(
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
-                    onInfoClick = { dialogsVm.toggleInfoDialog(track = current) },
-                    onAddClick = { dialogsVm.toggleAddDialog(tracks = listOf(current)) },
+                    onInfoClick = { dialogsVm.setInfoDialog(track = current) },
+                    onAddClick = { dialogsVm.setAddDialog(tracks = listOf(current)) },
                     vm = vm
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))

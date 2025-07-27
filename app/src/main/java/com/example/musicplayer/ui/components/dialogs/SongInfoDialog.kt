@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui.components.dialogs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -32,10 +33,12 @@ fun SongInfoDialog(
 ) {
     val track = dialogsVm.infoTrack.collectAsStateWithLifecycle()
     track.value?.let { track ->
-        BaseDialog(onDismissRequest = { dialogsVm.toggleInfoDialog() }) {
+        BaseDialog(onDismissRequest = { dialogsVm.setInfoDialog() }) {
             Surface {
                 Column(
-                    modifier = modifier.heightIn(max = 800.dp)
+                    modifier = modifier
+                        .heightIn(max = 700.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -57,10 +60,10 @@ fun SongInfoDialog(
                     Divider()
                     Column(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        InfoField(title = "Location", text = track.internal.location)
+                        InfoField(title = "Location", text = track.internal.location, modifier = Modifier.padding(top = 8.dp))
                         Divider(modifier.padding(vertical = 8.dp))
                         InfoField(title = "Title", text = track.internal.title)
                         InfoField(title = "Artist", text = track.internal.artist)

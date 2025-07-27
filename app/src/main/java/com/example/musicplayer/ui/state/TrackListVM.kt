@@ -2,7 +2,6 @@ package com.example.musicplayer.ui.state
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackFilter
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.services.player.PlayerController
