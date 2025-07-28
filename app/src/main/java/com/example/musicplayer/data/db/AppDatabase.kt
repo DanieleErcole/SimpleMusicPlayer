@@ -13,7 +13,7 @@ import com.example.musicplayer.data.TrackAddedToPlaylist
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.utils.InstantConverter
 
-@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class, QueueItem::class], views = [TrackWithAlbum::class], version = 7)
+@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class, QueueItem::class], views = [TrackWithAlbum::class], version = 8)
 @TypeConverters(InstantConverter::class)
 abstract class AppDatabase: RoomDatabase() {
 

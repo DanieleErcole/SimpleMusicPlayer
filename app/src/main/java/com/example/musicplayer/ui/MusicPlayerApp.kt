@@ -30,12 +30,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.ConfirmActionDialog
+import com.example.musicplayer.ui.components.dialogs.NewPlaylistDialog
+import com.example.musicplayer.ui.components.dialogs.RenamePlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.components.slideInConditional
 import com.example.musicplayer.ui.components.slideOutConditional
+import com.example.musicplayer.ui.screens.AlbumsScreen
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
+import com.example.musicplayer.ui.screens.PlaylistsScreen
 import com.example.musicplayer.ui.screens.QueueScreen
 import com.example.musicplayer.ui.screens.TracksScreen
+import com.example.musicplayer.ui.state.AlbumsVM
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.MusicPlayerVM
@@ -111,6 +116,7 @@ fun MusicPlayerApp(
     val playingVm = viewModel<CurrentPlayingVM>(factory = CurrentPlayingVM.Factory)
     val playlistVm = viewModel<PlaylistsVM>(factory = PlaylistsVM.Factory)
     val queueVm = viewModel<QueueVM>(factory = QueueVM.Factory)
+    val albumsVm = viewModel<AlbumsVM>(factory = AlbumsVM.Factory)
 
     navController.addOnDestinationChangedListener { _, destination, _ ->
         val to = AppScreen.valueOf(destination.route ?: AppScreen.Playing.name)
@@ -143,6 +149,14 @@ fun MusicPlayerApp(
             plVm = playlistVm,
             dialogsVm = dialogsVm
         )
+        NewPlaylistDialog(
+            plVm = playlistVm,
+            dialogsVM = dialogsVm
+        )
+        RenamePlaylistDialog(
+            plVm = playlistVm,
+            dialogsVM = dialogsVm
+        )
         SongInfoDialog(dialogsVm = dialogsVm)
 
         NavHost(
@@ -174,10 +188,18 @@ fun MusicPlayerApp(
                 )
             }
             composable(route = AppScreen.Albums.name) {
-
+                AlbumsScreen(
+                    navController = navController,
+                    albumsVM = albumsVm,
+                    dialogsVm = dialogsVm
+                )
             }
             composable(route = AppScreen.Playlists.name) {
-
+                PlaylistsScreen(
+                    navController = navController,
+                    plVm = playlistVm,
+                    dialogsVm = dialogsVm
+                )
             }
             composable(route = AppScreen.Settings.name) {
 

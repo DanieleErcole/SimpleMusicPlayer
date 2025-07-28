@@ -35,17 +35,16 @@ import com.example.musicplayer.ui.state.PlaylistsVM
 
 @Composable
 fun AddToPlaylistDialog(
-    onEndAction: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     plVm: PlaylistsVM,
-    dialogsVm: DialogsVM,
-    modifier: Modifier = Modifier
+    dialogsVm: DialogsVM
 ) {
     val state = dialogsVm.addDialog.collectAsStateWithLifecycle()
     state.value?.let {
         val tracks by remember { derivedStateOf { it.tracks } }
 
         BaseDialog(onDismissRequest = { dialogsVm.setAddDialog() }) {
-            val playlists = plVm.playlists.collectAsStateWithLifecycle()
+            val playlists = plVm.allPlaylists.collectAsStateWithLifecycle()
             val itemsState = remember {
                 mutableStateMapOf<Long, Boolean>().apply {
                     playlists.value.forEach { pl ->
@@ -67,24 +66,22 @@ fun AddToPlaylistDialog(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
                     )
-                    Divider()
+                    Divider(modifier = Modifier.padding(bottom = 8.dp))
                     LazyColumn(
                         verticalArrangement = Arrangement.SpaceEvenly
                     ) {
                         items(playlists.value) { pl ->
-                            //TODO: decide whether to search if the tracks are already present or not in the playlists
                             CustomContextMenuCheckboxBtn(
                                 onClick = { itemsState[pl.playlistId]?.let { itemsState[pl.playlistId] = !it } },
                                 text = pl.name,
-                                isChecked = false,
+                                isChecked = itemsState[pl.playlistId] ?: false,
                                 tint = MaterialTheme.colorScheme.outline,
-                                Modifier.padding(vertical = 8.dp)
+                                Modifier.padding(vertical = 2.dp)
                             )
                         }
                     }
                     OutlinedButton(
-                        onClick = { /*TODO: open new playlist dialog*/ },
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        onClick = { dialogsVm.toggleNewDialog() },
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -102,7 +99,7 @@ fun AddToPlaylistDialog(
                             )
                         }
                     }
-                    Divider()
+                    Divider(modifier = Modifier.padding(top = 8.dp))
                     Row(
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.End,
@@ -111,9 +108,11 @@ fun AddToPlaylistDialog(
                     ) {
                         TransparentButton(
                             onClick = {
-                                //TODO: add the tracks to the checked playlists
+                                itemsState.filter { it.value }.forEach { id, selected ->
+                                    plVm.addToPlaylist(tracks, playlistId = id)
+                                }
                                 dialogsVm.setAddDialog()
-                                onEndAction?.invoke()
+                                it.endAction?.invoke()
                             },
                             text = "Add",
                             fontSize = 14.sp,

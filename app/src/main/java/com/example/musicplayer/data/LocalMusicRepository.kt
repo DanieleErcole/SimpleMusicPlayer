@@ -21,13 +21,18 @@ class LocalMusicRepository(
     override suspend fun deleteTrackBlk(trackList: List<Track>) = trackDao.deleteBlk(trackList.map { it.trackId })
 
     override fun getAllPlaylists(): Flow<List<Playlist>> = plDao.getAllPlaylists()
+    override fun getAllPlaylistsFiltered(searchString: String?): Flow<List<Playlist>> = plDao.getAllPlaylistsFiltered(searchString)
     override fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = plDao.getPlaylistTracks(id, searchString)
     override fun getTrackPlaylists(id: Long): Flow<List<Playlist>> = plDao.getTrackPlaylists(id)
+    override suspend fun addToPlaylist(tracks: List<Long>, playlist: Long) = plDao.addToPlaylist(tracks.map {
+        TrackAddedToPlaylist(playlist, it)
+    })
     override suspend fun newPlaylist(pl: Playlist) = plDao.insert(pl)
     override suspend fun deletePlaylist(pl: Playlist) = plDao.delete(pl)
+    override suspend fun renamePlaylist(id: Long, newName: String) = plDao.rename(id, newName)
 
     override suspend fun getAllAlbums(): List<Album> = albumDao.getAllAlbums()
-    override fun getAllAlbumsFlow(): Flow<List<Album>> = albumDao.getAllAlbumsFlow()
+    override fun getAllAlbumsFlow(searchString: String?): Flow<List<Album>> = albumDao.getAllAlbumsFlow(searchString)
     override fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = albumDao.getAlbumTracks(id, searchString)
     override suspend fun newAlbum(a: Album) = albumDao.insert(a)
     override suspend fun deleteAlbum(a: Album) = albumDao.delete(a)

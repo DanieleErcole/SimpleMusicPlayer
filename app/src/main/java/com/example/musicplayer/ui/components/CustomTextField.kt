@@ -69,10 +69,10 @@ fun CustomTextField(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 leadingIcon?.let { it() }
+                val mod = leadingIcon?.let { Modifier.padding(start = 8.dp) } ?: Modifier
                 Box(
-                    modifier = Modifier
+                    modifier = mod
                         .weight(.95f)
-                        .padding(start = 8.dp)
                 ) {
                     if (text.isEmpty()) {
                         Text(

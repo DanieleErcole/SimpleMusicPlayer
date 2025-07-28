@@ -5,12 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.musicplayer.data.TrackFilter
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.services.player.PlayerController
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class TrackListVM(
-    private val trackSource: TrackFilter,
+    trackSrc: TrackFilter,
     private val playerController: PlayerController
 ) : ViewModel() {
 
@@ -28,18 +28,22 @@ class TrackListVM(
     private val _selectedTracks = MutableStateFlow<Set<Long>>(emptySet())
     val selectedTracks = _selectedTracks.asStateFlow()
 
+    private val trackSource = MutableStateFlow(trackSrc)
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val tracks = _searchString.flatMapLatest {
-        withContext(Dispatchers.IO) {
-            trackSource.collectTracks(it)
+    val tracks = _searchString.flatMapLatest { search ->
+        trackSource.flatMapLatest { source ->
+            source.collectTracks(search)
         }
     }.stateIn(
         initialValue = emptyList(),
-        scope = CoroutineScope(Dispatchers.IO),
+        scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )
 
     fun updateSearchString(str: String) = _searchString.update { str }
+
+    fun setTrackSource(trackSrc: TrackFilter) = trackSource.update { trackSrc }
 
     fun selectTrack(id: Long) =
         _selectedTracks.update {

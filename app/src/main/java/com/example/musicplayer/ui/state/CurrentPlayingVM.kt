@@ -33,13 +33,11 @@ class CurrentPlayingVM(
 ) : ViewModel() {
 
     private val positionScope = CoroutineScope(Dispatchers.Default)
-    private val stateScope = CoroutineScope(Dispatchers.Default)
-    private val dbScope = CoroutineScope(Dispatchers.IO)
 
     val curTrack: StateFlow<QueuedTrack?> = musicRepo.currentPlayingFlow()
         .stateIn(
             initialValue = null,
-            scope = dbScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
     val position: StateFlow<Long> = flow {
@@ -60,25 +58,25 @@ class CurrentPlayingVM(
     val volume = plStateRepo.volume
         .stateIn(
             initialValue = DEFAULT_VOLUME,
-            scope = stateScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
     val paused = plStateRepo.paused
         .stateIn(
             initialValue = false,
-            scope = stateScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
     val shuffle = plStateRepo.shuffle
         .stateIn(
             initialValue = false,
-            scope = stateScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
     val loop = plStateRepo.loop
         .stateIn(
             initialValue = Loop.None,
-            scope = stateScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
 
@@ -91,7 +89,7 @@ class CurrentPlayingVM(
             } ?: 0f
         }.stateIn(
             initialValue = 0f,
-            scope = CoroutineScope(Dispatchers.IO),
+            scope = viewModelScope,
             started = SharingStarted.Eagerly
         )
 

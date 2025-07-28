@@ -13,8 +13,11 @@ interface AlbumDao {
 
     @Query("SELECT * FROM album")
     suspend fun getAllAlbums(): List<Album>
-    @Query("SELECT * FROM album")
-    fun getAllAlbumsFlow(): Flow<List<Album>>
+    @Query("""
+        SELECT * FROM album 
+        WHERE :searchString IS NULL OR name LIKE '%' || :searchString || '%'
+    """)
+    fun getAllAlbumsFlow(searchString: String?): Flow<List<Album>>
 
     @Query("""
         SELECT * FROM TrackWithAlbum 

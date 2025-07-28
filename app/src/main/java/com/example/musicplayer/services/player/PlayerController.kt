@@ -106,11 +106,9 @@ class PlayerController(
 
     suspend fun storeCurrentInfo() {
         withContext(Dispatchers.IO) {
-            musicRepo.currentPlaying()?.let {
-                withContext(Dispatchers.Main) {
-                    musicRepo.storeCurrentPos(getCurrentPosition())
-                }
-            }
+            musicRepo.currentPlaying()
+        }?.let {
+            musicRepo.storeCurrentPos(getCurrentPosition())
         }
     }
 
@@ -132,10 +130,14 @@ class PlayerController(
 
     suspend fun queueAll(tracks: List<TrackWithAlbum>, mustPlay: Boolean = false) {
         val mutList = tracks.toMutableList()
-        withContext(Dispatchers.IO) {
-            if (musicRepo.currentPlaying() == null || mustPlay) {
-                val first = mutList.removeAt(0)
-                val size = musicRepo.queueSize()
+        val cur = withContext(Dispatchers.IO) {
+            musicRepo.currentPlaying()
+        }
+
+        if (cur == null || mustPlay) {
+            val first = mutList.removeAt(0)
+            val size = musicRepo.queueSize()
+            withContext(Dispatchers.IO) {
                 musicRepo.queueAndPlay(
                     QueueItem(
                         track = first.internal.trackId,
@@ -144,14 +146,14 @@ class PlayerController(
                         lastPosition = null
                     )
                 )
-
-                withContext(Dispatchers.Main) {
-                    controller.addMediaItem(first.toMediaItem())
-                    play(if (mustPlay) size else null)
-                }
             }
 
-            if (mutList.isNotEmpty()) {
+            controller.addMediaItem(first.toMediaItem())
+            play(if (mustPlay) size else null)
+        }
+
+        if (mutList.isNotEmpty()) {
+            withContext(Dispatchers.IO) {
                 musicRepo.queueAll(mutList.mapIndexed { pos, item ->
                     QueueItem(
                         track = item.internal.trackId,
@@ -160,10 +162,8 @@ class PlayerController(
                         lastPosition = null
                     )
                 })
-                withContext(Dispatchers.Main) {
-                    controller.addMediaItems(mutList.map { it.toMediaItem() })
-                }
             }
+            controller.addMediaItems(mutList.map { it.toMediaItem() })
         }
     }
 
@@ -199,7 +199,7 @@ class PlayerController(
 
     suspend fun moveTrack(from: Int, to: Int) {
         Log.i(this::class.simpleName, "$from - $to")
-        if (from == to)
+        if (from == to || from < 0 || to < 0)
             return
         controller.moveMediaItem(from, to)
         withContext(Dispatchers.IO) {

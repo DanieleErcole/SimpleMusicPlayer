@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.musicplayer.R
-import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.components.SelectionToolbar
 import com.example.musicplayer.ui.components.TrackItem
 import com.example.musicplayer.ui.components.TransparentButton
@@ -94,14 +93,13 @@ fun QueueScreen(
             Text(
                 text = "${(cur?.track?.queuedItem?.position)?.plus(1) ?: 0} / ${tracks.size}",
                 fontSize = 12.sp,
-                lineHeight = 14.sp,
+                lineHeight = 14.sp
             )
             TransparentButton(
                 onClick = { dialogsVm.setConfirmDialog(title = "Clear the queue?") { vm.clearQueue() } },
                 painter = painterResource(R.drawable.delete),
                 contentDescription = "Clear queue",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         AnimatedVisibility(selectionMode) {
@@ -125,8 +123,7 @@ fun QueueScreen(
                         tracks = tracks
                             .filter { it.position in selectedTracks.value }
                             .map { it.track.track },
-                        onEndAction = { vm.clearSelection() }
-                    )
+                    ) { vm.clearSelection() }
                 },
                 onDeleteClick = {
                     vm.dequeueAll(
@@ -143,12 +140,10 @@ fun QueueScreen(
                     .padding(start = 10.dp)
             )
         }
-        Divider()
         LazyColumn(
             state = lazyListState,
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
-                .padding(top = 16.dp)
                 .weight(.8f)
         ) {
             items(tracks, key = { it.hashCode() }) { item ->

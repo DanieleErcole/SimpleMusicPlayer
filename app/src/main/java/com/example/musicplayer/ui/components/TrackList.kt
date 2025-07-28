@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -54,7 +55,7 @@ fun TrackList(
     listTitle: String,
     onBackClick: (() -> Unit)? = null,
     filters: (@Composable () -> Unit)? = null,
-    objectToolsBtn: (@Composable () -> Unit)? = null,
+    objectToolsBtn: (@Composable (List<TrackWithAlbum>) -> Unit)? = null,
     mustReplaceQueue: Boolean = false,
     modifier: Modifier
 ) {
@@ -67,12 +68,12 @@ fun TrackList(
         modifier = modifier
             .padding(top = 8.dp)
     ) {
+        val mod = onBackClick?.let { Modifier } ?: Modifier.padding(start = 16.dp)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
+            modifier = mod
                 .weight(.04f)
-                .padding(start = 16.dp)
                 .fillMaxWidth()
         ) {
             Row(
@@ -84,12 +85,13 @@ fun TrackList(
                         onClick = it,
                         painter = painterResource(R.drawable.back),
                         contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(end = 16.dp)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Text(
                     text = listTitle,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     lineHeight = 16.sp,
@@ -99,40 +101,13 @@ fun TrackList(
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
+                modifier = objectToolsBtn?.let { Modifier.padding(end = 16.dp) } ?: Modifier
             ) {
                 filters?.invoke()
-                objectToolsBtn?.invoke()
-                //TODO: use this only in the album/playlist context
-                /*TransparentBtnWithContextMenu(
-                    painter = painterResource(R.drawable.edit),
-                    contentDescription = "Playlist options",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fullSizeIcon = true,
-                    modifier = Modifier.height(24.dp).width(24.dp)
-                ) {
-                    CustomContextMenuBtn(
-                        onClick = { /*TODO: implement editing playlist*/ },
-                        painter = painterResource(R.drawable.edit),
-                        text = "Rename playlist",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    CustomContextMenuBtn(
-                        onClick = { /*TODO: implement playlist deletion*/ },
-                        painter = painterResource(R.drawable.remove),
-                        text = "Delete playlist",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    // Place a play all button (queue all tracks) only if this list is viewed in the context of an album or playlist
-                    CustomContextMenuBtn(
-                        onClick = { /*TODO: queue all list's tracks*/ },
-                        painter = painterResource(R.drawable.play),
-                        text = "Play",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }*/
+                objectToolsBtn?.invoke(tracks.value)
             }
         }
-        if (selectionMode)
+        AnimatedVisibility(selectionMode) {
             SelectionToolbar(
                 whileSelectedClick = {
                     if (tracks.value.size == selectedTracks.value.size)
@@ -141,13 +116,13 @@ fun TrackList(
                 },
                 onCloseClick = { listVm.clearSelection() },
                 onQueueClick = {
-                    listVm.queueAll(tracks.value
-                        .filter { it.internal.trackId in selectedTracks.value }
-                    )
+                    listVm.queueAll(tracks.value.filter { it.internal.trackId in selectedTracks.value })
                     listVm.clearSelection()
                 },
                 onAddClick = {
-                    dialogsVm.setAddDialog(tracks.value.filter { it.internal.trackId in selectedTracks.value })
+                    dialogsVm.setAddDialog(tracks.value.filter { it.internal.trackId in selectedTracks.value }) {
+                        listVm.clearSelection()
+                    }
                 },
                 onPlayClick = {
                     listVm.queueAll(
@@ -161,24 +136,25 @@ fun TrackList(
                 allSelected = tracks.value.size == selectedTracks.value.size,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(.06f)
                     .padding(start = 10.dp)
             )
-        else SearchInputField(
-            text = searchStr.value,
-            onChange = { listVm.updateSearchString(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(.06f)
-                .padding(horizontal = 8.dp)
-        )
+        }
+        AnimatedVisibility(!selectionMode) {
+            SearchInputField(
+                text = searchStr.value,
+                placeholder = "Search a track",
+                onChange = { listVm.updateSearchString(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        }
         Text(
             text = "${tracks.value.size} songs",
             fontSize = 13.sp,
             lineHeight = 13.sp,
             color = MaterialTheme.colorScheme.outline,
             modifier = Modifier
-                .weight(.04f)
                 .fillMaxWidth()
                 .padding(start = 16.dp, bottom = 8.dp)
         )
@@ -217,6 +193,7 @@ fun TrackList(
 
 @Composable
 fun SelectionToolbar(
+    modifier: Modifier = Modifier,
     onAddClick: () -> Unit,
     onQueueClick: () -> Unit,
     whileSelectedClick: () -> Unit,
@@ -224,8 +201,7 @@ fun SelectionToolbar(
     onPlayClick: (() -> Unit)? = null,
     onDeleteClick: (() -> Unit)? = null,
     selectionSize: Int,
-    allSelected: Boolean,
-    modifier: Modifier = Modifier
+    allSelected: Boolean
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -409,7 +385,6 @@ fun TrackItem(
             painter = painterResource(R.drawable.more_horiz),
             contentDescription = "Track options",
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(.1f)
         ) {
             CustomContextMenuBtn(
                 onClick = onInfoClick,

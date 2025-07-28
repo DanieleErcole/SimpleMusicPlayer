@@ -10,6 +10,7 @@ import com.example.musicplayer.R
 @Composable
 fun SearchInputField(
     text: String,
+    placeholder: String? = null,
     onChange: (String) -> Unit,
     modifier: Modifier
 ) {
@@ -23,7 +24,7 @@ fun SearchInputField(
             )
         },
         onChange = onChange,
-        placeholderText = "Search",
+        placeholderText = placeholder ?: "Search",
         modifier = modifier,
     )
 }

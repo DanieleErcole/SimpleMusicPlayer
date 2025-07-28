@@ -27,7 +27,10 @@ fun ConfirmActionDialog(
             },
             confirmButton = {
                 TextButton(
-                    onClick = it.action
+                    onClick = {
+                        it.action()
+                        dialogsVm.setConfirmDialog()
+                    }
                 ) {
                     Text("Yes")
                 }

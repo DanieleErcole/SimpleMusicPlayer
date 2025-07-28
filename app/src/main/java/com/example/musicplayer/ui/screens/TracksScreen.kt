@@ -46,7 +46,7 @@ fun TracksScreen(
     TrackList(
         listVm = viewModel {
             TrackListVM(
-                trackSource = filter,
+                trackSrc = filter,
                 playerController = app.playerController
             )
         },

@@ -71,7 +71,24 @@ data class TrackWithAlbum(
     @Embedded val album: Album
 )
 
-@Entity(tableName = "trackAddedTOPlaylist", primaryKeys = ["playlistId", "trackId"])
+@Entity(
+    tableName = "trackAddedToPlaylist",
+    primaryKeys = ["playlistId", "trackId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = Track::class,
+            parentColumns = ["trackId"],
+            childColumns = ["trackId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Playlist::class,
+            parentColumns = ["playlistId"],
+            childColumns = ["playlistId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class TrackAddedToPlaylist(
     val playlistId: Long,
     val trackId: Long

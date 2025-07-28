@@ -20,7 +20,6 @@ class MusicScanner(private val musicRepo: MusicRepository) {
     suspend fun scanDirectories(ctx: Context, scannedDirs: List<String>) {
         val albums = musicRepo.getAllAlbums().toMutableList()
         val tracks = musicRepo.getAllTracks().map { it.internal }.toMutableList()
-        addUnknownAlbum()
 
         //TODO: move this and do this only on track play for single tracks together with the existence check
         //TODO: another option is to do this only on scanned directory removal (maybe best option)
@@ -41,7 +40,9 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                     return
 
                 // Check if the album it's not already stored in the db
-                albums.find { a -> album.id == a.id } ?: run {
+                if (album.id == DefaultAlbum.UNKNOWN_ID)
+                    addUnknownAlbum(albums)
+                else albums.find { a -> album.id == a.id } ?: run {
                     Log.i(MusicScanner::class.simpleName, "Adding album ${album.name} with id ${album.id}")
                     musicRepo.newAlbum(album)
                     albums.add(album)
@@ -55,8 +56,8 @@ class MusicScanner(private val musicRepo: MusicRepository) {
         Log.i(MusicScanner::class.simpleName, "Finished scanning dirs")
     }
 
-    private suspend fun addUnknownAlbum() {
-        musicRepo.getAllAlbums().find { it.name == DefaultAlbum.UNKNOWN_ALBUM_NAME } ?: run {
+    private suspend fun addUnknownAlbum(albums: List<Album>) {
+        albums.find { it.name == DefaultAlbum.UNKNOWN_ALBUM_NAME } ?: run {
             Log.i(MusicScanner::class.simpleName, "Adding unknown album")
             val newAlbum = Album(
                 name = DefaultAlbum.UNKNOWN_ALBUM_NAME,

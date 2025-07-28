@@ -12,13 +12,16 @@ interface MusicRepository {
     suspend fun deleteTrackBlk(trackList: List<Track>)
 
     fun getAllPlaylists(): Flow<List<Playlist>>
+    fun getAllPlaylistsFiltered(searchString: String?): Flow<List<Playlist>>
     fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
     fun getTrackPlaylists(id: Long): Flow<List<Playlist>>
+    suspend fun addToPlaylist(tracks: List<Long>, playlist: Long)
     suspend fun newPlaylist(pl: Playlist)
     suspend fun deletePlaylist(pl: Playlist)
+    suspend fun renamePlaylist(id: Long, newName: String)
 
     suspend fun getAllAlbums(): List<Album>
-    fun getAllAlbumsFlow(): Flow<List<Album>>
+    fun getAllAlbumsFlow(searchString: String? = null): Flow<List<Album>>
     fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
     suspend fun newAlbum(a: Album)
     suspend fun deleteAlbum(a: Album)
