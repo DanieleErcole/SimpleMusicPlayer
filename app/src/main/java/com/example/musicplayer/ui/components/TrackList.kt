@@ -54,6 +54,7 @@ fun TrackList(
     navController: NavController,
     listTitle: String,
     onBackClick: (() -> Unit)? = null,
+    onRemoveClick: ((List<TrackWithAlbum>) -> Unit)? = null,
     filters: (@Composable () -> Unit)? = null,
     objectToolsBtn: (@Composable (List<TrackWithAlbum>) -> Unit)? = null,
     mustReplaceQueue: Boolean = false,
@@ -124,6 +125,10 @@ fun TrackList(
                         listVm.clearSelection()
                     }
                 },
+                onRemoveClick = onRemoveClick?.let { {
+                    it.invoke(tracks.value.filter { it.internal.trackId in selectedTracks.value })
+                    listVm.clearSelection()
+                } },
                 onPlayClick = {
                     listVm.queueAll(
                         tracks.value.filter { it.internal.trackId in selectedTracks.value },
@@ -184,7 +189,11 @@ fun TrackList(
                     selectionMode = selectionMode,
                     onAddClick = { dialogsVm.setAddDialog(listOf(it)) },
                     onInfoClick = { dialogsVm.setInfoDialog(it) },
-                    onQueueClick = { listVm.queueAll(listOf(it)) }
+                    onQueueClick = { listVm.queueAll(listOf(it)) },
+                    onRemoveClick = onRemoveClick?.let { f -> {
+                        f.invoke(listOf(it))
+                        listVm.clearSelection()
+                    } }
                 )
             }
         }
@@ -200,6 +209,7 @@ fun SelectionToolbar(
     onCloseClick: () -> Unit,
     onPlayClick: (() -> Unit)? = null,
     onDeleteClick: (() -> Unit)? = null,
+    onRemoveClick: (() -> Unit)? = null,
     selectionSize: Int,
     allSelected: Boolean
 ) {
@@ -245,6 +255,14 @@ fun SelectionToolbar(
                     text = "Add to a playlist",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                onRemoveClick?.let {
+                    CustomContextMenuBtn(
+                        onClick = it,
+                        painter = painterResource(R.drawable.remove),
+                        text = "Remove from a playlist",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 CustomContextMenuBtn(
                     onClick = onQueueClick,
                     painter = painterResource(R.drawable.queue_icon),
@@ -287,6 +305,7 @@ fun TrackItem(
     onAddClick: () -> Unit,
     onInfoClick: () -> Unit,
     onQueueClick: () -> Unit,
+    onRemoveClick: (() -> Unit)? = null,
     isSelected: Boolean,
     selectionMode: Boolean,
     modifier: Modifier = Modifier
@@ -398,6 +417,14 @@ fun TrackItem(
                 text = "Add to a playlist",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            onRemoveClick?.let {
+                CustomContextMenuBtn(
+                    onClick = it,
+                    painter = painterResource(R.drawable.remove),
+                    text = "Remove from this playlist",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             CustomContextMenuBtn(
                 onClick = onQueueClick,
                 painter = painterResource(R.drawable.queue_icon),

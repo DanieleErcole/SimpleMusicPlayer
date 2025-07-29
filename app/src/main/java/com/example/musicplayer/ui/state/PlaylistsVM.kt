@@ -62,6 +62,15 @@ class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
         }
     }
 
+    fun removeFromPlaylist(tracks: List<TrackWithAlbum>, playlistId: Long) {
+        viewModelScope.launch {
+            musicRepo.removeFromPlaylist(
+                tracks = tracks.map { it.internal.trackId },
+                playlist = playlistId
+            )
+        }
+    }
+
     fun deletePlaylist(playlist: Playlist) {
         viewModelScope.launch {
             musicRepo.deletePlaylist(playlist)

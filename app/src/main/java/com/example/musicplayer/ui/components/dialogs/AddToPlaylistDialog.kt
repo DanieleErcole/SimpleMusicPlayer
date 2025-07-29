@@ -43,6 +43,8 @@ fun AddToPlaylistDialog(
     state.value?.let {
         val tracks by remember { derivedStateOf { it.tracks } }
 
+        //TODO: the first time I open this dialog the playlist doesn't toggle selection
+
         BaseDialog(onDismissRequest = { dialogsVm.setAddDialog() }) {
             val playlists = plVm.allPlaylists.collectAsStateWithLifecycle()
             val itemsState = remember {

@@ -15,6 +15,7 @@ interface MusicRepository {
     fun getPlaylistsWithThumbnails(searchString: String?): Flow<List<PlaylistWithThumbnails>>
     fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
     suspend fun addToPlaylist(tracks: List<Long>, playlist: Long)
+    suspend fun removeFromPlaylist(tracks: List<Long>, playlist: Long)
     suspend fun newPlaylist(pl: Playlist)
     suspend fun deletePlaylist(pl: Playlist)
     suspend fun renamePlaylist(id: Long, newName: String)

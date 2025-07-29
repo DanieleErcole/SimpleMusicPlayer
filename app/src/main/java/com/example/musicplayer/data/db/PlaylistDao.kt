@@ -30,6 +30,8 @@ interface PlaylistDao {
     // If a track is already on a playlist simply replace the id, that effectively does nothing
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addToPlaylist(tracks: List<TrackAddedToPlaylist>)
+    @Delete
+    suspend fun removeFromPlaylist(tracks: List<TrackAddedToPlaylist>)
 
     @Query("UPDATE playlist SET name = :newName WHERE playlistId = :id")
     suspend fun rename(id: Long, newName: String)

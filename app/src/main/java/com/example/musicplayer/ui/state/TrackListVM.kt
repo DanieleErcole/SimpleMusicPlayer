@@ -5,17 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.musicplayer.data.TrackFilter
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.services.player.PlayerController
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class TrackListVM(
     trackSrc: TrackFilter,

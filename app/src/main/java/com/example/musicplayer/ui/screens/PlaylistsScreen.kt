@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -50,6 +51,7 @@ import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.components.SearchInputField
 import com.example.musicplayer.ui.components.TrackList
 import com.example.musicplayer.ui.components.TransparentBtnWithContextMenu
+import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.ui.state.TrackListVM
@@ -95,6 +97,14 @@ fun PlaylistsScreen(
             navController = navController,
             listTitle = it.name,
             onBackClick = { selectedPl = null },
+            onRemoveClick = { tracks ->
+                dialogsVm.setConfirmDialog(
+                    title = "Remove from playlist",
+                    text = "Are you sure you want to remove ${if (tracks.size > 1) "the tracks" else "this track"} from this playlist?"
+                ) {
+                    plVm.removeFromPlaylist(tracks, it.playlistId)
+                }
+            },
             objectToolsBtn = { tracks ->
                 TransparentBtnWithContextMenu(
                     painter = painterResource(R.drawable.more_horiz),
@@ -131,6 +141,7 @@ fun PlaylistsScreen(
         )
     } ?: PlaylistGrid(
         plVm = plVm,
+        onAddPlaylist = { dialogsVm.toggleNewDialog() },
         onSelectPlaylist = { selectedPl = it },
         modifier = modifier.fillMaxSize()
     )
@@ -139,6 +150,7 @@ fun PlaylistsScreen(
 @Composable
 fun PlaylistGrid(
     plVm: PlaylistsVM,
+    onAddPlaylist: () -> Unit,
     onSelectPlaylist: (Playlist) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -149,15 +161,27 @@ fun PlaylistGrid(
         modifier = modifier
             .padding(top = 8.dp)
     ) {
-        SearchInputField(
-            text = searchStr.value,
-            placeholder = "Search a playlist",
-            onChange = { plVm.updateSearchString(it) },
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(.06f)
                 .padding(horizontal = 8.dp)
-        )
+        ) {
+            SearchInputField(
+                text = searchStr.value,
+                placeholder = "Search a playlist",
+                onChange = { plVm.updateSearchString(it) },
+                modifier = Modifier.weight(.9f)
+            )
+            TransparentButton(
+                onClick = onAddPlaylist,
+                painter = painterResource(R.drawable.add),
+                contentDescription = "New playlist",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Divider()
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -189,9 +213,9 @@ fun PlaylistItem(
             .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
             .clip(shape = RoundedCornerShape(10.dp))
     ) {
-        val thumbnails by remember { derivedStateOf { playlist.toThumbsList() } }
+        val thumbnails = playlist.toThumbsList()
         if (thumbnails.size > 1) {
-            val imgSize = (128 / (THUMBNAILS_GRID_COUNT / 2))
+            val imgSize = (128 / 2)
             LazyVerticalGrid(
                 modifier = Modifier.size(128.dp),
                 columns = GridCells.Fixed(2)

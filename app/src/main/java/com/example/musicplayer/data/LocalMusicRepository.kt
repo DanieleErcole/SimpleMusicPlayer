@@ -26,6 +26,9 @@ class LocalMusicRepository(
     override suspend fun addToPlaylist(tracks: List<Long>, playlist: Long) = plDao.addToPlaylist(tracks.map {
         TrackAddedToPlaylist(playlist, it)
     })
+    override suspend fun removeFromPlaylist(tracks: List<Long>, playlist: Long) = plDao.removeFromPlaylist(tracks.map {
+        TrackAddedToPlaylist(playlist, it)
+    })
     override suspend fun newPlaylist(pl: Playlist) = plDao.insert(pl)
     override suspend fun deletePlaylist(pl: Playlist) = plDao.delete(pl)
     override suspend fun renamePlaylist(id: Long, newName: String) = plDao.rename(id, newName)

@@ -32,6 +32,7 @@ import com.example.musicplayer.ui.state.PlaylistsVM
 private fun TextInputDialog(
     title: String,
     placeholder: String,
+    btnLabel: String,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -85,7 +86,7 @@ private fun TextInputDialog(
                             onConfirm(text)
                             onDismiss()
                         },
-                        text = "Create",
+                        text = btnLabel,
                         fontSize = 14.sp,
                         lineHeight = TextUnit.Unspecified,
                         enabled = notEmpty,
@@ -107,6 +108,7 @@ fun NewPlaylistDialog(
         TextInputDialog(
             title = "New Playlist",
             placeholder = "Name",
+            btnLabel = "Create",
             onDismiss = { dialogsVM.toggleNewDialog() },
             onConfirm = { plVm.newPlaylist(it) },
             modifier = modifier
@@ -125,6 +127,7 @@ fun RenamePlaylistDialog(
         TextInputDialog(
             title = "Rename Playlist",
             placeholder = "Name",
+            btnLabel = "Rename",
             onDismiss = { dialogsVM.setRenameDialog() },
             onConfirm = { plVm.renamePlaylist(pl, it) },
             modifier = modifier
