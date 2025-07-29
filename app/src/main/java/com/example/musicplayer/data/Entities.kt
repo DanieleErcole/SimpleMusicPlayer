@@ -19,6 +19,22 @@ data class Playlist(
     val created: Instant
 )
 
+// I have to use the LEFT Join to also get the empty playlists
+@DatabaseView(value = """
+    SELECT p.*, GROUP_CONCAT(a.thumbnail) AS thumbnails FROM playlist p
+    LEFT JOIN trackAddedToPlaylist tp ON tp.playlistId = p.playlistId
+    LEFT JOIN track t ON t.trackId = tp.trackId
+    LEFT JOIN album a ON a.id = t.album
+    GROUP BY p.playlistId
+    ORDER BY p.created ASC
+""")
+data class PlaylistWithThumbnails(
+    @Embedded val playlist: Playlist,
+    val thumbnails: String?
+) {
+    fun toThumbsList(): List<String> = thumbnails?.split(",") ?: emptyList()
+}
+
 @Entity(tableName = "album")
 data class Album(
     @PrimaryKey()

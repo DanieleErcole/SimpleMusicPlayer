@@ -41,6 +41,7 @@ import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.ListContext
 import com.example.musicplayer.data.ListMode
 import com.example.musicplayer.data.TrackFilter
+import com.example.musicplayer.ui.AppScreen
 import com.example.musicplayer.ui.components.CustomContextMenuBtn
 import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.components.SearchInputField
@@ -109,7 +110,10 @@ fun AlbumsScreen(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     CustomContextMenuBtn(
-                        onClick = { listVm.queueAll(tracks, mustPlay = true) },
+                        onClick = {
+                            listVm.queueAll(tracks, mustPlay = true)
+                            navController.navigate(AppScreen.Playing.name)
+                        },
                         painter = painterResource(R.drawable.play),
                         text = "Play",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant

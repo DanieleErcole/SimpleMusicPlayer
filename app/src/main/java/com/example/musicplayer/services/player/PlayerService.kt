@@ -27,9 +27,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
-class PlayerService : MediaSessionService(), Callback {
+class PlayerService : MediaSessionService(), Callback, Player.Listener {
 
     private var session: MediaSession? = null
 
@@ -77,28 +78,43 @@ class PlayerService : MediaSessionService(), Callback {
                 .build()
 
         player.playWhenReady = false
-
-        player.addListener(
-            object : Player.Listener {
-                override fun onVolumeChanged(volume: Float) {
-                    playerScope.launch { stateRepo.updateVolume(volume) }
-                }
-
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    playerScope.launch {
-                        if (isPlaying) {
-                            if (stateRepo.getPlayerState().paused)
-                                stateRepo.updatePaused(false)
-                        } else if (player.playbackState == Player.STATE_READY) // Paused
-                            stateRepo.updatePaused(true)
-                    }
-                }
-            }
-        )
+        player.addListener(this)
 
         session = MediaSession.Builder(this, player)
             .setCallback(this)
             .build()
+    }
+
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        session?.player?.let { player ->
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
+                playerScope.launch {
+                    val currentIndex = player.currentMediaItemIndex
+                    val isRepeatOff = player.repeatMode == Player.REPEAT_MODE_OFF
+
+                    withContext(Dispatchers.IO) {
+                        musicRepo.finishAndPlayNextPos(
+                            currentIndex,
+                            doNothingToCurrent = isRepeatOff // Do nothing to current if the player is not in repeat mode, the player simply pauses
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onVolumeChanged(volume: Float) {
+        playerScope.launch { stateRepo.updateVolume(volume) }
+    }
+
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+        playerScope.launch {
+            if (isPlaying) {
+                if (stateRepo.getPlayerState().paused)
+                    stateRepo.updatePaused(false)
+            } else if (session?.player?.playbackState == Player.STATE_READY) // Paused
+                stateRepo.updatePaused(true)
+        }
     }
 
     override fun onPlaybackResumption(

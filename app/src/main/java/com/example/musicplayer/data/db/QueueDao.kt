@@ -16,12 +16,16 @@ interface QueueDao {
 
     @Query("SELECT COUNT(position) FROM queue")
     suspend fun size(): Int
+    @Transaction
     @Query("SELECT * FROM queue ORDER BY position ASC")
     suspend fun getQueueTracks(): List<QueuedTrack>
+    @Transaction
     @Query("SELECT * FROM queue ORDER BY position ASC")
     fun getQueueTracksFlow(): Flow<List<QueuedTrack>>
+    @Transaction
     @Query("SELECT * FROM queue WHERE isCurrent = 1")
     suspend fun currentPlaying(): QueuedTrack?
+    @Transaction
     @Query("SELECT * FROM queue WHERE isCurrent = 1")
     fun currentPlayingFlow(): Flow<QueuedTrack?>
     @Query("UPDATE queue SET position = position - 1 WHERE position > :removedPos")
@@ -33,12 +37,16 @@ interface QueueDao {
     @Query("UPDATE queue SET position = :new WHERE position = :old")
     suspend fun updatePos(old: Int, new: Int)
 
+    @Transaction
     @Query("SELECT * FROM queue WHERE position > :pos ORDER BY position ASC LIMIT 1")
     suspend fun nextSong(pos: Int): QueuedTrack?
+    @Transaction
     @Query("SELECT * FROM queue WHERE position < :pos ORDER BY position DESC LIMIT 1")
     suspend fun prevSong(pos: Int): QueuedTrack?
+    @Transaction
     @Query("SELECT * FROM queue WHERE position = 0 LIMIT 1")
     suspend fun first(): QueuedTrack?
+    @Transaction
     @Query("SELECT * FROM queue WHERE position = :pos LIMIT 1")
     suspend fun track(pos: Int): QueuedTrack?
     @Query("UPDATE queue SET isCurrent = 1 WHERE trackId = :trackId AND position = :pos")

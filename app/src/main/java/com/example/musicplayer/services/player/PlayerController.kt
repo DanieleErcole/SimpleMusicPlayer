@@ -3,7 +3,6 @@ package com.example.musicplayer.services.player
 import android.content.Context
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -23,11 +22,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class PlayerController(
     private val musicRepo: MusicRepository,
     private val stateRepo: PlayerStateRepository
-) {
+) : Player.Listener {
 
     private lateinit var controller: MediaController
     private val playerScope = CoroutineScope(Dispatchers.Main + Job())
@@ -44,55 +44,7 @@ class PlayerController(
         future.addListener({
             if (future.isDone) {
                 controller = future.get()
-                controller.addListener(
-                    object : Player.Listener {
-                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                            playerScope.launch {
-                                if (isPlaying) {
-                                    Log.i(this::class.simpleName, "Track started")
-                                } else {
-                                    //if (controller.playbackState == Player.STATE_ENDED) // Track ended, not resumed or stopped
-                                        //onTrackFinished()
-                                }
-                            }
-                        }
-
-                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
-                                playerScope.launch {
-                                    val currentIndex = controller.currentMediaItemIndex
-                                    val isRepeatOff = controller.repeatMode == Player.REPEAT_MODE_OFF
-
-                                    withContext(Dispatchers.IO) {
-                                        musicRepo.finishAndPlayNextPos(
-                                            currentIndex,
-                                            doNothingToCurrent = isRepeatOff // Do nothing to current if it's
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        override fun onPlayerError(error: PlaybackException) {
-                            Log.e(this::class.simpleName, "Playback error: $error")
-                            //TODO: remove this from the queue?
-                            playerScope.launch {
-                                /*if (error.cause is IOException)
-                                    musicRepo.currentPlaying()?.let {
-                                        musicRepo.deleteTrack(it.track.internal)
-                                    }*/
-                                withContext(Dispatchers.IO) {
-                                    val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
-                                    _errorFlow.emit("Failed to load the track at $path")
-                                }
-                                /*musicRepo.finishAndPlayNext()?.let {
-                                    play(it.queuedItem)
-                                    controller.play()
-                                }*/
-                            }
-                        }
-                    }
-                )
+                controller.addListener(this)
                 playerScope.launch {
                     musicRepo.currentPlaying()?.let {
                         setPaused(true)
@@ -102,6 +54,26 @@ class PlayerController(
                 }
             }
         }, MoreExecutors.directExecutor())
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        Log.e(this::class.simpleName, "Playback error: $error")
+        playerScope.launch {
+            if (error.cause is IOException) {
+                withContext(Dispatchers.IO) {
+                    musicRepo.currentPlaying()
+                }?.let {
+                    musicRepo.deleteTrack(it.track.internal)
+                }
+                withContext(Dispatchers.IO) {
+                    val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
+                    _errorFlow.emit("Failed to load the track at $path")
+                }
+            } else {
+                _errorFlow.emit("Unknown error: ${error.cause}")
+                musicRepo.finishAndPlayNextPos(controller.currentMediaItemIndex)
+            }
+        }
     }
 
     suspend fun storeCurrentInfo() {
@@ -129,6 +101,8 @@ class PlayerController(
     }
 
     suspend fun queueAll(tracks: List<TrackWithAlbum>, mustPlay: Boolean = false) {
+        if (tracks.isEmpty()) return
+
         val mutList = tracks.toMutableList()
         val cur = withContext(Dispatchers.IO) {
             musicRepo.currentPlaying()

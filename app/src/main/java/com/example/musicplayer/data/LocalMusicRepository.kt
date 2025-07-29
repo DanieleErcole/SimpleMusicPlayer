@@ -21,9 +21,8 @@ class LocalMusicRepository(
     override suspend fun deleteTrackBlk(trackList: List<Track>) = trackDao.deleteBlk(trackList.map { it.trackId })
 
     override fun getAllPlaylists(): Flow<List<Playlist>> = plDao.getAllPlaylists()
-    override fun getAllPlaylistsFiltered(searchString: String?): Flow<List<Playlist>> = plDao.getAllPlaylistsFiltered(searchString)
+    override fun getPlaylistsWithThumbnails(searchString: String?): Flow<List<PlaylistWithThumbnails>> = plDao.getPlaylistsWithThumbnails(searchString)
     override fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = plDao.getPlaylistTracks(id, searchString)
-    override fun getTrackPlaylists(id: Long): Flow<List<Playlist>> = plDao.getTrackPlaylists(id)
     override suspend fun addToPlaylist(tracks: List<Long>, playlist: Long) = plDao.addToPlaylist(tracks.map {
         TrackAddedToPlaylist(playlist, it)
     })
@@ -39,12 +38,10 @@ class LocalMusicRepository(
 
     override suspend fun queueSize(): Int = queueDao.size()
     override suspend fun getQueueTracks(): List<QueuedTrack> = queueDao.getQueueTracks()
-    override fun getQueueTracksFlow(): Flow<List<QueuedTrack>> = queueDao.getQueueTracksFlow()
     override suspend fun currentPlaying(): QueuedTrack? = queueDao.currentPlaying()
     override suspend fun storeCurrentPos(pos: Long) = queueDao.storeCurrentPos(pos)
     override suspend fun clearQueue() = queueDao.clear()
     override fun currentPlayingFlow(): Flow<QueuedTrack?> = queueDao.currentPlayingFlow()
-    override suspend fun queue(item: QueueItem) = queueDao.insert(item)
     override suspend fun queueAll(items: List<QueueItem>) = queueDao.insertBlk(items)
     override suspend fun dequeueAll(items: List<QueueItem>) = queueDao.deleteBlk(items)
     override suspend fun queueAndPlay(item: QueueItem) = queueDao.queueAndPlay(item)

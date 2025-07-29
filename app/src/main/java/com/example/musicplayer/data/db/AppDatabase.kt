@@ -7,13 +7,23 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.Playlist
+import com.example.musicplayer.data.PlaylistWithThumbnails
 import com.example.musicplayer.data.QueueItem
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackAddedToPlaylist
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.utils.InstantConverter
 
-@Database(entities = [Track::class, Playlist::class, Album::class, TrackAddedToPlaylist::class, QueueItem::class], views = [TrackWithAlbum::class], version = 8)
+@Database(
+    entities = [
+        Track::class,
+        Playlist::class,
+        Album::class,
+        TrackAddedToPlaylist::class,
+        QueueItem::class
+    ],
+    views = [TrackWithAlbum::class, PlaylistWithThumbnails::class],
+    version = 9)
 @TypeConverters(InstantConverter::class)
 abstract class AppDatabase: RoomDatabase() {
 

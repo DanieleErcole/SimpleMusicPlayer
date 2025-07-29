@@ -13,7 +13,6 @@ import com.example.musicplayer.data.TrackWithAlbum
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -34,7 +33,7 @@ class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
         )
     @OptIn(ExperimentalCoroutinesApi::class)
     val filteredPlaylist = _searchString.flatMapLatest {
-        musicRepo.getAllPlaylistsFiltered(it)
+        musicRepo.getPlaylistsWithThumbnails(it)
     }.stateIn(
         initialValue = emptyList(),
         scope = viewModelScope,
