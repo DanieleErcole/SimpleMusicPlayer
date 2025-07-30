@@ -3,6 +3,7 @@ package com.example.musicplayer.ui
 import android.Manifest
 import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,10 +16,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +32,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.musicplayer.services.MusicObserver
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.ConfirmActionDialog
 import com.example.musicplayer.ui.components.dialogs.NewPlaylistDialog
@@ -39,6 +44,7 @@ import com.example.musicplayer.ui.screens.AlbumsScreen
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
 import com.example.musicplayer.ui.screens.PlaylistsScreen
 import com.example.musicplayer.ui.screens.QueueScreen
+import com.example.musicplayer.ui.screens.SettingsScreen
 import com.example.musicplayer.ui.screens.TracksScreen
 import com.example.musicplayer.ui.state.AlbumsVM
 import com.example.musicplayer.ui.state.CurrentPlayingVM
@@ -46,16 +52,18 @@ import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.MusicPlayerVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.ui.state.QueueVM
+import com.example.musicplayer.ui.state.SettingsVM
 import com.example.musicplayer.ui.state.TracksVM
 import com.example.musicplayer.utils.app
 import com.example.musicplayer.utils.hasPermission
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class AppScreen(val index: Int) {
-    Queue(0),
+    Queue(0), // Player queue
     Playing(1), // Current playing screen with player controls
-    Tracks(2), // All track list with search and favorites filter etc.
+    Tracks(2), // Track list with search and favorites filter etc.
     Albums(3), // Albums grid, with tracks inside
     Playlists(4), // Playlist grid with tracks
     Settings(5), // Settings page. e.g. scanned directories etc...
@@ -71,6 +79,13 @@ fun MusicPlayerApp(
 
     val scannedDirs = appVm.scannedDirectories.collectAsStateWithLifecycle()
     val firstLaunch = appVm.firstLaunch.collectAsStateWithLifecycle()
+    val isFirstLaunched by remember { derivedStateOf { firstLaunch.value } }
+
+    val observer = remember { MusicObserver(
+        scanner = app.scanner,
+        prefs = app.userPreferencesRepository,
+        ctx = ctx
+    ) }
 
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
@@ -89,20 +104,35 @@ fun MusicPlayerApp(
 
     LaunchedEffect(scannedDirs.value, hasPermission) {
         if (hasPermission) {
-            Log.i(null, "Scanning dirs")
-            withContext(Dispatchers.IO) {
-                app.scanner.scanDirectories(ctx, scannedDirs.value)
+            scannedDirs.value?.let {
+                Log.i(null, "Scanning dirs")
+                withContext(Dispatchers.IO) {
+                    app.scanner.scanDirectories(ctx, it)
+                }
             }
         }
     }
 
-    if (firstLaunch.value) {
-        Log.i(null, "Updating dirs")
-        appVm.updateScannedDirs(
-            // Default Music directory
-            listOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath)
+    LaunchedEffect(isFirstLaunched) {
+        if (isFirstLaunched) {
+            Log.i(null, "Updating dirs")
+            appVm.updateScannedDirs(
+                // Default Music directory
+                listOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath)
+            )
+            appVm.firstLaunched()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        ctx.contentResolver.registerContentObserver(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            true,
+            observer
         )
-        appVm.firstLaunched()
+        onDispose {
+            ctx.contentResolver.unregisterContentObserver(observer)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -117,6 +147,7 @@ fun MusicPlayerApp(
     val playlistVm = viewModel<PlaylistsVM>(factory = PlaylistsVM.Factory)
     val queueVm = viewModel<QueueVM>(factory = QueueVM.Factory)
     val albumsVm = viewModel<AlbumsVM>(factory = AlbumsVM.Factory)
+    val settingsVm = viewModel<SettingsVM>(factory = SettingsVM.Factory)
 
     navController.addOnDestinationChangedListener { _, destination, _ ->
         val to = AppScreen.valueOf(destination.route ?: AppScreen.Playing.name)
@@ -202,7 +233,10 @@ fun MusicPlayerApp(
                 )
             }
             composable(route = AppScreen.Settings.name) {
-
+                SettingsScreen(
+                    vm = settingsVm,
+                    dialogsVm = dialogsVm
+                )
             }
         }
     }

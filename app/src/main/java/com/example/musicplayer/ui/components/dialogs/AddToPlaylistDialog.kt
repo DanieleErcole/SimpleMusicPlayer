@@ -14,6 +14,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -43,16 +44,12 @@ fun AddToPlaylistDialog(
     state.value?.let {
         val tracks by remember { derivedStateOf { it.tracks } }
 
-        //TODO: the first time I open this dialog the playlist doesn't toggle selection
-
         BaseDialog(onDismissRequest = { dialogsVm.setAddDialog() }) {
             val playlists = plVm.allPlaylists.collectAsStateWithLifecycle()
-            val itemsState = remember {
-                mutableStateMapOf<Long, Boolean>().apply {
-                    playlists.value.forEach { pl ->
-                        put(pl.playlistId, false)
-                    }
-                }
+            val itemsState = remember { mutableStateMapOf<Long, Boolean>() }
+
+            LaunchedEffect(state.value) {
+                itemsState.clear()
             }
 
             Surface {
@@ -74,7 +71,13 @@ fun AddToPlaylistDialog(
                     ) {
                         items(playlists.value) { pl ->
                             CustomContextMenuCheckboxBtn(
-                                onClick = { itemsState[pl.playlistId]?.let { itemsState[pl.playlistId] = !it } },
+                                onClick = {
+                                    itemsState[pl.playlistId]?.let {
+                                        itemsState[pl.playlistId] = !it
+                                    } ?: run {
+                                        itemsState.put(pl.playlistId, true)
+                                    }
+                                },
                                 text = pl.name,
                                 isChecked = itemsState[pl.playlistId] ?: false,
                                 tint = MaterialTheme.colorScheme.outline,
@@ -83,7 +86,7 @@ fun AddToPlaylistDialog(
                         }
                     }
                     OutlinedButton(
-                        onClick = { dialogsVm.toggleNewDialog() },
+                        onClick = { dialogsVm.setNewDialog() },
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

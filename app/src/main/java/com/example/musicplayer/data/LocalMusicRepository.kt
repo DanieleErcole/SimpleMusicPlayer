@@ -5,6 +5,7 @@ import com.example.musicplayer.data.db.PlaylistDao
 import com.example.musicplayer.data.db.QueueDao
 import com.example.musicplayer.data.db.TrackDao
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 
 class LocalMusicRepository(
     private val trackDao: TrackDao,
@@ -24,11 +25,9 @@ class LocalMusicRepository(
     override fun getPlaylistsWithThumbnails(searchString: String?): Flow<List<PlaylistWithThumbnails>> = plDao.getPlaylistsWithThumbnails(searchString)
     override fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = plDao.getPlaylistTracks(id, searchString)
     override suspend fun addToPlaylist(tracks: List<Long>, playlist: Long) = plDao.addToPlaylist(tracks.map {
-        TrackAddedToPlaylist(playlist, it)
+        TrackAddedToPlaylist(playlist, it, Instant.now())
     })
-    override suspend fun removeFromPlaylist(tracks: List<Long>, playlist: Long) = plDao.removeFromPlaylist(tracks.map {
-        TrackAddedToPlaylist(playlist, it)
-    })
+    override suspend fun removeFromPlaylist(tracks: List<Long>, playlist: Long) = plDao.removeFromPlaylist(tracks, playlist)
     override suspend fun newPlaylist(pl: Playlist) = plDao.insert(pl)
     override suspend fun deletePlaylist(pl: Playlist) = plDao.delete(pl)
     override suspend fun renamePlaylist(id: Long, newName: String) = plDao.rename(id, newName)

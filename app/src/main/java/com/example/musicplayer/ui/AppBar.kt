@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -29,6 +30,7 @@ fun AppBar(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val ctx = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: AppScreen.Playing.name
@@ -99,13 +101,7 @@ fun AppBar(
                     tint = if (currentScreen.name == AppScreen.Settings.name) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                 ) {
                     CustomContextMenuBtn(
-                        onClick = {
-                            val list = vm.scannedDirectories.value
-                            vm.apply {
-                                updateScannedDirs(emptyList())
-                                updateScannedDirs(list)
-                            }
-                        },
+                        onClick = { vm.rescan(ctx = ctx) },
                         painter = painterResource(R.drawable.scan),
                         text = "scan",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant

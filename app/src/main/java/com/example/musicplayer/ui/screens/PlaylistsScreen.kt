@@ -91,11 +91,13 @@ fun PlaylistsScreen(
     }
 
     selectedPl?.let {
+        var plName by remember { mutableStateOf(it.name) }
+
         TrackList(
             listVm = listVm,
             dialogsVm = dialogsVm,
             navController = navController,
-            listTitle = it.name,
+            listTitle = plName,
             onBackClick = { selectedPl = null },
             onRemoveClick = { tracks ->
                 dialogsVm.setConfirmDialog(
@@ -114,13 +116,18 @@ fun PlaylistsScreen(
                     modifier = Modifier.height(24.dp).width(24.dp)
                 ) {
                     CustomContextMenuBtn(
-                        onClick = { dialogsVm.setRenameDialog(it.playlistId) },
+                        onClick = {
+                            dialogsVm.setRenameDialog(it.playlistId) { plName = it }
+                        },
                         painter = painterResource(R.drawable.edit),
                         text = "Rename playlist",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     CustomContextMenuBtn(
-                        onClick = { plVm.deletePlaylist(it) },
+                        onClick = {
+                            plVm.deletePlaylist(it)
+                            selectedPl = null
+                        },
                         painter = painterResource(R.drawable.remove),
                         text = "Delete playlist",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -141,7 +148,7 @@ fun PlaylistsScreen(
         )
     } ?: PlaylistGrid(
         plVm = plVm,
-        onAddPlaylist = { dialogsVm.toggleNewDialog() },
+        onAddPlaylist = { dialogsVm.setNewDialog() },
         onSelectPlaylist = { selectedPl = it },
         modifier = modifier.fillMaxSize()
     )

@@ -22,6 +22,11 @@ data class AddDialogState(
     val tracks: List<TrackWithAlbum>
 )
 
+data class RenameDialogState(
+    val playlist: Long,
+    val endAction: (String) -> Unit
+)
+
 class DialogsVM : ViewModel() {
 
     private val _confirmDialog = MutableStateFlow<ConfirmDialogState?>(null)
@@ -36,8 +41,8 @@ class DialogsVM : ViewModel() {
     private val _openNewDialog = MutableStateFlow(false)
     val openNewDialog = _openNewDialog.asStateFlow()
 
-    private val _plToRename = MutableStateFlow<Long?>(null)
-    val plToRename = _plToRename.asStateFlow()
+    private val _renameDialog = MutableStateFlow<RenameDialogState?>(null)
+    val renameDialog = _renameDialog.asStateFlow()
 
     fun setConfirmDialog(title: String? = null, text: String? = null, action: (() -> Unit)? = null) =
         _confirmDialog.update {
@@ -55,8 +60,13 @@ class DialogsVM : ViewModel() {
             }
         }
 
-    fun toggleNewDialog() = _openNewDialog.update { !_openNewDialog.value }
-    fun setRenameDialog(playlist: Long? = null) = _plToRename.update { playlist }
+    fun setNewDialog() = _openNewDialog.update { !_openNewDialog.value }
+    fun setRenameDialog(playlist: Long? = null, action: ((String) -> Unit)? = null) =
+        _renameDialog.update {
+            if (playlist != null && action != null)
+                RenameDialogState(playlist, action)
+            else null
+        }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

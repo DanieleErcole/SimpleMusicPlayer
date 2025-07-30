@@ -145,29 +145,30 @@ fun TrackList(
             )
         }
         AnimatedVisibility(!selectionMode) {
-            SearchInputField(
-                text = searchStr.value,
-                placeholder = "Search a track",
-                onChange = { listVm.updateSearchString(it) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
+            Column {
+                SearchInputField(
+                    text = searchStr.value,
+                    placeholder = "Search a track",
+                    onChange = { listVm.updateSearchString(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+                Text(
+                    text = "${tracks.value.size} songs",
+                    fontSize = 13.sp,
+                    lineHeight = 13.sp,
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, bottom = 8.dp)
+                )
+            }
         }
-        Text(
-            text = "${tracks.value.size} songs",
-            fontSize = 13.sp,
-            lineHeight = 13.sp,
-            color = MaterialTheme.colorScheme.outline,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, bottom = 8.dp)
-        )
         Divider()
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
-                .padding(top = 16.dp)
                 .weight(.8f)
         ) {
             items(tracks.value) {

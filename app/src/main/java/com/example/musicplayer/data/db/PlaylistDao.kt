@@ -24,14 +24,15 @@ interface PlaylistDao {
         JOIN trackAddedToPlaylist tAdded ON tAdded.trackId = t.trackId 
         WHERE tAdded.playlistId = :id 
             AND (:searchString IS NULL OR t.title LIKE '%' || :searchString || '%' OR t.name LIKE '%' || :searchString || '%')
+        ORDER BY tAdded.added ASC
     """)
     fun getPlaylistTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
 
     // If a track is already on a playlist simply replace the id, that effectively does nothing
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addToPlaylist(tracks: List<TrackAddedToPlaylist>)
-    @Delete
-    suspend fun removeFromPlaylist(tracks: List<TrackAddedToPlaylist>)
+    @Query("DELETE FROM trackAddedToPlaylist WHERE trackId in (:tracks) AND playlistId = :id")
+    suspend fun removeFromPlaylist(tracks: List<Long>, id: Long)
 
     @Query("UPDATE playlist SET name = :newName WHERE playlistId = :id")
     suspend fun rename(id: Long, newName: String)

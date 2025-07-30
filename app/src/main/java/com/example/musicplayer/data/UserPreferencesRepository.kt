@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.example.musicplayer.utils.UserPrefKeys
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
@@ -39,7 +40,12 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
                 throw it
             }
         }
-        .map { prefs -> prefs[FIRST_LAUNCH] ?: true }
+        .map { prefs -> prefs[FIRST_LAUNCH] ?: false }
+
+    suspend fun getScannedDirs(): List<String> =
+        dataStore.data.first().let { prefs ->
+            prefs[SCANNED_DIRECTORIES]?.toList() ?: emptyList()
+        }
 
     suspend fun updateScannedDirs(list: List<String>) = dataStore.edit { prefs -> prefs[SCANNED_DIRECTORIES] = list.toSet() }
     suspend fun firstLaunched() = dataStore.edit { prefs -> prefs[FIRST_LAUNCH] = false }

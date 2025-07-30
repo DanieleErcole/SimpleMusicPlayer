@@ -109,7 +109,7 @@ fun NewPlaylistDialog(
             title = "New Playlist",
             placeholder = "Name",
             btnLabel = "Create",
-            onDismiss = { dialogsVM.toggleNewDialog() },
+            onDismiss = { dialogsVM.setNewDialog() },
             onConfirm = { plVm.newPlaylist(it) },
             modifier = modifier
         )
@@ -122,14 +122,17 @@ fun RenamePlaylistDialog(
     dialogsVM: DialogsVM,
     modifier: Modifier = Modifier
 ) {
-    val plToRename = dialogsVM.plToRename.collectAsStateWithLifecycle()
-    plToRename.value?.let { pl ->
+    val state = dialogsVM.renameDialog.collectAsStateWithLifecycle()
+    state.value?.let { pl ->
         TextInputDialog(
             title = "Rename Playlist",
             placeholder = "Name",
             btnLabel = "Rename",
             onDismiss = { dialogsVM.setRenameDialog() },
-            onConfirm = { plVm.renamePlaylist(pl, it) },
+            onConfirm = {
+                plVm.renamePlaylist(pl.playlist, it)
+                pl.endAction(it)
+            },
             modifier = modifier
         )
     }

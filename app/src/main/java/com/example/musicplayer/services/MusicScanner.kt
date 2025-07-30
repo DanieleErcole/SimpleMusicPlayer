@@ -13,7 +13,6 @@ import com.example.musicplayer.utils.nullableIntColumn
 import com.example.musicplayer.utils.nullableLongColumn
 import com.example.musicplayer.utils.nullableStringColumn
 import java.time.Instant
-import java.time.ZonedDateTime
 
 class MusicScanner(private val musicRepo: MusicRepository) {
 
@@ -21,37 +20,36 @@ class MusicScanner(private val musicRepo: MusicRepository) {
         val albums = musicRepo.getAllAlbums().toMutableList()
         val tracks = musicRepo.getAllTracks().map { it.internal }.toMutableList()
 
-        //TODO: move this and do this only on track play for single tracks together with the existence check
-        //TODO: another option is to do this only on scanned directory removal (maybe best option)
-        // Delete tracks whose location is not present in the scanned dirs (previously deleted)
-        /*val toDelete = mutableListOf<Track>()
-        tracks.forEach {
-            Log.i(MusicScanner::class.simpleName, "${!fileAncestorIsScannedDir(scannedDirs, it.location)}")
-            if (!fileExists(ctx, it.location) || !fileAncestorIsScannedDir(scannedDirs, it.location))
-                toDelete.add(it)
-        }
-        musicRepo.deleteTrackBlk(toDelete)*/
-
-        scannedDirs.forEach { dir ->
+        val scannedTracks = scannedDirs.flatMap { dir ->
             Log.i(MusicScanner::class.simpleName, "Scanning directory $dir")
-            scanDir(ctx, dir).forEach { (track, album) ->
-                // Check whether the track already exists
-                if (tracks.find { it.trackId == track.trackId } != null)
-                    return
+            scanDir(ctx, dir)
+        }
 
-                // Check if the album it's not already stored in the db
-                if (album.id == DefaultAlbum.UNKNOWN_ID)
-                    addUnknownAlbum(albums)
-                else albums.find { a -> album.id == a.id } ?: run {
-                    Log.i(MusicScanner::class.simpleName, "Adding album ${album.name} with id ${album.id}")
-                    musicRepo.newAlbum(album)
-                    albums.add(album)
-                }
+        // Delete from the db all the tracks that are present but are not stored in the scanned directories anymore
+        // If a track has been moved to another scanned location its id will change (MediaStore behaviour), I treat it like it's another track entirely
+        // by deleting its previous version and adding the new one at the new location
+        // This works also in the case of a directory removal from the scanned list
+        musicRepo.deleteTrackBlk(tracks.filter {
+            scannedTracks.find { (track) -> track.trackId == it.trackId } == null
+        })
 
-                Log.i(MusicScanner::class.simpleName, "Adding track ${track.location} with id ${track.trackId}")
-                musicRepo.newTrack(track)
-                tracks.add(track)
+        scannedTracks.forEach { (track, album) ->
+            // Check whether the track already exists
+            if (tracks.find { it.trackId == track.trackId } != null)
+                return@forEach
+
+            // Check if the album it's not already stored in the db
+            if (album.id == DefaultAlbum.UNKNOWN_ID)
+                addUnknownAlbum(albums)
+            else albums.find { a -> album.id == a.id } ?: run {
+                Log.i(MusicScanner::class.simpleName, "Adding album ${album.name} with id ${album.id}")
+                musicRepo.newAlbum(album)
+                albums.add(album)
             }
+
+            Log.i(MusicScanner::class.simpleName, "Adding track ${track.location} with id ${track.trackId}")
+            musicRepo.newTrack(track)
+            tracks.add(track)
         }
         Log.i(MusicScanner::class.simpleName, "Finished scanning dirs")
     }
@@ -66,28 +64,6 @@ class MusicScanner(private val musicRepo: MusicRepository) {
             )
             musicRepo.newAlbum(newAlbum)
         }
-    }
-
-    fun fileExists(ctx: Context, filePath: String): Boolean {
-        val cursor = ctx.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Files.FileColumns._ID),
-            "${MediaStore.Files.FileColumns.DATA} = ?",
-            arrayOf(filePath),
-            null
-        )
-        return cursor?.use {
-            it.count > 0
-        } ?: false
-    }
-
-    private fun fileAncestorIsScannedDir(scannedDirs: List<String>, filePath: String): Boolean {
-        Log.i(MusicScanner::class.simpleName, filePath)
-        scannedDirs.forEach {
-            Log.i(MusicScanner::class.simpleName, "$it contains: ${filePath.contains(it)}")
-            if (filePath.contains(it))
-                return true
-        }
-        return false
     }
 
     private fun scanDir(ctx: Context, dirPath: String): List<Pair<Track, Album>> {
@@ -152,21 +128,28 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                 val albumId = it.nullableLongColumn(albumIdColumn)
                 val albumUri = albumId?.let { ContentUris.withAppendedId(albumUriBase, albumId).toString() }
 
-                Log.i(MusicScanner::class.simpleName, "Found audio file: $name at $data")
+                Log.i(MusicScanner::class.simpleName, "Found audio file: $name at $data with id: $id")
 
-                val aId = albumId ?: DefaultAlbum.UNKNOWN_ID
-                fileList.add(Pair(
-                    second = Album(
-                        id = aId,
+                val album = albumId?.let {
+                    Album(
+                        id = it,
                         name = albumTitle?.ifEmpty { DefaultAlbum.UNKNOWN_ALBUM_NAME } ?: DefaultAlbum.UNKNOWN_ALBUM_NAME,
                         thumbnail = albumUri,
                         artist = albumArtist ?: DefaultAlbum.UNKNOWN_ARTIST
-                    ),
+                    )
+                } ?: Album(
+                    id = DefaultAlbum.UNKNOWN_ID,
+                    name = DefaultAlbum.UNKNOWN_ALBUM_NAME,
+                    thumbnail = null,
+                    artist = DefaultAlbum.UNKNOWN_ARTIST
+                )
+                fileList.add(Pair(
+                    second = album,
                     first = Track(
                         trackId = id,
                         location = data,
                         title = title ?: DefaultAlbum.UNKNOWN,
-                        album = aId,
+                        album = album.id,
                         artist = artist ?: DefaultAlbum.UNKNOWN,
                         composer = composer ?: DefaultAlbum.UNKNOWN,
                         genre = DefaultAlbum.UNKNOWN, //TODO. decide whether to remove it or set minSdk == 30

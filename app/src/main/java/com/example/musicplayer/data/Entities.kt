@@ -47,7 +47,17 @@ data class Album(
     val artist : String = "Unknown"
 )
 
-@Entity(tableName = "track")
+@Entity(
+    tableName = "track",
+    foreignKeys = [
+        ForeignKey(
+            entity = Album::class,
+            parentColumns = ["id"],
+            childColumns = ["album"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class Track(
     @PrimaryKey()
     val trackId: Long = 0,
@@ -107,7 +117,9 @@ data class TrackWithAlbum(
 )
 data class TrackAddedToPlaylist(
     val playlistId: Long,
-    val trackId: Long
+    val trackId: Long,
+    @ColumnInfo(name = "added")
+    val added: Instant
 )
 
 @Entity(

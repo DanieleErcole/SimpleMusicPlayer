@@ -23,7 +23,7 @@ import com.example.musicplayer.utils.InstantConverter
         QueueItem::class
     ],
     views = [TrackWithAlbum::class, PlaylistWithThumbnails::class],
-    version = 11)
+    version = 13)
 @TypeConverters(InstantConverter::class)
 abstract class AppDatabase: RoomDatabase() {
 
