@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.musicplayer.R
@@ -113,7 +115,7 @@ fun AppBar(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     CustomContextMenuBtn(
-                        onClick = {  },
+                        onClick = { finishAffinity(ctx as Activity) },
                         painter = painterResource(R.drawable.power),
                         text = "Close app",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant

@@ -16,14 +16,11 @@ import java.time.Instant
 
 class MusicScanner(private val musicRepo: MusicRepository) {
 
-    suspend fun scanDirectories(ctx: Context, scannedDirs: List<String>) {
+    suspend fun scanDirectories(ctx: Context) {
         val albums = musicRepo.getAllAlbums().toMutableList()
         val tracks = musicRepo.getAllTracks().map { it.internal }.toMutableList()
 
-        val scannedTracks = scannedDirs.flatMap { dir ->
-            Log.i(MusicScanner::class.simpleName, "Scanning directory $dir")
-            scanDir(ctx, dir)
-        }
+        val scannedTracks = scanMusic(ctx)
 
         // Delete from the db all the tracks that are present but are not stored in the scanned directories anymore
         // If a track has been moved to another scanned location its id will change (MediaStore behaviour), I treat it like it's another track entirely
@@ -51,7 +48,13 @@ class MusicScanner(private val musicRepo: MusicRepository) {
             musicRepo.newTrack(track)
             tracks.add(track)
         }
-        Log.i(MusicScanner::class.simpleName, "Finished scanning dirs")
+
+        albums.forEach {
+            if (musicRepo.getAlbumTracksCount(it.id) == 0)
+                musicRepo.deleteAlbum(it)
+        }
+
+        Log.i(MusicScanner::class.simpleName, "Finished scanning tracks")
     }
 
     private suspend fun addUnknownAlbum(albums: List<Album>) {
@@ -66,7 +69,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
         }
     }
 
-    private fun scanDir(ctx: Context, dirPath: String): List<Pair<Track, Album>> {
+    private fun scanMusic(ctx: Context): List<Pair<Track, Album>> {
         val fileList = mutableListOf<Pair<Track, Album>>()
         val cursor = ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -86,14 +89,13 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                 MediaStore.Audio.Media.ALBUM_ARTIST,
                 MediaStore.Audio.Media.ALBUM_ID,
             ),
-            "${MediaStore.Audio.Media.DATA} LIKE ?",
-            arrayOf("$dirPath%"),
+            "${MediaStore.Audio.Media.IS_MUSIC} > 0",
+            null,
             null
         )
 
         Log.i(MusicScanner::class.simpleName, "${cursor?.count}")
         cursor?.use {
-            val isMusicColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC)
             val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val dataColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
@@ -109,8 +111,6 @@ class MusicScanner(private val musicRepo: MusicRepository) {
             val albumIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
 
             while (it.moveToNext()) {
-                if (it.getInt(isMusicColumn) == 0) continue
-
                 val id = it.getLong(idColumn)
 
                 val data = it.getString(dataColumn)

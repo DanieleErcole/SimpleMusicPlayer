@@ -23,6 +23,7 @@ interface MusicRepository {
     suspend fun getAllAlbums(): List<Album>
     fun getAllAlbumsFlow(searchString: String? = null): Flow<List<Album>>
     fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
+    suspend fun getAlbumTracksCount(id: Long): Int
     suspend fun newAlbum(a: Album)
     suspend fun deleteAlbum(a: Album)
 

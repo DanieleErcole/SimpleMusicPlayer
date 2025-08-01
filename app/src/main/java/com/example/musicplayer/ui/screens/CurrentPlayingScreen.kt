@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui.screens
 
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,7 +92,12 @@ fun CurrentPlayingScreen(
                 Text(
                     text = current.internal.title,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .basicMarquee()
                 )
                 Text(
                     text = current.internal.artist,

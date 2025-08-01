@@ -14,8 +14,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.core.net.toUri
-import com.example.musicplayer.data.Album
-import com.example.musicplayer.data.Track
 
 fun app(ctx: Context): MusicPlayerApplication {
     return ctx.applicationContext as MusicPlayerApplication

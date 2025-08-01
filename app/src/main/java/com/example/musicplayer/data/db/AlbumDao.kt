@@ -26,6 +26,8 @@ interface AlbumDao {
         ORDER BY trackNumber
     """)
     fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
+    @Query("SELECT COUNT(trackId) FROM TrackWithAlbum WHERE album = :id")
+    suspend fun getAlbumTracksCount(id: Long): Int
 
     @Insert
     suspend fun insert(a: Album)

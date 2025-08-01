@@ -26,36 +26,12 @@ class MusicPlayerVM(
 ) : ViewModel() {
 
     val snackBarState = SnackbarHostState()
-    val firstLaunch: StateFlow<Boolean> = userPrefs.firstLaunch
-        .stateIn(
-            initialValue = false,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
-    val scannedDirectories: StateFlow<List<String>?> = userPrefs.scannedDirectories
-        .stateIn(
-            initialValue = null,
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000)
-        )
     val errors = playerController.errorFlow
-
-    fun firstLaunched() {
-        viewModelScope.launch {
-            userPrefs.firstLaunched()
-        }
-    }
-
-    fun updateScannedDirs(list: List<String>) {
-        viewModelScope.launch {
-            userPrefs.updateScannedDirs(list)
-        }
-    }
 
     fun rescan(ctx: Context) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                scanner.scanDirectories(ctx, userPrefs.getScannedDirs())
+                scanner.scanDirectories(ctx)
             }
         }
     }

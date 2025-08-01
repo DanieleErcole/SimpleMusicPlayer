@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 
 class MusicObserver(
     private val scanner: MusicScanner,
-    private val prefs: UserPreferencesRepository,
     private val ctx: Context
 ) : ContentObserver(Handler(Looper.getMainLooper())) {
 
@@ -21,7 +20,7 @@ class MusicObserver(
     override fun onChange(selfChange: Boolean) {
         super.onChange(selfChange)
         scannerScope.launch {
-            scanner.scanDirectories(ctx, prefs.getScannedDirs())
+            scanner.scanDirectories(ctx)
         }
     }
 

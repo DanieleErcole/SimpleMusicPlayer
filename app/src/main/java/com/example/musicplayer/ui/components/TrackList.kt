@@ -1,5 +1,6 @@
 package com.example.musicplayer.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -82,6 +83,11 @@ fun TrackList(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 onBackClick?.let {
+                    BackHandler(
+                        enabled = true,
+                        onBack = it
+                    )
+
                     TransparentButton(
                         onClick = it,
                         painter = painterResource(R.drawable.back),

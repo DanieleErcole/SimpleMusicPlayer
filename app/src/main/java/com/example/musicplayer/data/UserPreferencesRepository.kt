@@ -21,7 +21,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val FIRST_LAUNCH = booleanPreferencesKey(UserPrefKeys.FIRST_LAUNCH)
     }
 
-    val scannedDirectories: Flow<List<String>> = dataStore.data
+    // Maybe impl blacklisted directories
+    /*val scannedDirectories: Flow<List<String>> = dataStore.data
         .catch {
             if (it is IOException) {
                 Log.e(UserPrefKeys.REPO_TAG, "Error reading preferences.", it)
@@ -30,8 +31,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
                 throw it
             }
         }
-        .map { prefs -> prefs[SCANNED_DIRECTORIES]?.toList() ?: emptyList() }
-    val firstLaunch: Flow<Boolean> = dataStore.data
+        .map { prefs -> prefs[SCANNED_DIRECTORIES]?.toList() ?: emptyList() }*/
+    /*val firstLaunch: Flow<Boolean> = dataStore.data
         .catch {
             if (it is IOException) {
                 Log.e(UserPrefKeys.REPO_TAG, "Error reading preferences.", it)
@@ -40,14 +41,23 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
                 throw it
             }
         }
-        .map { prefs -> prefs[FIRST_LAUNCH] ?: false }
+        .map { prefs -> prefs[FIRST_LAUNCH] ?: true }*/
 
-    suspend fun getScannedDirs(): List<String> =
+    /*suspend fun getScannedDirs(): List<String> =
         dataStore.data.first().let { prefs ->
             prefs[SCANNED_DIRECTORIES]?.toList() ?: emptyList()
-        }
+        }*/
 
-    suspend fun updateScannedDirs(list: List<String>) = dataStore.edit { prefs -> prefs[SCANNED_DIRECTORIES] = list.toSet() }
-    suspend fun firstLaunched() = dataStore.edit { prefs -> prefs[FIRST_LAUNCH] = false }
+    /*suspend fun addScannedDir(new: String) = dataStore.edit { prefs ->
+        val list = prefs[SCANNED_DIRECTORIES]?.toList() ?: emptyList()
+        prefs[SCANNED_DIRECTORIES] = (list + new).toSet()
+    }
+
+    suspend fun removeScannedDir(dir: String) = dataStore.edit { prefs ->
+        val list = prefs[SCANNED_DIRECTORIES]?.toList() ?: emptyList()
+        prefs[SCANNED_DIRECTORIES] = (list - dir).toSet()
+    }*/
+
+    //suspend fun firstLaunched() = dataStore.edit { prefs -> prefs[FIRST_LAUNCH] = false }
 
 }

@@ -35,6 +35,7 @@ class LocalMusicRepository(
     override suspend fun getAllAlbums(): List<Album> = albumDao.getAllAlbums()
     override fun getAllAlbumsFlow(searchString: String?): Flow<List<Album>> = albumDao.getAllAlbumsFlow(searchString)
     override fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>> = albumDao.getAlbumTracks(id, searchString)
+    override suspend fun getAlbumTracksCount(id: Long): Int = albumDao.getAlbumTracksCount(id)
     override suspend fun newAlbum(a: Album) = albumDao.insert(a)
     override suspend fun deleteAlbum(a: Album) = albumDao.delete(a)
 
