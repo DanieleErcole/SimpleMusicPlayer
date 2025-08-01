@@ -11,9 +11,8 @@ object DefaultAlbum {
 }
 
 object UserPrefKeys {
-    const val SCANNED_DIRS = "scannedDirectories"
-    const val FIRST_LAUNCH = "firstLaunch"
-    const val REPO_TAG = "UserPreferencesRepo"
+    const val AUTO_SCAN = "autoScan"
+    const val ACCENT_COLOR = "accentColor"
 }
 
 object PlayerStateKeys {

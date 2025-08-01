@@ -16,6 +16,7 @@ interface AlbumDao {
     @Query("""
         SELECT * FROM album 
         WHERE :searchString IS NULL OR name LIKE '%' || :searchString || '%'
+        ORDER BY name
     """)
     fun getAllAlbumsFlow(searchString: String?): Flow<List<Album>>
 

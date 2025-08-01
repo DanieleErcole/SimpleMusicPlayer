@@ -19,7 +19,7 @@ interface TrackDao {
         SELECT * FROM TrackWithAlbum 
         WHERE (:artists IS NULL OR artist in (:artists)) 
             AND (:searchString IS NULL OR title LIKE '%' || :searchString || '%' OR name LIKE '%' || :searchString || '%')
-        ORDER BY addedToLibrary ASC
+        ORDER BY title ASC
     """)
     fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>>
 

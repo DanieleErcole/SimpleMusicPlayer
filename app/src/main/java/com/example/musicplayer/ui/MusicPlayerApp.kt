@@ -72,10 +72,12 @@ fun MusicPlayerApp(
     val ctx = LocalContext.current
     val app = app(ctx)
 
-    val observer = remember { MusicObserver(
-        scanner = app.scanner,
-        ctx = ctx
-    ) }
+    val observer = remember {
+        MusicObserver(
+            scanner = app.scanner,
+            ctx = ctx
+        )
+    }
 
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
@@ -93,7 +95,7 @@ fun MusicPlayerApp(
         LaunchedEffect(Unit, relaunchPermission) { permissionsLauncher.launch(permission) }
 
     LaunchedEffect(hasPermission) {
-        if (hasPermission) {
+        if (appVm.canAutoScan() && hasPermission) {
             Log.i(null, "Scanning tracks")
             withContext(Dispatchers.IO) {
                 app.scanner.scanDirectories(ctx)

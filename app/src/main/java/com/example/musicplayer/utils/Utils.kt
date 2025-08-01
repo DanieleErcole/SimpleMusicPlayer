@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
 import android.os.Bundle
+import android.util.Log
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.musicplayer.MusicPlayerApplication
@@ -14,9 +17,22 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.core.net.toUri
+import androidx.datastore.core.IOException
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
+import kotlinx.coroutines.flow.FlowCollector
 
 fun app(ctx: Context): MusicPlayerApplication {
     return ctx.applicationContext as MusicPlayerApplication
+}
+
+suspend fun FlowCollector<Preferences>.catchError(ex: Throwable, name: String) {
+    if (ex is IOException) {
+        Log.e("Datastore", "Error reading $name", ex)
+        emit(emptyPreferences())
+    } else {
+        throw ex
+    }
 }
 
 @SuppressLint("DefaultLocale")
@@ -61,39 +77,14 @@ fun TrackWithAlbum.toMediaItem(): MediaItem {
         .build()
 }
 
-/*fun MediaItem.toTrack(): TrackWithAlbum {
-    val metadata = this.mediaMetadata
-
-    val track = Track(
-        trackId = metadata.extras!!.getLong("trackId"),
-        location = metadata.extras!!.getString("location")!!,
-        title = metadata.title.toString(),
-        album = metadata.extras!!.getLong("albumId"),
-        artist = metadata.artist.toString(),
-        composer = metadata.composer.toString(),
-        genre = metadata.genre.toString(),
-        trackNumber = metadata.trackNumber ?: 1,
-        discNumber = metadata.discNumber ?: 1,
-        year = metadata.releaseYear ?: 0,
-        addedToLibrary = Instant.ofEpochMilli(metadata.extras!!.getLong("addedToLibrary")),
-        lastPlayed = metadata.extras?.getLong("lastPlayed")?.let { Instant.ofEpochMilli(it) },
-        durationMs = metadata.durationMs ?: 0,
-        playedCount = metadata.extras!!.getInt("playedCount")
-    )
-    val album = Album(
-        id = metadata.extras!!.getLong("albumId"),
-        name = metadata.albumTitle.toString(),
-        thumbnail = metadata.artworkUri?.toString(),
-        artist = metadata.albumArtist.toString()
-    )
-
-    return TrackWithAlbum(track, album)
-}*/
-
 fun Cursor.nullableIntColumn(index: Int): Int? = if (index == -1) null else this.getInt(index)
 fun Cursor.nullableStringColumn(index: Int): String? = if (index == -1) null else this.getString(index)
 fun Cursor.nullableLongColumn(index: Int): Long? = if (index == -1) null else this.getLong(index)
 
 fun floatPosition(pos: Long, duration: Long): Float = ((pos * 100) / duration).toFloat()
+
+fun LazyGridScope.offSetCells(count: Int) {
+    item(span = { GridItemSpan(count) }) {}
+}
 
 fun toPosition(percentage: Float, duration: Long): Long = (percentage / 100 * duration).toLong()

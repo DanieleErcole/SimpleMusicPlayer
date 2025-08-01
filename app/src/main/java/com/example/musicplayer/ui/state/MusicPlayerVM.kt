@@ -15,6 +15,7 @@ import com.example.musicplayer.services.player.PlayerController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +28,8 @@ class MusicPlayerVM(
 
     val snackBarState = SnackbarHostState()
     val errors = playerController.errorFlow
+
+    suspend fun canAutoScan() = userPrefs.autoScan.first()
 
     fun rescan(ctx: Context) {
         viewModelScope.launch {

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,6 +53,7 @@ import com.example.musicplayer.ui.state.AlbumsVM
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.app
+import com.example.musicplayer.utils.offSetCells
 import kotlinx.coroutines.Dispatchers
 
 @Composable
@@ -159,14 +162,16 @@ fun AlbumGrid(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(.9f)
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                .padding(start = 8.dp, end = 8.dp)
         ) {
+            offSetCells(3)
             items(albums.value) {
                 AlbumItem(
                     album = it,
                     onClick = { onSelectAlbum(it) }
                 )
             }
+            offSetCells(3)
         }
     }
 }

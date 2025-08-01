@@ -57,6 +57,7 @@ import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.THUMBNAILS_GRID_COUNT
 import com.example.musicplayer.utils.app
+import com.example.musicplayer.utils.offSetCells
 import kotlinx.coroutines.Dispatchers
 import kotlin.collections.first
 import kotlin.collections.ifEmpty
@@ -196,14 +197,16 @@ fun PlaylistGrid(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(.9f)
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                .padding(start = 8.dp, end = 8.dp)
         ) {
+            offSetCells(3)
             items(playlists.value) {
                 PlaylistItem(
                     playlist = it,
                     onClick = { onSelectPlaylist(it.playlist) }
                 )
             }
+            offSetCells(3)
         }
     }
 }

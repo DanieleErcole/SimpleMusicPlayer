@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.musicplayer.R
 import com.example.musicplayer.ui.components.Divider
@@ -36,7 +37,6 @@ fun SettingsScreen(
     vm: SettingsVM,
     dialogsVm: DialogsVM
 ) {
-    val ctx = LocalContext.current
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -65,33 +65,67 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = "Song library",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                lineHeight = 14.sp,
-                modifier = Modifier.padding(top = 16.dp)
+            LibrarySection(
+                vm = vm,
+                modifier = Modifier
+                    .padding(top = 16.dp)
             )
-            //TODO (maybe) implement blacklist
-            //TODO: implement automatic scan toggle with checkbox checking
-            SettingsItem(
-                onClick = { vm.rescan(ctx) },
-                painter = painterResource(R.drawable.scan),
-                text = "Scan",
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Theming",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                lineHeight = 14.sp,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            //TODO: implement accent color
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+            ThemingSection(vm = vm)
         }
+    }
+}
+
+@Composable
+fun LibrarySection(
+    modifier: Modifier = Modifier,
+    vm: SettingsVM
+) {
+    val ctx = LocalContext.current
+    val autoScan = vm.autoScan.collectAsStateWithLifecycle()
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = "Song library",
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 32.dp)
+        )
+        //TODO (maybe) implement blacklist
+        SettingsItem(
+            onClick = { vm.rescan(ctx) },
+            painter = painterResource(R.drawable.scan),
+            title = "Scan",
+            tint = MaterialTheme.colorScheme.primary
+        )
+        CheckboxSettingsItem(
+            onClick = { vm.toggleAutoScan() },
+            title = "Scan automatically",
+            text = "Automatically scan the storage for tracks when the app starts",
+            checked = autoScan.value,
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun ThemingSection(
+    modifier: Modifier = Modifier,
+    vm: SettingsVM
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = "Theming",
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 32.dp)
+        )
+        //TODO: implement accent color
     }
 }
 
@@ -99,29 +133,83 @@ fun SettingsScreen(
 fun SettingsItem(
     onClick: () -> Unit,
     painter: Painter? = null,
-    text: String,
+    title: String,
+    text: String? = null,
     tint: Color,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
         modifier = modifier
-            .padding(vertical = 16.dp)
+            .padding(top = 16.dp, start = 32.dp, end = 32.dp)
             .fillMaxWidth()
             .clickable(onClick = onClick)
     ) {
-        painter?.let {
-            Icon(
-                painter = it,
-                contentDescription = text,
-                tint = tint
+        Row(
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            painter?.let {
+                Icon(
+                    painter = it,
+                    contentDescription = title,
+                    tint = tint
+                )
+            }
+            val mod = painter?.let { Modifier.padding(start = 16.dp) } ?: Modifier
+            Text(
+                text = title,
+                color = tint,
+                modifier = mod
             )
         }
-        Text(
-            text = text,
-            color = tint,
-            modifier = Modifier.padding(start = 16.dp)
-        )
+        text?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun CheckboxSettingsItem(
+    onClick: () -> Unit,
+    title: String,
+    text: String? = null,
+    tint: Color,
+    checked: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .padding(top = 16.dp, start = 32.dp, end = 32.dp)
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = title,
+                color = tint
+            )
+            Checkbox(
+                checked = checked,
+                onCheckedChange = null
+            )
+        }
+        text?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

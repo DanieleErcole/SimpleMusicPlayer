@@ -173,7 +173,6 @@ fun TrackList(
         }
         Divider()
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .weight(.8f)
         ) {
