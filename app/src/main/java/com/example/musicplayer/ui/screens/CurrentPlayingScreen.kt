@@ -25,9 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,6 +96,7 @@ fun CurrentPlayingScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     maxLines = 1,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -261,7 +264,8 @@ fun PlayerControls(
                 Text(
                     text = "$intVolume",
                     fontSize = 14.sp,
-                    lineHeight = 14.sp
+                    lineHeight = 14.sp,
+                    modifier = Modifier.width(dimensionResource(R.dimen.padding_big))
                 )
                 CustomSlider(
                     value = sliderPosition,
@@ -273,13 +277,16 @@ fun PlayerControls(
                 )
             }
         }
+        val small = dimensionResource(R.dimen.player_small)
+        val mid = dimensionResource(R.dimen.player_medium)
+        val big = dimensionResource(R.dimen.player_big)
         TransparentButton(
             onClick = { vm.skipPrev() },
             painter = painterResource(R.drawable.skip_prev_big),
             contentDescription = "Skip previous",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
-            modifier = Modifier.height(45.dp).width(45.dp)
+            modifier = Modifier.height(mid).width(mid)
         )
         TransparentButton(
             onClick = { vm.seekRewind() },
@@ -287,7 +294,7 @@ fun PlayerControls(
             contentDescription = "Fast rewind",
             tint = MaterialTheme.colorScheme.outline,
             fullSizeIcon = true,
-            modifier = Modifier.height(35.dp).width(35.dp)
+            modifier = Modifier.height(small).width(small)
         )
         TransparentButton(
             onClick = { vm.togglePauseResume() },
@@ -295,7 +302,7 @@ fun PlayerControls(
             contentDescription = "Play/pause",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
-            modifier = Modifier.height(50.dp).width(50.dp)
+            modifier = Modifier.height(big).width(big)
         )
         TransparentButton(
             onClick = { vm.seekForward() },
@@ -303,7 +310,7 @@ fun PlayerControls(
             contentDescription = "Fast forward",
             tint = MaterialTheme.colorScheme.outline,
             fullSizeIcon = true,
-            modifier = Modifier.height(35.dp).width(35.dp)
+            modifier = Modifier.height(small).width(small)
         )
         TransparentButton(
             onClick = { vm.skipNext() },
@@ -311,7 +318,7 @@ fun PlayerControls(
             contentDescription = "Skip next",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
-            modifier = Modifier.height(45.dp).width(45.dp)
+            modifier = Modifier.height(mid).width(mid)
         )
         TransparentBtnWithContextMenu(
             painter = painterResource(when(loop.value) {
@@ -335,6 +342,6 @@ fun NothingPlaying(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        Text(text = stringResource(R.string.NothingPlaying))
+        Text(text = stringResource(R.string.nothing_playing))
     }
 }

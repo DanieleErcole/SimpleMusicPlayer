@@ -24,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +76,7 @@ fun QueueScreen(
     }
 
     Column(
-        modifier = modifier.padding(top = 8.dp)
+        modifier = modifier.padding(top = dimensionResource(R.dimen.padding_small))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -83,7 +85,7 @@ fun QueueScreen(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Queue",
+                text = stringResource(R.string.queue_page),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 lineHeight = 16.sp,
@@ -95,8 +97,9 @@ fun QueueScreen(
                 fontSize = 12.sp,
                 lineHeight = 14.sp
             )
+            val dTitle = stringResource(R.string.clear_queue_title)
             TransparentButton(
-                onClick = { dialogsVm.setConfirmDialog(title = "Clear the queue?") { vm.clearQueue() } },
+                onClick = { dialogsVm.setConfirmDialog(title = dTitle) { vm.clearQueue() } },
                 painter = painterResource(R.drawable.delete),
                 contentDescription = "Clear queue",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant

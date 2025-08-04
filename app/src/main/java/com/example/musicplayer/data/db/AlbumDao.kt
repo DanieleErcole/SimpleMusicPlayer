@@ -24,7 +24,7 @@ interface AlbumDao {
         SELECT * FROM TrackWithAlbum 
         WHERE album = :id 
             AND (:searchString IS NULL OR title LIKE '%' || :searchString || '%' OR name LIKE '%' || :searchString || '%')
-        ORDER BY trackNumber
+        ORDER BY discNumber, trackNumber
     """)
     fun getAlbumTracks(id: Long, searchString: String?): Flow<List<TrackWithAlbum>>
     @Query("SELECT COUNT(trackId) FROM TrackWithAlbum WHERE album = :id")

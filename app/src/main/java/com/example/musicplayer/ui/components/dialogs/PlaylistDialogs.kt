@@ -18,11 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.musicplayer.R
 import com.example.musicplayer.ui.components.CustomTextField
 import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.DialogsVM
@@ -76,7 +78,7 @@ private fun TextInputDialog(
                 ) {
                     TransparentButton(
                         onClick = onDismiss,
-                        text = "Cancel",
+                        text = stringResource(R.string.cancel_label),
                         fontSize = 14.sp,
                         lineHeight = TextUnit.Unspecified,
                         modifier = Modifier.padding(end = 16.dp)
@@ -106,9 +108,9 @@ fun NewPlaylistDialog(
     val isOpen = dialogsVM.openNewDialog.collectAsStateWithLifecycle()
     if (isOpen.value) {
         TextInputDialog(
-            title = "New Playlist",
-            placeholder = "Name",
-            btnLabel = "Create",
+            title = stringResource(R.string.new_pl_btn),
+            placeholder = stringResource(R.string.plholder_name),
+            btnLabel = stringResource(R.string.create_btn_label),
             onDismiss = { dialogsVM.setNewDialog() },
             onConfirm = { plVm.newPlaylist(it) },
             modifier = modifier
@@ -125,9 +127,9 @@ fun RenamePlaylistDialog(
     val state = dialogsVM.renameDialog.collectAsStateWithLifecycle()
     state.value?.let { pl ->
         TextInputDialog(
-            title = "Rename Playlist",
-            placeholder = "Name",
-            btnLabel = "Rename",
+            title = stringResource(R.string.rename_pl_label),
+            placeholder = stringResource(R.string.plholder_name),
+            btnLabel = stringResource(R.string.rename_btn_label),
             onDismiss = { dialogsVM.setRenameDialog() },
             onConfirm = {
                 plVm.renamePlaylist(pl.playlist, it)

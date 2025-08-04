@@ -5,7 +5,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.musicplayer.R
 import com.example.musicplayer.ui.state.DialogsVM
 
 @Composable
@@ -32,14 +34,14 @@ fun ConfirmActionDialog(
                         dialogsVm.setConfirmDialog()
                     }
                 ) {
-                    Text("Yes")
+                    Text(stringResource(R.string.yes))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { dialogsVm.setConfirmDialog() }
                 ) {
-                    Text("No")
+                    Text(stringResource(R.string.no))
                 }
             },
             modifier = modifier

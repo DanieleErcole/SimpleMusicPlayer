@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,7 +53,7 @@ fun TracksScreen(
         },
         dialogsVm = dialogsVm,
         navController = navController,
-        listTitle = "All songs",
+        listTitle = stringResource(R.string.tracks_page),
         filters = {
             TransparentBtnWithContextMenu(
                 painter = painterResource(R.drawable.filters),
@@ -62,7 +63,7 @@ fun TracksScreen(
             ) {
                 Column {
                     Text(
-                        text = "Artists",
+                        text = stringResource(R.string.artists_filters),
                         fontSize = 14.sp,
                         lineHeight = 14.sp,
                         modifier = Modifier.padding(start = 16.dp)

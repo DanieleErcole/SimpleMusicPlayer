@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +72,8 @@ fun PlaylistsScreen(
 ) {
     var selectedPl by remember { mutableStateOf<Playlist?>(null) }
 
-    val app = app(LocalContext.current)
+    val ctx = LocalContext.current
+    val app = app(ctx)
     val filter by remember {
         derivedStateOf {
             TrackFilter(
@@ -102,8 +104,11 @@ fun PlaylistsScreen(
             onBackClick = { selectedPl = null },
             onRemoveClick = { tracks ->
                 dialogsVm.setConfirmDialog(
-                    title = "Remove from playlist",
-                    text = "Are you sure you want to remove ${if (tracks.size > 1) "the tracks" else "this track"} from this playlist?"
+                    title = ctx.getString(R.string.remove_dialog_title),
+                    text = ctx.getString(
+                        R.string.remove_dialog_text,
+                        if (tracks.size > 1) ctx.getString(R.string.single_track) else ctx.getString(R.string.multiple_tracks)
+                    )
                 ) {
                     plVm.removeFromPlaylist(tracks, it.playlistId)
                 }
@@ -121,7 +126,7 @@ fun PlaylistsScreen(
                             dialogsVm.setRenameDialog(it.playlistId) { plName = it }
                         },
                         painter = painterResource(R.drawable.edit),
-                        text = "Rename playlist",
+                        text = stringResource(R.string.rename_pl_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     CustomContextMenuBtn(
@@ -130,7 +135,7 @@ fun PlaylistsScreen(
                             selectedPl = null
                         },
                         painter = painterResource(R.drawable.remove),
-                        text = "Delete playlist",
+                        text = stringResource(R.string.delete_pl_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     CustomContextMenuBtn(
@@ -139,7 +144,7 @@ fun PlaylistsScreen(
                             navController.navigate(AppScreen.Playing.name)
                         },
                         painter = painterResource(R.drawable.play),
-                        text = "Play",
+                        text = stringResource(R.string.play_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -179,7 +184,7 @@ fun PlaylistGrid(
         ) {
             SearchInputField(
                 text = searchStr.value,
-                placeholder = "Search a playlist",
+                placeholder = stringResource(R.string.plholder_search_playlists),
                 onChange = { plVm.updateSearchString(it) },
                 modifier = Modifier.weight(.9f)
             )

@@ -28,6 +28,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.musicplayer.R
 import com.example.musicplayer.services.MusicObserver
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.ConfirmActionDialog
@@ -37,12 +38,14 @@ import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.components.slideInConditional
 import com.example.musicplayer.ui.components.slideOutConditional
 import com.example.musicplayer.ui.screens.AlbumsScreen
+import com.example.musicplayer.ui.screens.ArtistsScreen
 import com.example.musicplayer.ui.screens.CurrentPlayingScreen
 import com.example.musicplayer.ui.screens.PlaylistsScreen
 import com.example.musicplayer.ui.screens.QueueScreen
 import com.example.musicplayer.ui.screens.SettingsScreen
 import com.example.musicplayer.ui.screens.TracksScreen
 import com.example.musicplayer.ui.state.AlbumsVM
+import com.example.musicplayer.ui.state.ArtistsVM
 import com.example.musicplayer.ui.state.CurrentPlayingVM
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.MusicPlayerVM
@@ -55,13 +58,14 @@ import com.example.musicplayer.utils.hasPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-enum class AppScreen(val index: Int) {
-    Queue(0), // Player queue
-    Playing(1), // Current playing screen with player controls
-    Tracks(2), // Track list with search and favorites filter etc.
-    Albums(3), // Albums grid, with tracks inside
-    Playlists(4), // Playlist grid with tracks
-    Settings(5), // Settings page. e.g. scanned directories etc...
+enum class AppScreen(val index: Int, val icon: Int) {
+    Queue(0, R.drawable.queue_icon), // Player queue
+    Playing(1, R.drawable.play_tab_icon), // Current playing screen with player controls
+    Tracks(2, R.drawable.tracks_file), // Track list with search filters etc.
+    Albums(3, R.drawable.albums_icon), // Albums grid, with tracks inside
+    Artists(4, R.drawable.person), // Artist search
+    Playlists(5, R.drawable.playlists_icon), // Playlist grid with tracks
+    Settings(6, R.drawable.settings), // Settings page. e.g. scanned directories etc...
 }
 
 @Composable
@@ -126,6 +130,7 @@ fun MusicPlayerApp(
     val playlistVm = viewModel<PlaylistsVM>(factory = PlaylistsVM.Factory)
     val queueVm = viewModel<QueueVM>(factory = QueueVM.Factory)
     val albumsVm = viewModel<AlbumsVM>(factory = AlbumsVM.Factory)
+    val artistsVm = viewModel<ArtistsVM>(factory = ArtistsVM.Factory)
     val settingsVm = viewModel<SettingsVM>(factory = SettingsVM.Factory)
 
     navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -148,7 +153,7 @@ fun MusicPlayerApp(
             )
         },
         bottomBar = {
-            AppBar(vm = appVm, navController = navController)
+            AppBar(navController = navController)
         },
         modifier = Modifier
             .fillMaxSize()
@@ -201,6 +206,13 @@ fun MusicPlayerApp(
                 AlbumsScreen(
                     navController = navController,
                     albumsVM = albumsVm,
+                    dialogsVm = dialogsVm
+                )
+            }
+            composable(route = AppScreen.Artists.name) {
+                ArtistsScreen(
+                    navController = navController,
+                    vm = artistsVm,
                     dialogsVm = dialogsVm
                 )
             }

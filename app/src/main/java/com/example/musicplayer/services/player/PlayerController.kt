@@ -13,6 +13,7 @@ import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.PlayerStateRepository
 import com.example.musicplayer.data.QueueItem
 import com.example.musicplayer.data.TrackWithAlbum
+import com.example.musicplayer.data.UserPreferencesRepository
 import com.example.musicplayer.utils.toMediaItem
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +27,8 @@ import java.io.IOException
 
 class PlayerController(
     private val musicRepo: MusicRepository,
-    private val stateRepo: PlayerStateRepository
+    private val stateRepo: PlayerStateRepository,
+    private val prefsRepo: UserPreferencesRepository
 ) : Player.Listener {
 
     private lateinit var controller: MediaController
@@ -47,7 +49,7 @@ class PlayerController(
                 controller.addListener(this)
                 playerScope.launch {
                     musicRepo.currentPlaying()?.let {
-                        setPaused(true)
+                        setPaused(!prefsRepo.isAutoPlay())
                         setVolume(stateRepo.getPlayerState().volume)
                         play()
                     }
@@ -97,6 +99,7 @@ class PlayerController(
         withContext(Dispatchers.IO) {
             musicRepo.finishAndPlayNextPos(pos)
         }
+        setPaused(false)
         play(pos)
     }
 
@@ -123,6 +126,8 @@ class PlayerController(
             }
 
             controller.addMediaItem(first.toMediaItem())
+            if (mustPlay)
+                setPaused(false)
             play(if (mustPlay) size else null)
         }
 
@@ -161,6 +166,7 @@ class PlayerController(
             curPos,
             0L
         )
+        setPaused(false)
         play(curPos)
     }
 
@@ -191,13 +197,15 @@ class PlayerController(
         }
     }
 
-    fun skipNext() = if (controller.hasNextMediaItem())
+    fun skipNext() = if (controller.hasNextMediaItem()) {
         controller.seekToNextMediaItem()
-    else controller.seekToDefaultPosition() // If end of queue replay the same track from the start
+        setPaused(false)
+    } else controller.seekToDefaultPosition() // If end of queue replay the same track from the start
 
-    fun skipPrev() = if (controller.hasPreviousMediaItem())
+    fun skipPrev() = if (controller.hasPreviousMediaItem()) {
         controller.seekToPreviousMediaItem()
-    else controller.seekToDefaultPosition() // If prev not present replay the same track from the start
+        setPaused(false)
+    } else controller.seekToDefaultPosition() // If prev not present replay the same track from the start
 
     fun togglePauseResume() = if (controller.isPlaying) setPaused(true) else setPaused(false)
 

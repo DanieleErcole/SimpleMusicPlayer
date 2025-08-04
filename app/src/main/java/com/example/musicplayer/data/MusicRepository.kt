@@ -6,7 +6,8 @@ interface MusicRepository {
 
     suspend fun getAllTracks(): List<TrackWithAlbum>
     fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>>
-    fun getAllArtists(): Flow<List<String>>
+    fun getArtistTracks(artist: String, searchString: String?): Flow<List<TrackWithAlbum>>
+    fun getAllArtists(searchString: String?): Flow<List<String>>
     suspend fun newTrack(t: Track)
     suspend fun deleteTrack(t: Track)
     suspend fun deleteTrackBlk(trackList: List<Track>)

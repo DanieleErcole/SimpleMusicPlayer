@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_big">32dp</dimen>
+    <dimen name="small_font">12.sp</dimen>
+    <dimen name="medium_font">14sp</dimen>
+    <dimen name="big_font">18sp</dimen>
+    <dimen name="very_big_font">20sp</dimen>
+    <dimen name="medium_med_font">16sp</dimen>
+    <dimen name="player_small">35dp</dimen>
+    <dimen name="player_big">50dp</dimen>
+    <dimen name="player_medium">45dp</dimen>
+</resources>

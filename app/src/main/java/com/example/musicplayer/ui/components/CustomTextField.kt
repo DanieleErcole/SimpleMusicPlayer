@@ -35,7 +35,7 @@ fun CustomTextField(
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     onChange: (String) -> Unit,
-    placeholderText: String = "Placeholder",
+    placeholderText: String,
     fontSize: TextUnit = 14.sp
 ) {
     val focusManager = LocalFocusManager.current

@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -98,7 +99,7 @@ fun AddToPlaylistDialog(
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                             Text(
-                                text = "New playlist",
+                                text = stringResource(R.string.new_pl_btn),
                                 fontSize = 14.sp,
                                 lineHeight = 14.sp,
                             )
@@ -119,7 +120,7 @@ fun AddToPlaylistDialog(
                                 dialogsVm.setAddDialog()
                                 it.endAction?.invoke()
                             },
-                            text = "Add",
+                            text = stringResource(R.string.add_dialog_btn_label),
                             fontSize = 14.sp,
                             lineHeight = TextUnit.Unspecified,
                             enabled = itemsState.containsValue(true),

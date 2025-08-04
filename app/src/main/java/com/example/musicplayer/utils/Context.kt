@@ -13,5 +13,5 @@ fun Context.hasPermission(permission: String) = ContextCompat.checkSelfPermissio
 ) == PackageManager.PERMISSION_GRANTED
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-    name = SCANNED_DIRS_PREFERENCE_NAME
+    name = DATASTORE_NAME
 )

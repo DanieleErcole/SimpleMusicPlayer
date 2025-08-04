@@ -23,7 +23,7 @@ class MusicPlayerApplication() : Application() {
         userPreferencesRepository = UserPreferencesRepository(dataStore)
         playerStateRepository = PlayerStateRepository(dataStore)
         scanner = MusicScanner(container.musicRepository)
-        playerController = PlayerController(container.musicRepository, playerStateRepository)
+        playerController = PlayerController(container.musicRepository, playerStateRepository, userPreferencesRepository)
     }
 
 }

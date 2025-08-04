@@ -28,6 +28,13 @@ class SettingsVM(
             started = SharingStarted.WhileSubscribed(5000)
         )
 
+    val autoPlay = prefsRepo.autoPlay
+        .stateIn(
+            initialValue = false,
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
     fun rescan(ctx: Context) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -39,6 +46,12 @@ class SettingsVM(
     fun toggleAutoScan() {
         viewModelScope.launch {
             prefsRepo.updateAutoScan(!autoScan.value)
+        }
+    }
+
+    fun toggleAutoPlay() {
+        viewModelScope.launch {
+            prefsRepo.updateAutoPlay(!autoPlay.value)
         }
     }
 

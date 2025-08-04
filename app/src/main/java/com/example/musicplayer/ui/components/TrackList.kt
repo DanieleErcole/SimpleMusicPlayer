@@ -29,7 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -154,14 +156,14 @@ fun TrackList(
             Column {
                 SearchInputField(
                     text = searchStr.value,
-                    placeholder = "Search a track",
+                    placeholder = stringResource(R.string.plholder_search_tracks),
                     onChange = { listVm.updateSearchString(it) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
                 Text(
-                    text = "${tracks.value.size} songs",
+                    text = "${tracks.value.size} ${stringResource(R.string.song_counter)}",
                     fontSize = 13.sp,
                     lineHeight = 13.sp,
                     color = MaterialTheme.colorScheme.outline,
@@ -239,7 +241,7 @@ fun SelectionToolbar(
                     .height(26.dp)
             )
             Text(
-                text = "$selectionSize selected",
+                text = "$selectionSize ${stringResource(R.string.selection_counter)}",
                 fontSize = 14.sp,
                 lineHeight = 14.sp,
                 color = MaterialTheme.colorScheme.secondary,
@@ -258,28 +260,28 @@ fun SelectionToolbar(
                 CustomContextMenuBtn(
                     onClick = onAddClick,
                     painter = painterResource(R.drawable.playlist_add),
-                    text = "Add to a playlist",
+                    text = stringResource(R.string.playlist_add_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 onRemoveClick?.let {
                     CustomContextMenuBtn(
                         onClick = it,
                         painter = painterResource(R.drawable.remove),
-                        text = "Remove from a playlist",
+                        text = stringResource(R.string.playlist_remove_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 CustomContextMenuBtn(
                     onClick = onQueueClick,
                     painter = painterResource(R.drawable.queue_icon),
-                    text = "Add to queue",
+                    text = stringResource(R.string.queue_add_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 onPlayClick?.let {
                     CustomContextMenuBtn(
                         onClick = it,
                         painter = painterResource(R.drawable.play),
-                        text = "Play",
+                        text = stringResource(R.string.play_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -325,7 +327,7 @@ fun TrackItem(
                 onLongClick = onLongPress
             )
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(dimensionResource(R.dimen.padding_small))
     ) {
         Box(
             modifier = Modifier
@@ -414,27 +416,27 @@ fun TrackItem(
             CustomContextMenuBtn(
                 onClick = onInfoClick,
                 painter = painterResource(R.drawable.info),
-                text = "Song info",
+                text = stringResource(R.string.song_info),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             CustomContextMenuBtn(
                 onClick = onAddClick,
                 painter = painterResource(R.drawable.playlist_add),
-                text = "Add to a playlist",
+                text = stringResource(R.string.playlist_add_label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             onRemoveClick?.let {
                 CustomContextMenuBtn(
                     onClick = it,
                     painter = painterResource(R.drawable.remove),
-                    text = "Remove from this playlist",
+                    text = stringResource(R.string.playlist_remove_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             CustomContextMenuBtn(
                 onClick = onQueueClick,
                 painter = painterResource(R.drawable.queue_icon),
-                text = "Add to queue",
+                text = stringResource(R.string.queue_add_label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

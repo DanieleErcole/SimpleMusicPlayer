@@ -23,8 +23,20 @@ interface TrackDao {
     """)
     fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>>
 
-    @Query("SELECT DISTINCT artist FROM track ORDER BY artist ASC")
-    fun getAllArtists(): Flow<List<String>>
+    @Query("""
+        SELECT DISTINCT artist FROM track
+        WHERE :searchString IS NULL OR artist LIKE '%' || :searchString || '%'
+        ORDER BY artist ASC
+    """)
+    fun getAllArtists(searchString: String?): Flow<List<String>>
+
+    @Query("""
+        SELECT * FROM TrackWithAlbum
+        WHERE artist = :artist
+            AND (:searchString IS NULL OR title LIKE '%' || :searchString || '%' OR name LIKE '%' || :searchString || '%')
+        ORDER BY title
+    """)
+    fun getArtistTracks(artist: String, searchString: String?): Flow<List<TrackWithAlbum>>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(t: Track)

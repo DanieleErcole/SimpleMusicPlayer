@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,7 +57,7 @@ fun SettingsScreen(
                 tint = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings_page),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 lineHeight = 16.sp
@@ -73,7 +75,7 @@ fun SettingsScreen(
                     .padding(top = 16.dp)
             )
             Divider(modifier = Modifier.padding(vertical = 16.dp))
-            ThemingSection(vm = vm)
+            PlaybackSection(vm = vm)
         }
     }
 }
@@ -90,7 +92,7 @@ fun LibrarySection(
             .fillMaxWidth()
     ) {
         Text(
-            text = "Song library",
+            text = stringResource(R.string.settings_library_section),
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 32.dp)
         )
@@ -98,13 +100,13 @@ fun LibrarySection(
         SettingsItem(
             onClick = { vm.rescan(ctx) },
             painter = painterResource(R.drawable.scan),
-            title = "Scan",
+            title = stringResource(R.string.scan_btn_label),
             tint = MaterialTheme.colorScheme.primary
         )
         CheckboxSettingsItem(
             onClick = { vm.toggleAutoScan() },
-            title = "Scan automatically",
-            text = "Automatically scan the storage for tracks when the app starts",
+            title = stringResource(R.string.toggle_auto_scan_label),
+            text = stringResource(R.string.toggle_auto_scan_text),
             checked = autoScan.value,
             tint = MaterialTheme.colorScheme.primary
         )
@@ -112,20 +114,26 @@ fun LibrarySection(
 }
 
 @Composable
-fun ThemingSection(
+fun PlaybackSection(
     modifier: Modifier = Modifier,
     vm: SettingsVM
 ) {
+    val autoPlay = vm.autoPlay.collectAsStateWithLifecycle()
     Column(
         modifier = modifier
             .fillMaxWidth()
     ) {
         Text(
-            text = "Theming",
+            text = stringResource(R.string.settings_playback_section),
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 32.dp)
         )
-        //TODO: implement accent color
+        SwitchSettingsItem(
+            onClick = { vm.toggleAutoPlay() },
+            title = stringResource(R.string.auto_play_text),
+            isActive = autoPlay.value,
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
@@ -157,11 +165,10 @@ fun SettingsItem(
                     tint = tint
                 )
             }
-            val mod = painter?.let { Modifier.padding(start = 16.dp) } ?: Modifier
             Text(
                 text = title,
                 color = tint,
-                modifier = mod
+                modifier = painter?.let { Modifier.padding(start = 16.dp) } ?: Modifier
             )
         }
         text?.let {
@@ -201,6 +208,46 @@ fun CheckboxSettingsItem(
             )
             Checkbox(
                 checked = checked,
+                onCheckedChange = null
+            )
+        }
+        text?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun SwitchSettingsItem(
+    onClick: () -> Unit,
+    title: String,
+    text: String? = null,
+    tint: Color,
+    isActive: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .padding(top = 16.dp, start = 32.dp, end = 32.dp)
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = title,
+                color = tint
+            )
+            Switch(
+                checked = isActive,
                 onCheckedChange = null
             )
         }

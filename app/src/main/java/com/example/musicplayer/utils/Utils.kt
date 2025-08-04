@@ -45,22 +45,10 @@ fun formatInstantToHuman(i: Instant): String = ZonedDateTime
     .format(DateTimeFormatter.ofPattern("dd MMMM, yyyy HH:mm"))
 
 fun TrackWithAlbum.toMediaItem(): MediaItem {
-    val t = this
-    val extras = Bundle().apply {
-        putLong("trackId", t.internal.trackId)
-        putLong("albumId", t.album.id)
-        putLong("addedToLibrary", t.internal.addedToLibrary.toEpochMilli())
-        putInt("playedCount", t.internal.playedCount)
-        putString("location", t.internal.location)
-        t.internal.lastPlayed?.let {
-            putLong("lastPlayed", it.toEpochMilli())
-        }
-    }
     return MediaItem.Builder()
         .setUri(this.internal.location)
         .setMediaMetadata(
             MediaMetadata.Builder()
-                .setExtras(extras)
                 .setTitle(this.internal.title)
                 .setArtist(this.internal.artist)
                 .setArtworkUri(this.album.thumbnail?.toUri())

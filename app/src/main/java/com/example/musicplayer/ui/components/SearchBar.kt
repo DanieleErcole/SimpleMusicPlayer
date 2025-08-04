@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.example.musicplayer.R
 
 @Composable
@@ -24,7 +25,7 @@ fun SearchInputField(
             )
         },
         onChange = onChange,
-        placeholderText = placeholder ?: "Search",
+        placeholderText = placeholder ?: stringResource(R.string.plholder_search),
         modifier = modifier,
     )
 }

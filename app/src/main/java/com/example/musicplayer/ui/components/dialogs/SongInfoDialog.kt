@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,7 +52,7 @@ fun SongInfoDialog(
                             modifier = Modifier.size(30.dp, 30.dp)
                         )
                         Text(
-                            text = "Song info",
+                            text = stringResource(R.string.song_info),
                             fontSize = 20.sp,
                             lineHeight = 20.sp,
                             modifier = Modifier.padding(start = 16.dp)
@@ -63,21 +64,22 @@ fun SongInfoDialog(
                             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        InfoField(title = "Location", text = track.internal.location, modifier = Modifier.padding(top = 8.dp))
+                        InfoField(title = stringResource(R.string.location), text = track.internal.location, modifier = Modifier.padding(top = 8.dp))
                         Divider(modifier.padding(vertical = 8.dp))
-                        InfoField(title = "Title", text = track.internal.title)
-                        InfoField(title = "Artist", text = track.internal.artist)
-                        InfoField(title = "Album artist", text = track.album.artist)
-                        InfoField(title = "Composer", text = track.internal.composer)
-                        InfoField(title = "Genre", text = track.internal.genre)
-                        InfoField(title = "Track number", text = "${track.internal.trackNumber}")
-                        InfoField(title = "Disc number", text = "${track.internal.discNumber}")
-                        InfoField(title = "Year", text = "${track.internal.year}")
+                        InfoField(title = stringResource(R.string.title), text = track.internal.title)
+                        InfoField(title = stringResource(R.string.artist), text = track.internal.artist)
+                        InfoField(title = stringResource(R.string.album_artist), text = track.album.artist)
+                        InfoField(title = stringResource(R.string.composer), text = track.internal.composer)
+                        InfoField(title = stringResource(R.string.genre), text = track.internal.genre)
+                        InfoField(title = stringResource(R.string.track_number), text = "${track.internal.trackNumber}")
+                        InfoField(title = stringResource(R.string.disc_number), text = "${track.internal.discNumber}")
+                        InfoField(title = stringResource(R.string.year), text = "${track.internal.year}")
                         Divider(modifier.padding(vertical = 8.dp))
-                        InfoField(title = "Duration", text = formatTimestamp(track.internal.durationMs))
+                        InfoField(title = stringResource(R.string.duration), text = formatTimestamp(track.internal.durationMs))
                         Divider(modifier.padding(vertical = 8.dp))
-                        InfoField(title = "Date added to library", text = formatInstantToHuman(track.internal.addedToLibrary))
-                        InfoField(title = "Date last played", text = track.internal.lastPlayed?.let { formatInstantToHuman(it) } ?: "Never")
+                        InfoField(title = stringResource(R.string.added_date), text = formatInstantToHuman(track.internal.addedToLibrary))
+                        InfoField(title = stringResource(R.string.last_played_date), text = track.internal.lastPlayed?.let { formatInstantToHuman(it) }
+                            ?: stringResource(R.string.never_date))
                     }
                 }
             }

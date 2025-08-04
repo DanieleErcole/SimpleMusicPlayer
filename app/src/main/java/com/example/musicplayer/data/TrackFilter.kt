@@ -6,12 +6,14 @@ import kotlinx.coroutines.flow.emptyFlow
 enum class ListMode {
     Tracks,
     Album,
-    Playlist
+    Playlist,
+    Artist,
 }
 
 data class ListContext(
     val mode: ListMode,
-    val id: Long? = null
+    val id: Long? = null,
+    val artist: String? = null
 )
 
 class TrackFilter(
@@ -25,6 +27,7 @@ class TrackFilter(
             ListMode.Tracks -> musicRepo.getAllTracksFlow(filters, search.ifEmpty { null })
             ListMode.Album -> ctx.id?.let { musicRepo.getAlbumTracks(it, search.ifEmpty { null }) } ?: emptyFlow()
             ListMode.Playlist -> ctx.id?.let { musicRepo.getPlaylistTracks(it, search.ifEmpty { null }) } ?: emptyFlow()
+            ListMode.Artist -> ctx.artist?.let { musicRepo.getArtistTracks(it, search.ifEmpty { null }) } ?: emptyFlow()
         }
     }
 

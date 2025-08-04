@@ -12,7 +12,7 @@ object DefaultAlbum {
 
 object UserPrefKeys {
     const val AUTO_SCAN = "autoScan"
-    const val ACCENT_COLOR = "accentColor"
+    const val AUTO_PLAY = "autoPlay"
 }
 
 object PlayerStateKeys {
@@ -24,5 +24,5 @@ object PlayerStateKeys {
 
 const val DEFAULT_VOLUME = 100f
 const val THUMBNAILS_GRID_COUNT = 4
-const val SCANNED_DIRS_PREFERENCE_NAME = "scanned_dirs_prefs"
+const val DATASTORE_NAME = "userPrefs"
 val albumUriBase: Uri = "content://media/external/audio/albumart".toUri()
