@@ -54,4 +54,5 @@
     <string name="plholder_search">Search</string>
     <string name="auto_play_text">Start playback when app is started</string>
     <string name="plholder_search_artists">Search an artist</string>
+    <string name="dequeue_label">Remove from queue</string>
 </resources>

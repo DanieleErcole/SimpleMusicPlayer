@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.musicplayer.R
+import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.components.SelectionToolbar
 import com.example.musicplayer.ui.components.TrackItem
 import com.example.musicplayer.ui.components.TransparentButton
@@ -73,6 +76,13 @@ fun QueueScreen(
             add(to.index, removed)
         }
         toPos = to.index
+    }
+
+    var borderVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
+            .collect { index -> borderVisible = index > 0 }
     }
 
     Column(
@@ -128,7 +138,7 @@ fun QueueScreen(
                             .map { it.track.track },
                     ) { vm.clearSelection() }
                 },
-                onDeleteClick = {
+                onDequeueClick = {
                     vm.dequeueAll(
                         tracks
                             .filter { it.position in selectedTracks.value }
@@ -143,6 +153,9 @@ fun QueueScreen(
                     .padding(start = 10.dp)
             )
         }
+        AnimatedVisibility(borderVisible) {
+            Divider()
+        }
         LazyColumn(
             state = lazyListState,
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -150,15 +163,17 @@ fun QueueScreen(
                 .weight(.8f)
         ) {
             items(tracks, key = { it.hashCode() }) { item ->
-                val mod = if (item.track.queuedItem.isCurrent)
-                    Modifier.border(1.dp, MaterialTheme.colorScheme.primary)
-                else Modifier
+                var mod = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_small))
+                mod = if (item.track.queuedItem.isCurrent)
+                    mod.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+                else mod
 
                 ReorderableItem(reorderableLazyListState, key = item.hashCode()) { isDragging ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = mod.fillMaxWidth()
+                        modifier = mod
+                            .fillMaxWidth()
                     ) {
                         IconButton(
                             onClick = {},
@@ -186,7 +201,8 @@ fun QueueScreen(
                             selectionMode = selectionMode,
                             onAddClick = { dialogsVm.setAddDialog(listOf(item.track.track)) },
                             onInfoClick = { dialogsVm.setInfoDialog(item.track.track) },
-                            onQueueClick = { vm.queueAll(listOf(item.track.track)) }
+                            onQueueClick = { vm.queueAll(listOf(item.track.track)) },
+                            onDequeueClick = { vm.dequeueAll(listOf(item.track)) }
                         )
                     }
                 }

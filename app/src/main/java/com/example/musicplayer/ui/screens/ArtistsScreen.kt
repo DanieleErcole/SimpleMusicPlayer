@@ -151,20 +151,15 @@ fun ArtistsList(
                 .weight(.9f)
         ) {
             items(artists.value) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start,
+                Text(
+                    text = it,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dimensionResource(R.dimen.padding_small))
                         .clickable(onClick = { onSelectArtist(it) })
-                ) {
-                    Text(
-                        text = it,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                }
+                        .padding(dimensionResource(R.dimen.padding_small))
+                )
             }
         }
     }

@@ -216,7 +216,7 @@ fun SelectionToolbar(
     whileSelectedClick: () -> Unit,
     onCloseClick: () -> Unit,
     onPlayClick: (() -> Unit)? = null,
-    onDeleteClick: (() -> Unit)? = null,
+    onDequeueClick: (() -> Unit)? = null,
     onRemoveClick: (() -> Unit)? = null,
     selectionSize: Int,
     allSelected: Boolean
@@ -285,11 +285,11 @@ fun SelectionToolbar(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                onDeleteClick?.let {
+                onDequeueClick?.let {
                     CustomContextMenuBtn(
                         onClick = it,
                         painter = painterResource(R.drawable.remove),
-                        text = "Remove from queue",
+                        text = stringResource(R.string.dequeue_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -307,6 +307,7 @@ fun SelectionToolbar(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrackItem(
+    modifier: Modifier = Modifier,
     track: TrackWithAlbum,
     onItemClick: () -> Unit,
     onLongPress: () -> Unit,
@@ -314,9 +315,9 @@ fun TrackItem(
     onInfoClick: () -> Unit,
     onQueueClick: () -> Unit,
     onRemoveClick: (() -> Unit)? = null,
+    onDequeueClick: (() -> Unit)? = null,
     isSelected: Boolean,
     selectionMode: Boolean,
-    modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -430,6 +431,14 @@ fun TrackItem(
                     onClick = it,
                     painter = painterResource(R.drawable.remove),
                     text = stringResource(R.string.playlist_remove_label),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            onDequeueClick?.let {
+                CustomContextMenuBtn(
+                    onClick = it,
+                    painter = painterResource(R.drawable.remove),
+                    text = stringResource(R.string.dequeue_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

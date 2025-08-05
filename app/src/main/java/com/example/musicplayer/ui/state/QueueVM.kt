@@ -8,17 +8,13 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.MusicRepository
-import com.example.musicplayer.data.QueueItem
 import com.example.musicplayer.data.QueuedTrack
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.services.player.PlayerController
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class QueueVM(
     private val musicRepo: MusicRepository,

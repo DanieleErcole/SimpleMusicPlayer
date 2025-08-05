@@ -91,7 +91,6 @@ interface QueueDao {
             track(nextPos)?.let {
                 finish()
                 play(it.queuedItem)
-                it
             } ?: run {
                 if (!doNothing)
                     finish()
@@ -109,9 +108,19 @@ interface QueueDao {
 
     @Transaction
     suspend fun deleteAndRefresh(item: QueueItem) {
+        val size = size()
         delete(item)
-        if (item.position < size() - 1)
+        if (item.position < size - 1)
             refreshPositionsOnRemove(item.position)
+    }
+
+    @Transaction
+    suspend fun deleteAllAndRefresh(items: List<QueueItem>) {
+        // I sort the items by position (decrescent) so the refresh effects don't affect the other items to remove,
+        // if that happens the items in the local list won't be removed because their position in the queue changed
+        items.sortedBy { it.position }.reversed().forEach {
+            deleteAndRefresh(it)
+        }
     }
 
     @Transaction

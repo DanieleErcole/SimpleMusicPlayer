@@ -47,7 +47,7 @@ class LocalMusicRepository(
     override suspend fun clearQueue() = queueDao.clear()
     override fun currentPlayingFlow(): Flow<QueuedTrack?> = queueDao.currentPlayingFlow()
     override suspend fun queueAll(items: List<QueueItem>) = queueDao.insertBlk(items)
-    override suspend fun dequeueAll(items: List<QueueItem>) = queueDao.deleteBlk(items)
+    override suspend fun dequeueAll(items: List<QueueItem>) = queueDao.deleteAllAndRefresh(items)
     override suspend fun queueAndPlay(item: QueueItem) = queueDao.queueAndPlay(item)
     override suspend fun finishAndPlayNextPos(nextPos: Int, doNothingToCurrent: Boolean) {
         queueDao.finishAndPlayNextPos(nextPos, doNothingToCurrent)
