@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import com.example.musicplayer.data.Track
 import com.example.musicplayer.data.TrackWithAlbum
 import kotlinx.coroutines.flow.Flow
@@ -15,13 +14,15 @@ interface TrackDao {
 
     @Query("SELECT * FROM TrackWithAlbum ORDER BY addedToLibrary ASC")
     suspend fun getAllTracks(): List<TrackWithAlbum>
-    @Query("""
+    @Query(
+        """
         SELECT * FROM TrackWithAlbum 
-        WHERE (:artists IS NULL OR artist in (:artists)) 
+        WHERE (:empty = 1 OR genre IN (:genres)) 
             AND (:searchString IS NULL OR title LIKE '%' || :searchString || '%' OR name LIKE '%' || :searchString || '%')
         ORDER BY title ASC
-    """)
-    fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>>
+    """
+    )
+    fun getAllTracksFlow(genres: List<String>, empty: Boolean, searchString: String?): Flow<List<TrackWithAlbum>>
 
     @Query("""
         SELECT DISTINCT artist FROM track
@@ -37,6 +38,9 @@ interface TrackDao {
         ORDER BY title
     """)
     fun getArtistTracks(artist: String, searchString: String?): Flow<List<TrackWithAlbum>>
+
+    @Query("SELECT DISTINCT genre FROM track ORDER BY genre ASC")
+    fun getAllGenres(): Flow<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(t: Track)

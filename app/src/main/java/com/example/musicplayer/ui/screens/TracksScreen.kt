@@ -2,11 +2,18 @@ package com.example.musicplayer.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -34,23 +41,32 @@ fun TracksScreen(
     tracksVM: TracksVM,
     dialogsVm: DialogsVM
 ) {
-    val filters = tracksVM.artistFilters.collectAsState()
+    val filters = tracksVM.genreFilters.collectAsState()
     val selectedFilters = tracksVM.selectedFilters.collectAsState()
 
     val app = app(LocalContext.current)
-    val filter = TrackFilter(
-        musicRepo = app.container.musicRepository,
-        filters = selectedFilters.value.ifEmpty { null },
-        ctx = ListContext(mode = ListMode.Tracks)
-    )
+    val filter by remember {
+        derivedStateOf {
+            TrackFilter(
+                musicRepo = app.container.musicRepository,
+                filters = selectedFilters.value,
+                ctx = ListContext(mode = ListMode.Tracks)
+            )
+        }
+    }
+
+    val listVm = viewModel {
+        TrackListVM(
+            trackSrc = filter,
+            playerController = app.playerController
+        )
+    }
+    LaunchedEffect(filter) {
+        listVm.setTrackSource(filter)
+    }
 
     TrackList(
-        listVm = viewModel {
-            TrackListVM(
-                trackSrc = filter,
-                playerController = app.playerController
-            )
-        },
+        listVm = listVm,
         dialogsVm = dialogsVm,
         navController = navController,
         listTitle = stringResource(R.string.tracks_page),
@@ -60,10 +76,14 @@ fun TracksScreen(
                 contentDescription = "Filters",
                 enabled = filters.value.isNotEmpty(),
                 tint = MaterialTheme.colorScheme.outline
-            ) {
-                Column {
+            ) { closeMenu ->
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 350.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
                     Text(
-                        text = stringResource(R.string.artists_filters),
+                        text = stringResource(R.string.genres_filters),
                         fontSize = 14.sp,
                         lineHeight = 14.sp,
                         modifier = Modifier.padding(start = 16.dp)

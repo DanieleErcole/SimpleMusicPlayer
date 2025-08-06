@@ -19,12 +19,12 @@ data class ListContext(
 class TrackFilter(
     private val musicRepo: MusicRepository,
     private val ctx: ListContext,
-    private val filters: List<String>? = null // Artists
+    private val filters: List<String> = emptyList() // Genres
 ) {
 
     fun collectTracks(search: String): Flow<List<TrackWithAlbum>> {
         return when (ctx.mode) {
-            ListMode.Tracks -> musicRepo.getAllTracksFlow(filters, search.ifEmpty { null })
+            ListMode.Tracks -> musicRepo.getAllTracksFlow(filters, filters.isEmpty(), search.ifEmpty { null })
             ListMode.Album -> ctx.id?.let { musicRepo.getAlbumTracks(it, search.ifEmpty { null }) } ?: emptyFlow()
             ListMode.Playlist -> ctx.id?.let { musicRepo.getPlaylistTracks(it, search.ifEmpty { null }) } ?: emptyFlow()
             ListMode.Artist -> ctx.artist?.let { musicRepo.getArtistTracks(it, search.ifEmpty { null }) } ?: emptyFlow()

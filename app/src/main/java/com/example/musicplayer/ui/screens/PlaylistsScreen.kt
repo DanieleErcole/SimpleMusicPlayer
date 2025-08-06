@@ -120,10 +120,13 @@ fun PlaylistsScreen(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     fullSizeIcon = true,
                     modifier = Modifier.height(24.dp).width(24.dp)
-                ) {
+                ) { closeMenu ->
                     CustomContextMenuBtn(
                         onClick = {
-                            dialogsVm.setRenameDialog(it.playlistId) { plName = it }
+                            dialogsVm.setRenameDialog(it.playlistId) {
+                                plName = it
+                                closeMenu()
+                            }
                         },
                         painter = painterResource(R.drawable.edit),
                         text = stringResource(R.string.rename_pl_label),
@@ -132,6 +135,7 @@ fun PlaylistsScreen(
                     CustomContextMenuBtn(
                         onClick = {
                             plVm.deletePlaylist(it)
+                            closeMenu()
                             selectedPl = null
                         },
                         painter = painterResource(R.drawable.remove),
@@ -141,6 +145,7 @@ fun PlaylistsScreen(
                     CustomContextMenuBtn(
                         onClick = {
                             listVm.queueAll(tracks, mustPlay = true)
+                            closeMenu()
                             navController.navigate(AppScreen.Playing.name)
                         },
                         painter = painterResource(R.drawable.play),

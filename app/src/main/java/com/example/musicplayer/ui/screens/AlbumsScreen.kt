@@ -99,15 +99,20 @@ fun AlbumsScreen(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     fullSizeIcon = true,
                     modifier = Modifier.height(24.dp).width(24.dp)
-                ) {
+                ) { closeMenu ->
                     CustomContextMenuBtn(
-                        onClick = { dialogsVm.setAddDialog(tracks = tracks) },
+                        onClick = {
+                            dialogsVm.setAddDialog(tracks = tracks) { closeMenu() }
+                        },
                         painter = painterResource(R.drawable.playlist_add),
                         text = stringResource(R.string.playlist_add_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     CustomContextMenuBtn(
-                        onClick = { listVm.queueAll(tracks) },
+                        onClick = {
+                            listVm.queueAll(tracks)
+                            closeMenu()
+                        },
                         painter = painterResource(R.drawable.queue_icon),
                         text = stringResource(R.string.queue_add_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -115,6 +120,7 @@ fun AlbumsScreen(
                     CustomContextMenuBtn(
                         onClick = {
                             listVm.queueAll(tracks, mustPlay = true)
+                            closeMenu()
                             navController.navigate(AppScreen.Playing.name)
                         },
                         painter = painterResource(R.drawable.play),

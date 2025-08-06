@@ -1,14 +1,12 @@
 package com.example.musicplayer.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,42 +37,26 @@ fun AppBar(
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: AppScreen.Playing.name
     )
-    val isInPage: (AppScreen) -> Boolean = { screen ->
-        currentScreen.name == screen.name
-    }
 
-    BottomAppBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentPadding = PaddingValues(0.dp),
+    LazyRow(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Top,
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.outlineVariant)
+            .padding(top = 1.dp)
+            .background(MaterialTheme.colorScheme.background)
             .height(100.dp)
     ) {
-        Column (
-            verticalArrangement = Arrangement.Top
-        ) {
-            HorizontalDivider (
-                thickness = 2.dp,
-                modifier = Modifier
-                    .height(2.dp)
-                    .fillMaxWidth()
+        items(screens) {
+            val inPage = currentScreen.name == it.name
+            TransparentButton(
+                onClick = { navController.navigate(it.name) },
+                painter = painterResource(it.icon),
+                contentDescription = "${it.name} page",
+                enabled = !inPage,
+                tint = if (inPage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
             )
-            LazyRow(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(screens) {
-                    val inPage = isInPage(it)
-                    TransparentButton(
-                        onClick = { navController.navigate(it.name) },
-                        painter = painterResource(it.icon),
-                        contentDescription = "${it.name} page",
-                        enabled = !inPage,
-                        tint = if (inPage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }
         }
     }
 }

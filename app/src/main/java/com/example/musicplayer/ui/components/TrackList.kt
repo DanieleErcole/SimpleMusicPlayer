@@ -256,30 +256,42 @@ fun SelectionToolbar(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "Selection options",
                 tint = MaterialTheme.colorScheme.primary,
-            ) {
+            ) { closeMenu ->
                 CustomContextMenuBtn(
-                    onClick = onAddClick,
+                    onClick = {
+                        onAddClick()
+                        closeMenu()
+                    },
                     painter = painterResource(R.drawable.playlist_add),
                     text = stringResource(R.string.playlist_add_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 onRemoveClick?.let {
                     CustomContextMenuBtn(
-                        onClick = it,
+                        onClick = {
+                            it()
+                            closeMenu()
+                        },
                         painter = painterResource(R.drawable.remove),
                         text = stringResource(R.string.playlist_remove_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 CustomContextMenuBtn(
-                    onClick = onQueueClick,
+                    onClick = {
+                        onQueueClick()
+                        closeMenu()
+                    },
                     painter = painterResource(R.drawable.queue_icon),
                     text = stringResource(R.string.queue_add_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 onPlayClick?.let {
                     CustomContextMenuBtn(
-                        onClick = it,
+                        onClick = {
+                            it()
+                            closeMenu()
+                        },
                         painter = painterResource(R.drawable.play),
                         text = stringResource(R.string.play_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -287,7 +299,10 @@ fun SelectionToolbar(
                 }
                 onDequeueClick?.let {
                     CustomContextMenuBtn(
-                        onClick = it,
+                        onClick = {
+                            it()
+                            closeMenu()
+                        },
                         painter = painterResource(R.drawable.remove),
                         text = stringResource(R.string.dequeue_label),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -413,22 +428,31 @@ fun TrackItem(
             painter = painterResource(R.drawable.more_horiz),
             contentDescription = "Track options",
             tint = MaterialTheme.colorScheme.primary,
-        ) {
+        ) { closeMenu ->
             CustomContextMenuBtn(
-                onClick = onInfoClick,
+                onClick = {
+                    onInfoClick()
+                    closeMenu()
+                },
                 painter = painterResource(R.drawable.info),
                 text = stringResource(R.string.song_info),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             CustomContextMenuBtn(
-                onClick = onAddClick,
+                onClick = {
+                    onAddClick()
+                    closeMenu()
+                },
                 painter = painterResource(R.drawable.playlist_add),
                 text = stringResource(R.string.playlist_add_label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             onRemoveClick?.let {
                 CustomContextMenuBtn(
-                    onClick = it,
+                    onClick = {
+                        it()
+                        closeMenu()
+                    },
                     painter = painterResource(R.drawable.remove),
                     text = stringResource(R.string.playlist_remove_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -436,14 +460,20 @@ fun TrackItem(
             }
             onDequeueClick?.let {
                 CustomContextMenuBtn(
-                    onClick = it,
+                    onClick = {
+                        it()
+                        closeMenu()
+                    },
                     painter = painterResource(R.drawable.remove),
                     text = stringResource(R.string.dequeue_label),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             CustomContextMenuBtn(
-                onClick = onQueueClick,
+                onClick = {
+                    onQueueClick()
+                    closeMenu()
+                },
                 painter = painterResource(R.drawable.queue_icon),
                 text = stringResource(R.string.queue_add_label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant

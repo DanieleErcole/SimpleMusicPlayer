@@ -8,22 +8,18 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.MusicRepository
-import com.example.musicplayer.data.TrackFilter
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 
 class TracksVM(private val musicRepo: MusicRepository) : ViewModel() {
 
     private val _selectedFilters = MutableStateFlow<List<String>>(emptyList())
     val selectedFilters = _selectedFilters.asStateFlow()
 
-    val artistFilters = musicRepo.getAllArtists(null)
+    val genreFilters = musicRepo.getAllGenres()
         .stateIn(
             initialValue = emptyList(),
             scope = viewModelScope,

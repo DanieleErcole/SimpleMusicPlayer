@@ -2,8 +2,10 @@ package com.example.musicplayer.services
 
 import android.content.ContentUris
 import android.content.Context
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.Track
@@ -71,24 +73,29 @@ class MusicScanner(private val musicRepo: MusicRepository) {
 
     private fun scanMusic(ctx: Context): List<Pair<Track, Album>> {
         val fileList = mutableListOf<Pair<Track, Album>>()
+        val projection = mutableListOf(
+            MediaStore.Audio.Media.IS_MUSIC,
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.DISC_NUMBER,
+            MediaStore.Audio.Media.COMPOSER,
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ALBUM_ARTIST,
+            MediaStore.Audio.Media.ALBUM_ID,
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            projection.add(MediaStore.Audio.Media.GENRE)
+
         val cursor = ctx.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(
-                MediaStore.Audio.Media.IS_MUSIC,
-                MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.DISPLAY_NAME,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.DISC_NUMBER,
-                MediaStore.Audio.Media.COMPOSER,
-                MediaStore.Audio.Media.YEAR,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.ALBUM_ARTIST,
-                MediaStore.Audio.Media.ALBUM_ID,
-            ),
+            projection.toTypedArray(),
             "${MediaStore.Audio.Media.IS_MUSIC} > 0",
             null,
             null
@@ -102,6 +109,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
             val trackNumberColumn = it.getColumnIndex(MediaStore.Audio.Media.TRACK)
             val discNumberColumn = it.getColumnIndex(MediaStore.Audio.Media.DISC_NUMBER)
             val composerColumn = it.getColumnIndex(MediaStore.Audio.Media.COMPOSER)
+            val genreColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) it.getColumnIndex(MediaStore.Audio.Media.GENRE) else -1
             val yearColumn = it.getColumnIndex(MediaStore.Audio.Media.YEAR)
             val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
             val durationColumn = it.getColumnIndex(MediaStore.Audio.Media.DURATION)
@@ -118,6 +126,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                 val trackNumber = it.nullableIntColumn(trackNumberColumn)
                 val discNumber = it.nullableIntColumn(discNumberColumn)
                 val composer = it.nullableStringColumn(composerColumn)
+                val genre = it.nullableStringColumn(genreColumn)
                 val year = it.nullableIntColumn(yearColumn)
                 val title = it.nullableStringColumn(titleColumn)
                 val duration = it.nullableLongColumn(durationColumn)
@@ -126,7 +135,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                 val albumArtist = it.nullableStringColumn(albumArtistColumn)
 
                 val albumId = it.nullableLongColumn(albumIdColumn)
-                val albumUri = albumId?.let { ContentUris.withAppendedId(albumUriBase, albumId).toString() }
+                val albumUri = albumId?.let { ContentUris.withAppendedId(albumUriBase, it).toString() }
 
                 Log.i(MusicScanner::class.simpleName, "Found audio file: $name at $data with id: $id")
 
@@ -152,7 +161,7 @@ class MusicScanner(private val musicRepo: MusicRepository) {
                         album = album.id,
                         artist = artist ?: DefaultAlbum.UNKNOWN,
                         composer = composer ?: DefaultAlbum.UNKNOWN,
-                        genre = DefaultAlbum.UNKNOWN, //TODO. decide whether to remove it or set minSdk == 30
+                        genre = genre ?: DefaultAlbum.UNKNOWN,
                         trackNumber = trackNumber ?: 1,
                         discNumber = discNumber ?: 1,
                         year = year ?: 0,

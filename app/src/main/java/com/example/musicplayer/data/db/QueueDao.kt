@@ -38,15 +38,6 @@ interface QueueDao {
     suspend fun updatePos(old: Int, new: Int)
 
     @Transaction
-    @Query("SELECT * FROM queue WHERE position > :pos ORDER BY position ASC LIMIT 1")
-    suspend fun nextSong(pos: Int): QueuedTrack?
-    @Transaction
-    @Query("SELECT * FROM queue WHERE position < :pos ORDER BY position DESC LIMIT 1")
-    suspend fun prevSong(pos: Int): QueuedTrack?
-    @Transaction
-    @Query("SELECT * FROM queue WHERE position = 0 LIMIT 1")
-    suspend fun first(): QueuedTrack?
-    @Transaction
     @Query("SELECT * FROM queue WHERE position = :pos LIMIT 1")
     suspend fun track(pos: Int): QueuedTrack?
     @Query("UPDATE queue SET isCurrent = 1 WHERE trackId = :trackId AND position = :pos")

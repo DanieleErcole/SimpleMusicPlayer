@@ -75,7 +75,7 @@ fun TransparentBtnWithContextMenu(
     tint: Color,
     modifier: Modifier = Modifier,
     fullSizeIcon: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.(() -> Unit) -> Unit
 ) {
     var isContextMenuVisible by remember { mutableStateOf(false) }
 
@@ -92,7 +92,7 @@ fun TransparentBtnWithContextMenu(
         DropdownMenu(
             expanded = isContextMenuVisible,
             onDismissRequest = { isContextMenuVisible = false },
-            content = content
+            content = { content({ isContextMenuVisible = false }) }
         )
     }
 }

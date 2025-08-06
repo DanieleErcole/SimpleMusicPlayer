@@ -12,24 +12,34 @@ import com.example.musicplayer.ui.state.CurrentPlayingVM
 @Composable
 fun LoopDialog(
     vm: CurrentPlayingVM,
-    currentMode: Loop
+    currentMode: Loop,
+    endAction: () -> Unit
 ) {
     CustomContextMenuRadioBtn(
-        onClick = { vm.setLoopMode(Loop.None) },
+        onClick = {
+            vm.setLoopMode(Loop.None)
+            endAction()
+        },
         painter = painterResource(R.drawable.next_song),
         text = stringResource(R.string.no_loop),
         isSelected = currentMode == Loop.None,
         tint = MaterialTheme.colorScheme.onSurfaceVariant
     )
     CustomContextMenuRadioBtn(
-        onClick = { vm.setLoopMode(Loop.Queue) },
+        onClick = {
+            vm.setLoopMode(Loop.Queue)
+            endAction()
+        },
         painter = painterResource(R.drawable.repeat_queue),
         text = stringResource(R.string.queue_loop),
         isSelected = currentMode == Loop.Queue,
         tint = MaterialTheme.colorScheme.onSurfaceVariant
     )
     CustomContextMenuRadioBtn(
-        onClick = { vm.setLoopMode(Loop.Track) },
+        onClick = {
+            vm.setLoopMode(Loop.Track)
+            endAction()
+        },
         painter = painterResource(R.drawable.repeat_one),
         text = stringResource(R.string.track_loop),
         isSelected = currentMode == Loop.Track,

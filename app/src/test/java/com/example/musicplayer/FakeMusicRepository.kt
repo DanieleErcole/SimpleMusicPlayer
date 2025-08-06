@@ -17,13 +17,25 @@ class FakeMusicRepository : MusicRepository {
     }
 
     override fun getAllTracksFlow(
-        artists: List<String>?,
+        genres: List<String>,
+        empty: Boolean,
         searchString: String?
     ): Flow<List<TrackWithAlbum>> {
         TODO("Not yet implemented")
     }
 
-    override fun getAllArtists(): Flow<List<String>> {
+    override fun getArtistTracks(
+        artist: String,
+        searchString: String?
+    ): Flow<List<TrackWithAlbum>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getAllArtists(searchString: String?): Flow<List<String>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getAllGenres(): Flow<List<String>> {
         TODO("Not yet implemented")
     }
 

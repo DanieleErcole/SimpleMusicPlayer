@@ -328,8 +328,12 @@ fun PlayerControls(
             }),
             contentDescription = "Loop dialog",
             tint = MaterialTheme.colorScheme.outline
-        ) {
-            LoopDialog(vm = vm, currentMode = loop.value)
+        ) { closeMenu ->
+            LoopDialog(
+                vm = vm,
+                currentMode = loop.value,
+                endAction = closeMenu
+            )
         }
     }
 }

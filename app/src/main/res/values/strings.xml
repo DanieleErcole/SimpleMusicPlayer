@@ -19,7 +19,7 @@
     <string name="play_label">Play</string>
     <string name="plholder_search_albums">Search an album</string>
     <string name="tracks_page">All songs</string>
-    <string name="artists_filters">Artists</string>
+    <string name="genres_filters">Genres</string>
     <string name="plholder_search_playlists">Search a playlist</string>
     <string name="remove_dialog_text">Are you sure you want to remove %1$s from this playlist?</string>
     <string name="single_track">this track</string>

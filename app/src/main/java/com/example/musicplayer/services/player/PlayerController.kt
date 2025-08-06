@@ -34,8 +34,6 @@ class PlayerController(
     private lateinit var controller: MediaController
     private val playerScope = CoroutineScope(Dispatchers.Main + Job())
 
-    //TODO: detect when the queue has finished playing (it must work even in shuffle mode)
-
     private val _errorFlow = MutableSharedFlow<String>()
     val errorFlow = _errorFlow.asSharedFlow()
 

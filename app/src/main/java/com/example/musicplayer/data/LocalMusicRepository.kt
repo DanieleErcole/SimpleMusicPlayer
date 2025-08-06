@@ -15,9 +15,11 @@ class LocalMusicRepository(
 ) : MusicRepository {
 
     override suspend fun getAllTracks(): List<TrackWithAlbum> = trackDao.getAllTracks()
-    override fun getAllTracksFlow(artists: List<String>?, searchString: String?): Flow<List<TrackWithAlbum>> = trackDao.getAllTracksFlow(artists, searchString)
+    override fun getAllTracksFlow(genres: List<String>, empty: Boolean, searchString: String?): Flow<List<TrackWithAlbum>> =
+        trackDao.getAllTracksFlow(genres, empty, searchString)
     override fun getArtistTracks(artist: String, searchString: String?): Flow<List<TrackWithAlbum>> = trackDao.getArtistTracks(artist, searchString)
     override fun getAllArtists(searchString: String?): Flow<List<String>> = trackDao.getAllArtists(searchString)
+    override fun getAllGenres(): Flow<List<String>> = trackDao.getAllGenres()
     override suspend fun newTrack(t: Track) = trackDao.insert(t)
     override suspend fun deleteTrack(t: Track) = trackDao.delete(t)
     override suspend fun deleteTrackBlk(trackList: List<Track>) = trackDao.deleteBlk(trackList.map { it.trackId })
