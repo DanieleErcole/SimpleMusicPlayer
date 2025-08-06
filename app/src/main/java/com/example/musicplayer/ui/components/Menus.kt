@@ -15,7 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.dimensionResource
+import com.example.musicplayer.R
 
 @Composable
 fun CustomContextMenuBtn(
@@ -70,7 +71,7 @@ fun CustomContextMenuRadioBtn(
                     selected = isSelected,
                     onClick = null
                 )
-                Spacer(Modifier.fillMaxHeight().width(8.dp))
+                Spacer(Modifier.fillMaxHeight().width(dimensionResource(R.dimen.padding_small)))
                 Icon(
                     painter = painter,
                     contentDescription = text,

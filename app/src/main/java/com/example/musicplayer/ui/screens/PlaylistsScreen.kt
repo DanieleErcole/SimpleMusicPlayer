@@ -1,9 +1,11 @@
 package com.example.musicplayer.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,8 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +60,7 @@ import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 import com.example.musicplayer.ui.state.TrackListVM
+import com.example.musicplayer.utils.THUMBNAILS_GRID_COLUMNS
 import com.example.musicplayer.utils.THUMBNAILS_GRID_COUNT
 import com.example.musicplayer.utils.app
 import com.example.musicplayer.utils.offSetCells
@@ -68,7 +73,8 @@ fun PlaylistsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     plVm: PlaylistsVM,
-    dialogsVm: DialogsVM
+    dialogsVm: DialogsVM,
+    horizontalLayout: Boolean,
 ) {
     var selectedPl by remember { mutableStateOf<Playlist?>(null) }
 
@@ -107,19 +113,19 @@ fun PlaylistsScreen(
                     title = ctx.getString(R.string.remove_dialog_title),
                     text = ctx.getString(
                         R.string.remove_dialog_text,
-                        if (tracks.size > 1) ctx.getString(R.string.single_track) else ctx.getString(R.string.multiple_tracks)
+                        if (tracks.size > 1) ctx.getString(R.string.multiple_tracks) else ctx.getString(R.string.single_track)
                     )
                 ) {
                     plVm.removeFromPlaylist(tracks, it.playlistId)
                 }
             },
+            horizontalLayout = horizontalLayout,
             objectToolsBtn = { tracks ->
                 TransparentBtnWithContextMenu(
                     painter = painterResource(R.drawable.more_horiz),
                     contentDescription = "Playlist options",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fullSizeIcon = true,
-                    modifier = Modifier.height(24.dp).width(24.dp)
+                    modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
                 ) { closeMenu ->
                     CustomContextMenuBtn(
                         onClick = {
@@ -165,6 +171,7 @@ fun PlaylistsScreen(
     )
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun PlaylistGrid(
     plVm: PlaylistsVM,
@@ -177,46 +184,59 @@ fun PlaylistGrid(
 
     Column(
         modifier = modifier
-            .padding(top = 8.dp)
+            .padding(top = dimensionResource(R.dimen.padding_very_small))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(.06f)
-                .padding(horizontal = 8.dp)
+                .padding(
+                    start = dimensionResource(R.dimen.padding_small),
+                    end = dimensionResource(R.dimen.padding_medium),
+                    bottom = dimensionResource(R.dimen.padding_small)
+                )
         ) {
             SearchInputField(
                 text = searchStr.value,
                 placeholder = stringResource(R.string.plholder_search_playlists),
                 onChange = { plVm.updateSearchString(it) },
-                modifier = Modifier.weight(.9f)
+                modifier = Modifier
+                    .weight(.9f)
+                    .padding(start = dimensionResource(R.dimen.padding_very_small))
             )
             TransparentButton(
                 onClick = onAddPlaylist,
                 painter = painterResource(R.drawable.add),
                 contentDescription = "New playlist",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
             )
         }
         Divider()
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+
+        val bigImgSize = dimensionResource(R.dimen.grid_item_size)
+        BoxWithConstraints(
             modifier = Modifier
                 .weight(.9f)
-                .padding(start = 8.dp, end = 8.dp)
+                .padding(start = dimensionResource(R.dimen.padding_small), end = dimensionResource(R.dimen.padding_small))
         ) {
-            offSetCells(3)
-            items(playlists.value) {
-                PlaylistItem(
-                    playlist = it,
-                    onClick = { onSelectPlaylist(it.playlist) }
-                )
+            val columns by remember { derivedStateOf { (maxWidth / bigImgSize).toInt() } }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                offSetCells(columns)
+                items(playlists.value) {
+                    PlaylistItem(
+                        playlist = it,
+                        onClick = { onSelectPlaylist(it.playlist) }
+                    )
+                }
+                offSetCells(columns)
             }
-            offSetCells(3)
         }
     }
 }
@@ -233,16 +253,18 @@ fun PlaylistItem(
             .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
             .clip(shape = RoundedCornerShape(10.dp))
     ) {
-        val thumbnails = playlist.toThumbsList()
+        val thumbnails = playlist.toThumbsList().take(THUMBNAILS_GRID_COUNT)
+        val bigImgSize = dimensionResource(R.dimen.grid_item_size)
+
         if (thumbnails.size > 1) {
-            val imgSize = (128 / 2)
+            val imgSize = (bigImgSize / THUMBNAILS_GRID_COLUMNS)
             LazyVerticalGrid(
-                modifier = Modifier.size(128.dp),
-                columns = GridCells.Fixed(2)
+                modifier = Modifier.size(bigImgSize),
+                columns = GridCells.Fixed(THUMBNAILS_GRID_COLUMNS)
             ) {
                 items(thumbnails) {
                     AsyncImage(
-                        modifier = Modifier.size(imgSize.dp),
+                        modifier = Modifier.size(imgSize),
                         model = ImageRequest.Builder(context = LocalContext.current)
                             .data(it)
                             .dispatcher(Dispatchers.IO)
@@ -256,7 +278,7 @@ fun PlaylistItem(
                 }
                 items(count = THUMBNAILS_GRID_COUNT - thumbnails.size) {
                     Image(
-                        modifier = Modifier.size(imgSize.dp),
+                        modifier = Modifier.size(imgSize),
                         painter = painterResource(R.drawable.no_img),
                         contentDescription = "No image",
                         contentScale = ContentScale.Crop
@@ -264,7 +286,7 @@ fun PlaylistItem(
                 }
             }
         } else AsyncImage(
-            modifier = Modifier.size(128.dp),
+            modifier = Modifier.size(bigImgSize),
             model = ImageRequest.Builder(context = LocalContext.current)
                 .data(thumbnails.ifEmpty { null }?.first())
                 .dispatcher(Dispatchers.IO)
@@ -281,7 +303,7 @@ fun PlaylistItem(
             maxLines = 1,
             fontSize = 14.sp,
             lineHeight = 14.sp,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
         )
     }
 }

@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -44,10 +47,12 @@ import coil.request.ImageRequest
 import com.example.musicplayer.R
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.AppScreen
+import com.example.musicplayer.ui.screens.ReorderableDragHandle
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.formatTimestamp
 import kotlinx.coroutines.Dispatchers
+import sh.calvin.reorderable.ReorderableCollectionItemScope
 import kotlin.collections.map
 
 @Composable
@@ -61,6 +66,7 @@ fun TrackList(
     filters: (@Composable () -> Unit)? = null,
     objectToolsBtn: (@Composable (List<TrackWithAlbum>) -> Unit)? = null,
     mustReplaceQueue: Boolean = false,
+    horizontalLayout: Boolean,
     modifier: Modifier
 ) {
     val tracks = listVm.tracks.collectAsStateWithLifecycle()
@@ -70,15 +76,16 @@ fun TrackList(
     val selectionMode by remember { derivedStateOf { selectedTracks.value.isNotEmpty() } }
     Column(
         modifier = modifier
-            .padding(top = 8.dp)
+            .padding(top = dimensionResource(R.dimen.padding_very_small))
     ) {
-        val mod = onBackClick?.let { Modifier } ?: Modifier.padding(start = 16.dp)
+        val mod = onBackClick?.let { Modifier } ?: Modifier.padding(start = dimensionResource(R.dimen.padding_medium))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = mod
-                .weight(.04f)
+                .padding(end = dimensionResource(R.dimen.padding_medium))
                 .fillMaxWidth()
+                .wrapContentHeight()
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -104,13 +111,12 @@ fun TrackList(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     lineHeight = 16.sp,
-                    modifier = Modifier.padding(end = 8.dp)
                 )
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = objectToolsBtn?.let { Modifier.padding(end = 16.dp) } ?: Modifier
+                modifier = Modifier
             ) {
                 filters?.invoke()
                 objectToolsBtn?.invoke(tracks.value)
@@ -153,30 +159,34 @@ fun TrackList(
             )
         }
         AnimatedVisibility(!selectionMode) {
-            Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 SearchInputField(
                     text = searchStr.value,
                     placeholder = stringResource(R.string.plholder_search_tracks),
                     onChange = { listVm.updateSearchString(it) },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .weight(.7f)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
                 Text(
                     text = "${tracks.value.size} ${stringResource(R.string.song_counter)}",
                     fontSize = 13.sp,
                     lineHeight = 13.sp,
+                    textAlign = TextAlign.Right,
                     color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, bottom = 8.dp)
+                        .weight(.3f)
+                        .padding(end = dimensionResource(R.dimen.padding_medium))
                 )
             }
         }
         Divider()
         LazyColumn(
             modifier = Modifier
-                .weight(.8f)
+                .weight(.85f)
         ) {
             items(tracks.value) {
                 TrackItem(
@@ -193,6 +203,7 @@ fun TrackList(
                         }
                     },
                     onLongPress = { listVm.selectTrack(it.internal.trackId) },
+                    horizontalLayout = horizontalLayout,
                     isSelected = it.internal.trackId in selectedTracks.value,
                     selectionMode = selectionMode,
                     onAddClick = { dialogsVm.setAddDialog(listOf(it)) },
@@ -331,6 +342,8 @@ fun TrackItem(
     onQueueClick: () -> Unit,
     onRemoveClick: (() -> Unit)? = null,
     onDequeueClick: (() -> Unit)? = null,
+    dragHandle: ReorderableDragHandle? = null,
+    horizontalLayout: Boolean,
     isSelected: Boolean,
     selectionMode: Boolean,
 ) {
@@ -342,12 +355,31 @@ fun TrackItem(
                 onClick = onItemClick,
                 onLongClick = onLongPress
             )
+            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = .15f) else Color.Transparent)
             .fillMaxWidth()
             .padding(dimensionResource(R.dimen.padding_small))
     ) {
+        dragHandle?.let { handle ->
+            IconButton(
+                onClick = {},
+                modifier = with(handle.scope) {
+                    Modifier.draggableHandle(
+                        enabled = handle.dragEnabled,
+                        onDragStarted = { handle.onDragStart() },
+                        onDragStopped = handle.onDragEnd
+                    )
+                },
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.drag_handle),
+                    contentDescription = "dragHandle",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
         Box(
             modifier = Modifier
-                .weight(.15f)
+                .weight(if (horizontalLayout) .05f else .15f)
                 .aspectRatio(1f)
         ) {
             AsyncImage(
@@ -368,13 +400,13 @@ fun TrackItem(
                     modifier = Modifier
                         .matchParentSize()
                         .background(Color.Black.copy(alpha = 0.5f))
-                        .padding(8.dp),
+                        .padding(dimensionResource(R.dimen.padding_small)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(if (isSelected) R.drawable.selected else R.drawable.not_selected),
                         contentDescription = "Selected",
-                        tint = MaterialTheme.colorScheme.secondary
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                     )
                 }
             }
@@ -383,8 +415,7 @@ fun TrackItem(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .weight(.75f)
-                .height(60.dp)
-                .padding(start = 16.dp)
+                .padding(start = dimensionResource(R.dimen.padding_medium))
         ) {
             Text(
                 text = track.internal.title,

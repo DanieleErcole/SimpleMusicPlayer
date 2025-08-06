@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -39,7 +41,8 @@ fun TracksScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     tracksVM: TracksVM,
-    dialogsVm: DialogsVM
+    dialogsVm: DialogsVM,
+    horizontalLayout: Boolean,
 ) {
     val filters = tracksVM.genreFilters.collectAsState()
     val selectedFilters = tracksVM.selectedFilters.collectAsState()
@@ -75,7 +78,8 @@ fun TracksScreen(
                 painter = painterResource(R.drawable.filters),
                 contentDescription = "Filters",
                 enabled = filters.value.isNotEmpty(),
-                tint = MaterialTheme.colorScheme.outline
+                tint = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
             ) { closeMenu ->
                 Column(
                     modifier = Modifier
@@ -86,7 +90,7 @@ fun TracksScreen(
                         text = stringResource(R.string.genres_filters),
                         fontSize = 14.sp,
                         lineHeight = 14.sp,
-                        modifier = Modifier.padding(start = 16.dp)
+                        modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium))
                     )
                     filters.value.forEach {
                         CustomContextMenuCheckboxBtn(
@@ -99,6 +103,7 @@ fun TracksScreen(
                 }
             }
         },
+        horizontalLayout = horizontalLayout,
         modifier = modifier.fillMaxSize()
     )
 }

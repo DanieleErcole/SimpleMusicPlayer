@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +29,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.window.core.layout.WindowHeightSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import com.example.musicplayer.R
 import com.example.musicplayer.services.MusicObserver
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
@@ -71,7 +74,8 @@ enum class AppScreen(val index: Int, val icon: Int) {
 @Composable
 fun MusicPlayerApp(
     appVm: MusicPlayerVM,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
 ) {
     val ctx = LocalContext.current
     val app = app(ctx)
@@ -139,6 +143,8 @@ fun MusicPlayerApp(
             queueVm.updateUIQueue()
     }
 
+    val isInLandscape = windowSizeClass.windowHeightSizeClass == WindowHeightSizeClass.COMPACT
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(
@@ -153,7 +159,10 @@ fun MusicPlayerApp(
             )
         },
         bottomBar = {
-            AppBar(navController = navController)
+            AppBar(
+                navController = navController,
+                thinNavBar = isInLandscape
+            )
         },
         modifier = Modifier
             .fillMaxSize()
@@ -162,7 +171,8 @@ fun MusicPlayerApp(
         ConfirmActionDialog(dialogsVm = dialogsVm)
         AddToPlaylistDialog(
             plVm = playlistVm,
-            dialogsVm = dialogsVm
+            dialogsVm = dialogsVm,
+            horizontalLayout = isInLandscape
         )
         NewPlaylistDialog(
             plVm = playlistVm,
@@ -172,7 +182,10 @@ fun MusicPlayerApp(
             plVm = playlistVm,
             dialogsVM = dialogsVm
         )
-        SongInfoDialog(dialogsVm = dialogsVm)
+        SongInfoDialog(
+            dialogsVm = dialogsVm,
+            horizontalLayout = isInLandscape
+        )
 
         NavHost(
             navController = navController,
@@ -186,41 +199,47 @@ fun MusicPlayerApp(
             composable(route = AppScreen.Queue.name) {
                 QueueScreen(
                     vm = queueVm,
-                    dialogsVm = dialogsVm
+                    dialogsVm = dialogsVm,
+                    horizontalLayout = isInLandscape
                 )
             }
             composable(route = AppScreen.Playing.name) {
                 CurrentPlayingScreen(
                     vm = playingVm,
-                    dialogsVm = dialogsVm
+                    dialogsVm = dialogsVm,
+                    horizontalLayout = isInLandscape
                 )
             }
             composable(route = AppScreen.Tracks.name) {
                 TracksScreen(
                     navController = navController,
                     tracksVM = tracksVm,
-                    dialogsVm = dialogsVm
+                    dialogsVm = dialogsVm,
+                    horizontalLayout = isInLandscape
                 )
             }
             composable(route = AppScreen.Albums.name) {
                 AlbumsScreen(
                     navController = navController,
                     albumsVM = albumsVm,
-                    dialogsVm = dialogsVm
+                    dialogsVm = dialogsVm,
+                    horizontalLayout = isInLandscape
                 )
             }
             composable(route = AppScreen.Artists.name) {
                 ArtistsScreen(
                     navController = navController,
                     vm = artistsVm,
-                    dialogsVm = dialogsVm
+                    dialogsVm = dialogsVm,
+                    horizontalLayout = isInLandscape
                 )
             }
             composable(route = AppScreen.Playlists.name) {
                 PlaylistsScreen(
                     navController = navController,
                     plVm = playlistVm,
-                    dialogsVm = dialogsVm
+                    dialogsVm = dialogsVm,
+                    horizontalLayout = isInLandscape
                 )
             }
             composable(route = AppScreen.Settings.name) {

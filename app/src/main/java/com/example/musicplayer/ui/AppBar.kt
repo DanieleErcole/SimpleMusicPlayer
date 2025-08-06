@@ -30,8 +30,9 @@ private val screens = listOf(
 
 @Composable
 fun AppBar(
+    modifier: Modifier = Modifier,
     navController: NavController,
-    modifier: Modifier = Modifier
+    thinNavBar: Boolean = false
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
@@ -39,14 +40,14 @@ fun AppBar(
     )
 
     LazyRow(
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Top,
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.outlineVariant)
             .padding(top = 1.dp)
             .background(MaterialTheme.colorScheme.background)
-            .height(100.dp)
+            .height(if (thinNavBar) 50.dp else 100.dp)
     ) {
         items(screens) {
             val inPage = currentScreen.name == it.name

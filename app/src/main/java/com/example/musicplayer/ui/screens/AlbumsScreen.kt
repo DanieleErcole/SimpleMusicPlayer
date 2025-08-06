@@ -1,8 +1,10 @@
 package com.example.musicplayer.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,7 +63,8 @@ fun AlbumsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     albumsVM: AlbumsVM,
-    dialogsVm: DialogsVM
+    dialogsVm: DialogsVM,
+    horizontalLayout: Boolean,
 ) {
     var selectedAlbum by remember { mutableStateOf<Album?>(null) }
 
@@ -97,8 +100,7 @@ fun AlbumsScreen(
                     painter = painterResource(R.drawable.more_horiz),
                     contentDescription = "Album options",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fullSizeIcon = true,
-                    modifier = Modifier.height(24.dp).width(24.dp)
+                    modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
                 ) { closeMenu ->
                     CustomContextMenuBtn(
                         onClick = {
@@ -130,6 +132,7 @@ fun AlbumsScreen(
                 }
             },
             mustReplaceQueue = true,
+            horizontalLayout = horizontalLayout,
             modifier = modifier.fillMaxSize()
         )
     } ?: AlbumGrid(
@@ -139,6 +142,7 @@ fun AlbumsScreen(
     )
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun AlbumGrid(
     albumsVM: AlbumsVM,
@@ -150,7 +154,7 @@ fun AlbumGrid(
 
     Column(
         modifier = modifier
-            .padding(top = dimensionResource(R.dimen.padding_small))
+            .padding(top = dimensionResource(R.dimen.padding_very_small))
     ) {
         SearchInputField(
             text = searchStr.value,
@@ -158,26 +162,36 @@ fun AlbumGrid(
             onChange = { albumsVM.updateSearchString(it) },
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(.06f)
-                .padding(horizontal = dimensionResource(R.dimen.padding_small))
+                .padding(
+                    start = dimensionResource(R.dimen.padding_small),
+                    end = dimensionResource(R.dimen.padding_small),
+                    bottom = dimensionResource(R.dimen.padding_very_small)
+                )
         )
         Divider()
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
-            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+
+        val bigImgSize = dimensionResource(R.dimen.grid_item_size)
+        BoxWithConstraints(
             modifier = Modifier
                 .weight(.9f)
                 .padding(start = dimensionResource(R.dimen.padding_small), end = dimensionResource(R.dimen.padding_small))
         ) {
-            offSetCells(3)
-            items(albums.value) {
-                AlbumItem(
-                    album = it,
-                    onClick = { onSelectAlbum(it) }
-                )
+            val columns by remember { derivedStateOf { (maxWidth / bigImgSize).toInt() } }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                offSetCells(columns)
+                items(albums.value) {
+                    AlbumItem(
+                        album = it,
+                        onClick = { onSelectAlbum(it) }
+                    )
+                }
+                offSetCells(columns)
             }
-            offSetCells(3)
         }
     }
 }
@@ -195,7 +209,7 @@ fun AlbumItem(
             .clip(shape = RoundedCornerShape(10.dp))
     ) {
         AsyncImage(
-            modifier = Modifier.size(128.dp),
+            modifier = Modifier.size(dimensionResource(R.dimen.grid_item_size)),
             model = ImageRequest.Builder(context = LocalContext.current)
                 .data(album.thumbnail)
                 .dispatcher(Dispatchers.IO)

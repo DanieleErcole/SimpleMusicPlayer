@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,20 +56,16 @@ import kotlin.math.floor
 fun CurrentPlayingScreen(
     modifier: Modifier = Modifier,
     vm: CurrentPlayingVM,
-    dialogsVm: DialogsVM
+    dialogsVm: DialogsVM,
+    horizontalLayout: Boolean
 ) {
     val cur = vm.curTrack.collectAsStateWithLifecycle()
 
     cur.value?.track?.let { current ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-        ) {
+        val thumb: @Composable (Modifier) -> Unit = { mod ->
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(.6f)
+                modifier = mod
             ) {
                 AsyncImage(
                     modifier = Modifier
@@ -84,12 +82,12 @@ fun CurrentPlayingScreen(
                     contentScale = ContentScale.Crop
                 )
             }
+        }
+        val content: @Composable (Modifier) -> Unit = { mod ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(.4f)
+                verticalArrangement = Arrangement.Center,
+                modifier = mod
             ) {
                 Text(
                     text = current.internal.title,
@@ -99,7 +97,7 @@ fun CurrentPlayingScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = dimensionResource(R.dimen.padding_medium))
                         .basicMarquee()
                 )
                 Text(
@@ -130,9 +128,33 @@ fun CurrentPlayingScreen(
                 )
                 Spacer(modifier.fillMaxWidth().height(30.dp))
                 PlayerControls(vm = vm)
-                Spacer(modifier.fillMaxWidth().height(40.dp))
             }
         }
+
+        if (horizontalLayout)
+            Row(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(end = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                thumb(Modifier.weight(.5f))
+                content(Modifier
+                    .weight(.5f)
+                    .fillMaxHeight()
+                )
+            }
+        else
+            Column(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                thumb(Modifier.weight(.6f))
+                content(Modifier)
+                Spacer(modifier.fillMaxWidth().height(40.dp))
+            }
     } ?: NothingPlaying()
 }
 
@@ -201,7 +223,7 @@ fun SliderToolbar(
         Text(
             text = formatTimestamp(position.value),
             fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_small))
         )
         CustomSlider(
             value = sliderPosition,
@@ -221,7 +243,7 @@ fun SliderToolbar(
         Text(
             text = formatTimestamp(current.internal.durationMs),
             fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 8.dp)
+            modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_small))
         )
     }
 }
@@ -257,7 +279,7 @@ fun PlayerControls(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(dimensionResource(R.dimen.padding_small))
                     .width(200.dp)
                     .height(20.dp)
             ) {
@@ -286,7 +308,7 @@ fun PlayerControls(
             contentDescription = "Skip previous",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
-            modifier = Modifier.height(mid).width(mid)
+            modifier = Modifier.size(mid)
         )
         TransparentButton(
             onClick = { vm.seekRewind() },
@@ -294,7 +316,7 @@ fun PlayerControls(
             contentDescription = "Fast rewind",
             tint = MaterialTheme.colorScheme.outline,
             fullSizeIcon = true,
-            modifier = Modifier.height(small).width(small)
+            modifier = Modifier.size(small)
         )
         TransparentButton(
             onClick = { vm.togglePauseResume() },
@@ -302,7 +324,7 @@ fun PlayerControls(
             contentDescription = "Play/pause",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
-            modifier = Modifier.height(big).width(big)
+            modifier = Modifier.size(big)
         )
         TransparentButton(
             onClick = { vm.seekForward() },
@@ -310,7 +332,7 @@ fun PlayerControls(
             contentDescription = "Fast forward",
             tint = MaterialTheme.colorScheme.outline,
             fullSizeIcon = true,
-            modifier = Modifier.height(small).width(small)
+            modifier = Modifier.size(small)
         )
         TransparentButton(
             onClick = { vm.skipNext() },
@@ -318,7 +340,7 @@ fun PlayerControls(
             contentDescription = "Skip next",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
-            modifier = Modifier.height(mid).width(mid)
+            modifier = Modifier.size(mid)
         )
         TransparentBtnWithContextMenu(
             painter = painterResource(when(loop.value) {

@@ -62,6 +62,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.7.1")
     implementation("androidx.media3:media3-session:1.7.1")
     implementation("androidx.media3:media3-extractor:1.7.1")
+    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
     implementation(libs.reorderable)
 
     testImplementation(libs.junit)

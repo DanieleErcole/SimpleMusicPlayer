@@ -1,10 +1,13 @@
 package com.example.musicplayer.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,14 +48,23 @@ import com.example.musicplayer.ui.state.QueueVM
 import com.example.musicplayer.ui.state.ReorderableQueueItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+
+data class ReorderableDragHandle(
+    val scope: ReorderableCollectionItemScope,
+    val dragEnabled: Boolean,
+    val onDragStart: () -> Unit,
+    val onDragEnd: () -> Unit,
+)
 
 @Composable
 fun QueueScreen(
     modifier: Modifier = Modifier,
     vm: QueueVM,
-    dialogsVm: DialogsVM
+    dialogsVm: DialogsVM,
+    horizontalLayout: Boolean,
 ) {
     val update = vm.update.collectAsStateWithLifecycle()
     var tracks by remember { mutableStateOf(emptyList<ReorderableQueueItem>()) }
@@ -99,11 +113,11 @@ fun QueueScreen(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 lineHeight = 16.sp,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium))
             )
             val cur = tracks.find { it.track.queuedItem.isCurrent }
             Text(
-                text = "${(cur?.track?.queuedItem?.position)?.plus(1) ?: 0} / ${tracks.size}",
+                text = "${(cur?.position)?.plus(1) ?: 0} / ${tracks.size}",
                 fontSize = 12.sp,
                 lineHeight = 14.sp
             )
@@ -158,53 +172,40 @@ fun QueueScreen(
         }
         LazyColumn(
             state = lazyListState,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .weight(.8f)
         ) {
             items(tracks, key = { it.hashCode() }) { item ->
-                var mod = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_small))
-                mod = if (item.track.queuedItem.isCurrent)
-                    mod.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
-                else mod
-
                 ReorderableItem(reorderableLazyListState, key = item.hashCode()) { isDragging ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = mod
-                            .fillMaxWidth()
-                    ) {
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier.draggableHandle(
-                                enabled = !selectionMode,
-                                onDragStarted = { fromPos = item.position },
-                                onDragStopped = { vm.moveTrack(fromPos, toPos) }
-                            ),
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.drag_handle),
-                                contentDescription = "dragHandle",
-                                tint = MaterialTheme.colorScheme.primary
+                    TrackItem(
+                        track = item.track.track,
+                        onItemClick = {
+                            if (selectionMode)
+                                vm.selectTrack(item)
+                            else vm.playTrack(item.position)
+                        },
+                        onLongPress = { vm.selectTrack(item) },
+                        isSelected = item.position in selectedTracks.value,
+                        selectionMode = selectionMode,
+                        onAddClick = { dialogsVm.setAddDialog(listOf(item.track.track)) },
+                        onInfoClick = { dialogsVm.setInfoDialog(item.track.track) },
+                        onQueueClick = { vm.queueAll(listOf(item.track.track)) },
+                        onDequeueClick = { vm.dequeueAll(listOf(item.track)) },
+                        dragHandle = ReorderableDragHandle(
+                            scope = this,
+                            dragEnabled = !selectionMode,
+                            onDragStart = { fromPos = item.position },
+                            onDragEnd = { vm.moveTrack(fromPos, toPos) }
+                        ),
+                        horizontalLayout = horizontalLayout,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(
+                                1.dp,
+                                if (item.track.queuedItem.isCurrent) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                RoundedCornerShape(10.dp)
                             )
-                        }
-                        TrackItem(
-                            track = item.track.track,
-                            onItemClick = {
-                                if (selectionMode)
-                                    vm.selectTrack(item)
-                                else vm.playTrack(item.position)
-                            },
-                            onLongPress = { vm.selectTrack(item) },
-                            isSelected = item.position in selectedTracks.value,
-                            selectionMode = selectionMode,
-                            onAddClick = { dialogsVm.setAddDialog(listOf(item.track.track)) },
-                            onInfoClick = { dialogsVm.setInfoDialog(item.track.track) },
-                            onQueueClick = { vm.queueAll(listOf(item.track.track)) },
-                            onDequeueClick = { vm.dequeueAll(listOf(item.track)) }
-                        )
-                    }
+                    )
                 }
             }
         }

@@ -24,5 +24,6 @@ object PlayerStateKeys {
 
 const val DEFAULT_VOLUME = 100f
 const val THUMBNAILS_GRID_COUNT = 4
+const val THUMBNAILS_GRID_COLUMNS = 2
 const val DATASTORE_NAME = "userPrefs"
 val albumUriBase: Uri = "content://media/external/audio/albumart".toUri()

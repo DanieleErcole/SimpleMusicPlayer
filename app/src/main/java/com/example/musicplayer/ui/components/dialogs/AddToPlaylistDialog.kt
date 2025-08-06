@@ -1,10 +1,14 @@
 package com.example.musicplayer.ui.components.dialogs
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +25,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,11 +40,13 @@ import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.PlaylistsVM
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun AddToPlaylistDialog(
     modifier: Modifier = Modifier,
     plVm: PlaylistsVM,
-    dialogsVm: DialogsVM
+    dialogsVm: DialogsVM,
+    horizontalLayout: Boolean,
 ) {
     val state = dialogsVm.addDialog.collectAsStateWithLifecycle()
     state.value?.let {
@@ -53,78 +60,82 @@ fun AddToPlaylistDialog(
                 itemsState.clear()
             }
 
-            Surface {
-                Column(
-                    modifier = modifier
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .padding(top = 12.dp, start = 12.dp, end = 12.dp)
-                ) {
-                    Text(
-                        text = if (tracks.size == 1) tracks.first().internal.title else "${tracks.size} songs",
-                        fontSize = 14.sp,
-                        lineHeight = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
-                    )
-                    Divider(modifier = Modifier.padding(bottom = 8.dp))
-                    LazyColumn(
-                        verticalArrangement = Arrangement.SpaceEvenly
+            BoxWithConstraints {
+                Surface {
+                    Column(
+                        modifier = modifier
+                            .heightIn(max = maxHeight - if (horizontalLayout) 50.dp else 70.dp)
+                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                            .padding(top = 12.dp, start = 12.dp, end = 12.dp)
                     ) {
-                        items(playlists.value) { pl ->
-                            CustomContextMenuCheckboxBtn(
-                                onClick = {
-                                    itemsState[pl.playlistId]?.let {
-                                        itemsState[pl.playlistId] = !it
-                                    } ?: run {
-                                        itemsState.put(pl.playlistId, true)
-                                    }
-                                },
-                                text = pl.name,
-                                isChecked = itemsState[pl.playlistId] ?: false,
-                                tint = MaterialTheme.colorScheme.outline,
-                                Modifier.padding(vertical = 2.dp)
-                            )
-                        }
-                    }
-                    OutlinedButton(
-                        onClick = { dialogsVm.setNewDialog() },
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.add),
-                                contentDescription = "New playlist",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(
-                                text = stringResource(R.string.new_pl_btn),
-                                fontSize = 14.sp,
-                                lineHeight = 14.sp,
-                            )
-                        }
-                    }
-                    Divider(modifier = Modifier.padding(top = 8.dp))
-                    Row(
-                        verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        TransparentButton(
-                            onClick = {
-                                itemsState.filter { it.value }.forEach { id, selected ->
-                                    plVm.addToPlaylist(tracks, playlistId = id)
-                                }
-                                dialogsVm.setAddDialog()
-                                it.endAction?.invoke()
-                            },
-                            text = stringResource(R.string.add_dialog_btn_label),
+                        Text(
+                            text = if (tracks.size == 1) tracks.first().internal.title else "${tracks.size} songs",
                             fontSize = 14.sp,
-                            lineHeight = TextUnit.Unspecified,
-                            enabled = itemsState.containsValue(true),
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
                         )
+                        Divider(modifier = Modifier.padding(bottom = 8.dp))
+                        LazyColumn(
+                            verticalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            items(playlists.value) { pl ->
+                                CustomContextMenuCheckboxBtn(
+                                    onClick = {
+                                        itemsState[pl.playlistId]?.let {
+                                            itemsState[pl.playlistId] = !it
+                                        } ?: run {
+                                            itemsState.put(pl.playlistId, true)
+                                        }
+                                    },
+                                    text = pl.name,
+                                    isChecked = itemsState[pl.playlistId] ?: false,
+                                    tint = MaterialTheme.colorScheme.outline,
+                                    Modifier.padding(vertical = 2.dp)
+                                )
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = { dialogsVm.setNewDialog() },
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.add),
+                                    contentDescription = "New playlist",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    text = stringResource(R.string.new_pl_btn),
+                                    fontSize = 14.sp,
+                                    lineHeight = 14.sp,
+                                )
+                            }
+                        }
+                        Divider(modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small)))
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            TransparentButton(
+                                onClick = {
+                                    itemsState.filter { it.value }.forEach { id, selected ->
+                                        plVm.addToPlaylist(tracks, playlistId = id)
+                                    }
+                                    dialogsVm.setAddDialog()
+                                    it.endAction?.invoke()
+                                },
+                                text = stringResource(R.string.add_dialog_btn_label),
+                                fontSize = 14.sp,
+                                lineHeight = TextUnit.Unspecified,
+                                enabled = itemsState.containsValue(true),
+                            )
+                        }
                     }
                 }
             }

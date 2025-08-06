@@ -12,6 +12,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -96,7 +97,6 @@ fun LibrarySection(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 32.dp)
         )
-        //TODO (maybe) implement blacklist
         SettingsItem(
             onClick = { vm.rescan(ctx) },
             painter = painterResource(R.drawable.scan),
@@ -248,6 +248,12 @@ fun SwitchSettingsItem(
             )
             Switch(
                 checked = isActive,
+                colors = SwitchDefaults.colors(
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    checkedBorderColor = Color.Transparent,
+                    uncheckedBorderColor = Color.Transparent
+                ),
                 onCheckedChange = null
             )
         }

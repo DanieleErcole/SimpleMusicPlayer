@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
@@ -47,17 +48,23 @@ private fun TextInputDialog(
             Column(
                 modifier = modifier
                     .background(MaterialTheme.colorScheme.surfaceContainer)
-                    .padding(top = 12.dp, start = 16.dp, end = 12.dp)
+                    .padding(top = 12.dp, start = dimensionResource(R.dimen.padding_medium), end = 12.dp)
             ) {
                 Text(
                     text = title,
                     fontSize = 20.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                    modifier = Modifier.padding(
+                        start = dimensionResource(R.dimen.padding_small),
+                        bottom = dimensionResource(R.dimen.padding_medium)
+                    )
                 )
                 Box(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(
+                        horizontal = dimensionResource(R.dimen.padding_small),
+                        vertical = dimensionResource(R.dimen.padding_small)
+                    )
                 ) {
                     CustomTextField(
                         text = text,
@@ -74,14 +81,14 @@ private fun TextInputDialog(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(top = dimensionResource(R.dimen.padding_small))
                 ) {
                     TransparentButton(
                         onClick = onDismiss,
                         text = stringResource(R.string.cancel_label),
                         fontSize = 14.sp,
                         lineHeight = TextUnit.Unspecified,
-                        modifier = Modifier.padding(end = 16.dp)
+                        modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium))
                     )
                     TransparentButton(
                         onClick = {
