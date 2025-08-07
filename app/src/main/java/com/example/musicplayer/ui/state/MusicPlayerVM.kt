@@ -1,6 +1,5 @@
 package com.example.musicplayer.ui.state
 
-import android.content.Context
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,13 +11,8 @@ import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.UserPreferencesRepository
 import com.example.musicplayer.services.MusicScanner
 import com.example.musicplayer.services.player.PlayerController
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MusicPlayerVM(
     private val userPrefs: UserPreferencesRepository,
@@ -30,14 +24,6 @@ class MusicPlayerVM(
     val errors = playerController.errorFlow
 
     suspend fun canAutoScan() = userPrefs.autoScan.first()
-
-    fun rescan(ctx: Context) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                scanner.scanDirectories(ctx)
-            }
-        }
-    }
 
     fun storeCurrentTrackInfo() {
         viewModelScope.launch {

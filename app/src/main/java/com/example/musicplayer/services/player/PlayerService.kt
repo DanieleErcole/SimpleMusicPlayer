@@ -60,7 +60,6 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
                     .build(),
                 true
             )
-            .setPauseAtEndOfMediaItems(true)
             .setSeekBackIncrementMs(10000L)
             .setSeekForwardIncrementMs(10000L)
             .build()
@@ -92,12 +91,10 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
                     val currentIndex = player.currentMediaItemIndex
                     val isRepeatOff = player.repeatMode == Player.REPEAT_MODE_OFF
 
-                    withContext(Dispatchers.IO) {
-                        musicRepo.finishAndPlayNextPos(
-                            currentIndex,
-                            doNothingToCurrent = isRepeatOff // Do nothing to current if the player is not in repeat mode, the player simply pauses
-                        )
-                    }
+                    musicRepo.finishAndPlayNextPos(
+                        currentIndex,
+                        doNothingToCurrent = isRepeatOff // Do nothing to current if the player is not in repeat mode, the player simply pauses
+                    )
                 }
             }
         }

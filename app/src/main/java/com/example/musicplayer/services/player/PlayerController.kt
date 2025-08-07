@@ -46,9 +46,12 @@ class PlayerController(
                 controller = future.get()
                 controller.addListener(this)
                 playerScope.launch {
+                    val state = stateRepo.getPlayerState()
+                    setVolume(state.volume)
+                    setLoop(state.loopMode)
+
                     musicRepo.currentPlaying()?.let {
                         setPaused(!prefsRepo.isAutoPlay())
-                        setVolume(stateRepo.getPlayerState().volume)
                         play()
                     }
                 }
@@ -60,15 +63,11 @@ class PlayerController(
         Log.e(this::class.simpleName, "Playback error: $error")
         playerScope.launch {
             if (error.cause is IOException) {
-                withContext(Dispatchers.IO) {
-                    musicRepo.currentPlaying()
-                }?.let {
+                musicRepo.currentPlaying()?.let {
                     musicRepo.deleteTrack(it.track.internal)
                 }
-                withContext(Dispatchers.IO) {
-                    val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
-                    _errorFlow.emit("Failed to load the track at $path")
-                }
+                val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
+                _errorFlow.emit("Failed to load the track at $path")
             } else {
                 _errorFlow.emit("Unknown error: ${error.cause}")
                 musicRepo.finishAndPlayNextPos(controller.currentMediaItemIndex)
@@ -77,11 +76,7 @@ class PlayerController(
     }
 
     suspend fun storeCurrentInfo() {
-        withContext(Dispatchers.IO) {
-            musicRepo.currentPlaying()
-        }?.let {
-            musicRepo.storeCurrentPos(getCurrentPosition())
-        }
+        musicRepo.storeCurrentPos(getCurrentPosition())
     }
 
     fun isReady(): Boolean = ::controller.isInitialized
@@ -94,9 +89,7 @@ class PlayerController(
     }
 
     suspend fun playTrack(pos: Int) {
-        withContext(Dispatchers.IO) {
-            musicRepo.finishAndPlayNextPos(pos)
-        }
+        musicRepo.finishAndPlayNextPos(pos)
         setPaused(false)
         play(pos)
     }
@@ -112,16 +105,14 @@ class PlayerController(
         if (cur == null || mustPlay) {
             val first = mutList.removeAt(0)
             val size = musicRepo.queueSize()
-            withContext(Dispatchers.IO) {
-                musicRepo.queueAndPlay(
-                    QueueItem(
-                        track = first.internal.trackId,
-                        position = size,
-                        isCurrent = true,
-                        lastPosition = null
-                    )
+            musicRepo.queueAndPlay(
+                QueueItem(
+                    track = first.internal.trackId,
+                    position = size,
+                    isCurrent = true,
+                    lastPosition = null
                 )
-            }
+            )
 
             controller.addMediaItem(first.toMediaItem())
             if (mustPlay)
@@ -130,16 +121,14 @@ class PlayerController(
         }
 
         if (mutList.isNotEmpty()) {
-            withContext(Dispatchers.IO) {
-                musicRepo.queueAll(mutList.mapIndexed { pos, item ->
-                    QueueItem(
-                        track = item.internal.trackId,
-                        position = musicRepo.queueSize() + pos,
-                        isCurrent = false,
-                        lastPosition = null
-                    )
-                })
-            }
+            musicRepo.queueAll(mutList.mapIndexed { pos, item ->
+                QueueItem(
+                    track = item.internal.trackId,
+                    position = musicRepo.queueSize() + pos,
+                    isCurrent = false,
+                    lastPosition = null
+                )
+            })
             controller.addMediaItems(mutList.map { it.toMediaItem() })
         }
     }
@@ -154,9 +143,7 @@ class PlayerController(
             )
         }
 
-        withContext(Dispatchers.IO) {
-            musicRepo.replaceQueue(items)
-        }
+        musicRepo.replaceQueue(items)
 
         val curPos = items.first { it.isCurrent }.position
         controller.setMediaItems(
@@ -170,9 +157,7 @@ class PlayerController(
 
     suspend fun dequeue(items: List<QueueItem>) {
         items.forEach { controller.removeMediaItem(it.position) }
-        withContext(Dispatchers.IO) {
-            musicRepo.dequeueAll(items)
-        }
+        musicRepo.dequeueAll(items)
     }
 
     suspend fun moveTrack(from: Int, to: Int) {
@@ -180,9 +165,7 @@ class PlayerController(
         if (from == to || from < 0 || to < 0)
             return
         controller.moveMediaItem(from, to)
-        withContext(Dispatchers.IO) {
-            musicRepo.moveTrack(from, to)
-        }
+        musicRepo.moveTrack(from, to)
     }
 
     suspend fun clearQueue() {
@@ -190,9 +173,7 @@ class PlayerController(
             stop()
             clearMediaItems()
         }
-        withContext(Dispatchers.IO) {
-            musicRepo.clearQueue()
-        }
+        musicRepo.clearQueue()
     }
 
     fun skipNext() = if (controller.hasNextMediaItem()) {
@@ -220,21 +201,17 @@ class PlayerController(
     }
 
     suspend fun setLoop(mode: Loop) {
-        withContext(Dispatchers.IO) {
-            stateRepo.updateLoop(mode)
-        }
+        stateRepo.updateLoop(mode)
         controller.repeatMode = when (mode) {
             Loop.None -> Player.REPEAT_MODE_OFF
-            Loop.Queue -> Player.REPEAT_MODE_ONE
-            Loop.Track -> Player.REPEAT_MODE_ALL
+            Loop.Queue -> Player.REPEAT_MODE_ALL
+            Loop.Track -> Player.REPEAT_MODE_ONE
         }
     }
 
-    suspend fun getCurrentPosition() = if (isReady())
+    suspend fun getCurrentPosition() = if (isReady() && controller.currentPosition > 0)
         controller.currentPosition
-    else withContext(Dispatchers.IO) {
-        musicRepo.currentPlaying()?.queuedItem?.lastPosition ?: 0L
-    }
+    else musicRepo.currentPlaying()?.queuedItem?.lastPosition ?: 0L
 
     fun seekTo(position: Long) = controller.seekTo(position)
 

@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.example.musicplayer.data.Album
 import com.example.musicplayer.data.MusicRepository
 import com.example.musicplayer.data.Track

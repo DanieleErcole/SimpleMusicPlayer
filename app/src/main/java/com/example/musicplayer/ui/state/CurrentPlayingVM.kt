@@ -14,7 +14,6 @@ import com.example.musicplayer.data.QueuedTrack
 import com.example.musicplayer.services.player.PlayerController
 import com.example.musicplayer.utils.DEFAULT_VOLUME
 import com.example.musicplayer.utils.floatPosition
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,15 +23,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CurrentPlayingVM(
     private val musicRepo: MusicRepository,
     private val plStateRepo: PlayerStateRepository,
     private val playerController: PlayerController
 ) : ViewModel() {
-
-    private val positionScope = CoroutineScope(Dispatchers.Default)
 
     val curTrack: StateFlow<QueuedTrack?> = musicRepo.currentPlayingFlow()
         .stateIn(
@@ -41,17 +37,13 @@ class CurrentPlayingVM(
             started = SharingStarted.WhileSubscribed(5000)
         )
     val position: StateFlow<Long> = flow {
-        withContext(Dispatchers.Default) {
-            while (true) {
-                withContext(Dispatchers.Main) {
-                    emit(playerController.getCurrentPosition())
-                }
-                delay(1000)
-            }
+        while (true) {
+            emit(playerController.getCurrentPosition())
+            delay(1000)
         }
     }.flowOn(Dispatchers.Main).stateIn(
         initialValue = 0L,
-        scope = positionScope,
+        scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000)
     )
 
@@ -79,8 +71,6 @@ class CurrentPlayingVM(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000)
         )
-
-    //val curTrack = playerController.currentMediaItem.asStateFlow()
 
     val sliderValue: StateFlow<Float> = position
         .combine(curTrack) { pos, track ->
