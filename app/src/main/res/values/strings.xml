@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MusicPlayer</string>
+    <string name="app_name">SoundBox</string>
     <string name="nothing_playing">No track playing</string>
     <string name="queue_page">Queue</string>
     <string name="clear_queue_title">Clear the queue?</string>

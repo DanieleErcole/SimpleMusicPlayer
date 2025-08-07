@@ -98,11 +98,7 @@ class PlayerController(
         if (tracks.isEmpty()) return
 
         val mutList = tracks.toMutableList()
-        val cur = withContext(Dispatchers.IO) {
-            musicRepo.currentPlaying()
-        }
-
-        if (cur == null || mustPlay) {
+        if (musicRepo.currentPlaying() == null || mustPlay) {
             val first = mutList.removeAt(0)
             val size = musicRepo.queueSize()
             musicRepo.queueAndPlay(
@@ -115,8 +111,7 @@ class PlayerController(
             )
 
             controller.addMediaItem(first.toMediaItem())
-            if (mustPlay)
-                setPaused(false)
+            setPaused(false)
             play(if (mustPlay) size else null)
         }
 
