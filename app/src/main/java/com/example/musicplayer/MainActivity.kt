@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,15 +25,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
-        )
 
         val app = application as MusicPlayerApplication
         val sessionToken = SessionToken(applicationContext, ComponentName(applicationContext, PlayerService::class.java))
         app.playerController.init(applicationContext, sessionToken)
 
         setContent {
+            enableEdgeToEdge(
+                navigationBarStyle = if (isSystemInDarkTheme())
+                    SystemBarStyle.dark(Color.TRANSPARENT)
+                else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            )
+
             vm = viewModel(factory = MusicPlayerVM.Factory)
             MusicPlayerTheme {
                 MusicPlayerApp(appVm = vm)

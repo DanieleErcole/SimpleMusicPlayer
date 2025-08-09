@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,7 +52,6 @@ import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.formatTimestamp
 import kotlinx.coroutines.Dispatchers
-import sh.calvin.reorderable.ReorderableCollectionItemScope
 import kotlin.collections.map
 
 @Composable
@@ -406,7 +405,9 @@ fun TrackItem(
                     Icon(
                         painter = painterResource(if (isSelected) R.drawable.selected else R.drawable.not_selected),
                         contentDescription = "Selected",
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                        tint = if (isSystemInDarkTheme())
+                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                        else if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.surfaceVariant
                     )
                 }
             }
