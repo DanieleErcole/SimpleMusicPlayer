@@ -255,8 +255,7 @@ fun MusicPlayerApp(
             composable(route = AppScreen.Settings.name) {
                 SettingsScreen(
                     navController = navController,
-                    vm = settingsVm,
-                    dialogsVm = dialogsVm
+                    vm = settingsVm
                 )
             }
         }
