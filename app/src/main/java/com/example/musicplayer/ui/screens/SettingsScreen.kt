@@ -30,15 +30,13 @@ import androidx.navigation.NavController
 import com.example.musicplayer.R
 import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.components.TransparentButton
-import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.SettingsVM
 
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    vm: SettingsVM,
-    dialogsVm: DialogsVM
+    vm: SettingsVM
 ) {
     Column(
         modifier = modifier
@@ -60,8 +58,8 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.settings_page),
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                lineHeight = 16.sp
+                fontSize = 18.sp,
+                lineHeight = 18.sp
             )
         }
         Divider()

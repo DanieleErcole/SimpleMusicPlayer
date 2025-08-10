@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,12 +27,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -77,12 +82,11 @@ fun TrackList(
         modifier = modifier
             .padding(top = dimensionResource(R.dimen.padding_very_small))
     ) {
-        val mod = onBackClick?.let { Modifier } ?: Modifier.padding(start = dimensionResource(R.dimen.padding_medium))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = mod
-                .padding(end = dimensionResource(R.dimen.padding_medium))
+            modifier = Modifier
+                .padding(horizontal = dimensionResource(R.dimen.padding_medium))
                 .fillMaxWidth()
                 .wrapContentHeight()
         ) {
@@ -100,7 +104,8 @@ fun TrackList(
                         onClick = it,
                         painter = painterResource(R.drawable.back),
                         contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
                     )
                 }
                 Text(
@@ -108,8 +113,10 @@ fun TrackList(
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    lineHeight = 16.sp,
+                    fontSize = 18.sp,
+                    lineHeight = 18.sp,
+                    modifier = Modifier
+                        .padding(start = onBackClick?.let { dimensionResource(R.dimen.padding_small) } ?: 0.dp)
                 )
             }
             Row(
@@ -154,7 +161,7 @@ fun TrackList(
                 allSelected = tracks.value.size == selectedTracks.value.size,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 10.dp)
+                    .padding(horizontal = dimensionResource(R.dimen.padding_medium))
             )
         }
         AnimatedVisibility(!selectionMode) {
@@ -323,7 +330,8 @@ fun SelectionToolbar(
                 onClick = onCloseClick,
                 painter = painterResource(R.drawable.close),
                 contentDescription = "Close selection",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
             )
         }
     }
@@ -376,9 +384,12 @@ fun TrackItem(
                 )
             }
         }
+        val density = LocalDensity.current
+        var height by remember { mutableStateOf(0.dp) }
         Box(
             modifier = Modifier
                 .weight(if (horizontalLayout) .05f else .15f)
+                .onGloballyPositioned { height = with(density) { it.size.height.toDp() } }
                 .aspectRatio(1f)
         ) {
             AsyncImage(
@@ -398,7 +409,7 @@ fun TrackItem(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
+                        .background(Color.Black.copy(alpha = .5f))
                         .padding(dimensionResource(R.dimen.padding_small)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -413,18 +424,20 @@ fun TrackItem(
             }
         }
         Column(
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .weight(.75f)
-                .padding(start = dimensionResource(R.dimen.padding_medium))
+                .height(height)
+                .padding(horizontal = dimensionResource(R.dimen.padding_medium))
         ) {
             Text(
                 text = track.internal.title,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                lineHeight = 14.sp,
+                fontSize = 16.sp,
+                lineHeight = 16.sp,
             )
             Text(
                 text = track.internal.artist,
@@ -460,6 +473,7 @@ fun TrackItem(
             painter = painterResource(R.drawable.more_horiz),
             contentDescription = "Track options",
             tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
         ) { closeMenu ->
             CustomContextMenuBtn(
                 onClick = {

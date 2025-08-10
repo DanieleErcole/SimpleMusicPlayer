@@ -1,21 +1,16 @@
 package com.example.musicplayer.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -111,8 +106,8 @@ fun QueueScreen(
             Text(
                 text = stringResource(R.string.queue_page),
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                lineHeight = 16.sp,
+                fontSize = 18.sp,
+                lineHeight = 18.sp,
                 modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium))
             )
             val cur = tracks.find { it.track.queuedItem.isCurrent }
@@ -164,7 +159,7 @@ fun QueueScreen(
                 allSelected = tracks.size == selectedTracks.value.size,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 10.dp)
+                    .padding(horizontal = dimensionResource(R.dimen.padding_medium))
             )
         }
         AnimatedVisibility(borderVisible) {

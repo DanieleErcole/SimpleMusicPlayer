@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -198,7 +199,9 @@ fun AlbumItem(
                 .clip(shape = RoundedCornerShape(10.dp))
         ) {
             AsyncImage(
-                modifier = Modifier.size(size = this@BoxWithConstraints.minWidth),
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .size(size = this@BoxWithConstraints.minWidth),
                 model = ImageRequest.Builder(context = LocalContext.current)
                     .data(album.thumbnail)
                     .dispatcher(Dispatchers.IO)

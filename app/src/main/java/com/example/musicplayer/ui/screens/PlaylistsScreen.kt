@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -276,7 +277,9 @@ fun PlaylistItem(
                     }
                 }
             } else AsyncImage(
-                modifier = Modifier.size(minWidth),
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .size(minWidth),
                 model = ImageRequest.Builder(context = LocalContext.current)
                     .data(thumbnails.ifEmpty { null }?.first())
                     .dispatcher(Dispatchers.IO)

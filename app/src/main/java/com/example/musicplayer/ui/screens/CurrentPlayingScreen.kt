@@ -69,8 +69,7 @@ fun CurrentPlayingScreen(
             ) {
                 AsyncImage(
                     modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(40.dp),
+                        .aspectRatio(1f),
                     model = ImageRequest.Builder(context = LocalContext.current)
                         .data(current.album.thumbnail)
                         .dispatcher(Dispatchers.IO)
@@ -92,9 +91,10 @@ fun CurrentPlayingScreen(
                 Text(
                     text = current.internal.title,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    maxLines = 1,
                     textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    fontSize = 21.sp,
+                    lineHeight = 21.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = dimensionResource(R.dimen.padding_medium))
@@ -103,20 +103,17 @@ fun CurrentPlayingScreen(
                 Text(
                     text = current.internal.artist,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 14.sp,
-                    lineHeight = 14.sp,
+                    fontSize = 16.sp,
+                    lineHeight = 16.sp,
                     color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier
-                        .padding(top = 6.dp, bottom = 6.dp)
-                        .basicMarquee()
+                    modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
                 )
                 Text(
                     text = current.album.name,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 14.sp,
-                    lineHeight = 14.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.basicMarquee()
+                    fontSize = 16.sp,
+                    lineHeight = 16.sp,
+                    color = MaterialTheme.colorScheme.outline
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
@@ -142,7 +139,11 @@ fun CurrentPlayingScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                thumb(Modifier.weight(.5f))
+                thumb(
+                    Modifier
+                        .weight(.5f)
+                        .padding(vertical = 40.dp)
+                )
                 content(Modifier
                     .weight(.5f)
                     .fillMaxHeight()
@@ -154,9 +155,18 @@ fun CurrentPlayingScreen(
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                thumb(Modifier.weight(.6f))
+                thumb(
+                    Modifier
+                        .fillMaxSize()
+                        .weight(.5f)
+                        .padding(horizontal = 40.dp)
+                )
                 content(Modifier)
-                Spacer(modifier.fillMaxWidth().height(40.dp))
+                Spacer(
+                    modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                )
             }
     } ?: NothingPlaying()
 }
@@ -371,6 +381,6 @@ fun NothingPlaying(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        Text(text = stringResource(R.string.nothing_playing))
+        Text(text = stringResource(R.string.nothing_playing), fontSize = 20.sp)
     }
 }
