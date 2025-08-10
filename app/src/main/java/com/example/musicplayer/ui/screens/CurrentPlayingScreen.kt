@@ -106,14 +106,17 @@ fun CurrentPlayingScreen(
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
                     color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
+                    modifier = Modifier
+                        .padding(top = 6.dp, bottom = 6.dp)
+                        .basicMarquee()
                 )
                 Text(
                     text = current.album.name,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.basicMarquee()
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
