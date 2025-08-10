@@ -47,11 +47,13 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Log.i(MainActivity::class.simpleName, "Saving current track position")
-        vm.storeCurrentTrackInfo()
+        if (::vm.isInitialized)
+            vm.storeCurrentTrackInfo()
     }
 
     override fun onDestroy() {
-        vm.releaseRes()
+        if (::vm.isInitialized)
+            vm.releaseRes()
         val serviceIntent = Intent(this, PlayerService::class.java)
         stopService(serviceIntent)
         Log.d(null, "Destroying the app activity...")

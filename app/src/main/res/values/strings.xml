@@ -55,4 +55,6 @@
     <string name="auto_play_text">Start playback when app is started</string>
     <string name="plholder_search_artists">Search an artist</string>
     <string name="dequeue_label">Remove from queue</string>
+    <string name="read_storage_denied">SoundBox needs to access files and media to work, you can go to your device settings and enable it for this app.</string>
+    <string name="perm_denied_title">Permission Required</string>
 </resources>

@@ -1,17 +1,15 @@
 package com.example.musicplayer.ui.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -55,7 +53,6 @@ import com.example.musicplayer.ui.state.AlbumsVM
 import com.example.musicplayer.ui.state.DialogsVM
 import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.app
-import com.example.musicplayer.utils.offSetCells
 import kotlinx.coroutines.Dispatchers
 
 @Composable
@@ -142,7 +139,6 @@ fun AlbumsScreen(
     )
 }
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun AlbumGrid(
     albumsVM: AlbumsVM,
@@ -169,28 +165,20 @@ fun AlbumGrid(
                 )
         )
         Divider()
-
-        val bigImgSize = dimensionResource(R.dimen.grid_item_size)
-        BoxWithConstraints(
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(dimensionResource(R.dimen.grid_item_min_size)),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+            contentPadding = PaddingValues(dimensionResource(R.dimen.padding_small)),
             modifier = Modifier
+                .fillMaxSize()
                 .weight(.9f)
-                .padding(start = dimensionResource(R.dimen.padding_small), end = dimensionResource(R.dimen.padding_small))
         ) {
-            val columns by remember { derivedStateOf { (maxWidth / bigImgSize).toInt() } }
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                offSetCells(columns)
-                items(albums.value) {
-                    AlbumItem(
-                        album = it,
-                        onClick = { onSelectAlbum(it) }
-                    )
-                }
-                offSetCells(columns)
+            items(albums.value) {
+                AlbumItem(
+                    album = it,
+                    onClick = { onSelectAlbum(it) }
+                )
             }
         }
     }
@@ -202,31 +190,33 @@ fun AlbumItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
-            .clip(shape = RoundedCornerShape(10.dp))
-    ) {
-        AsyncImage(
-            modifier = Modifier.size(dimensionResource(R.dimen.grid_item_size)),
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(album.thumbnail)
-                .dispatcher(Dispatchers.IO)
-                .crossfade(true)
-                .build(),
-            contentDescription = album.name,
-            error = painterResource(R.drawable.unknown_thumb),
-            placeholder = painterResource(R.drawable.unknown_thumb),
-            contentScale = ContentScale.Crop
-        )
-        Text(
-            text = album.name,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-            fontSize = 14.sp,
-            lineHeight = 14.sp,
-            modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-        )
+    BoxWithConstraints {
+        Column(
+            modifier = modifier
+                .clickable(onClick = onClick)
+                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
+                .clip(shape = RoundedCornerShape(10.dp))
+        ) {
+            AsyncImage(
+                modifier = Modifier.size(size = this@BoxWithConstraints.minWidth),
+                model = ImageRequest.Builder(context = LocalContext.current)
+                    .data(album.thumbnail)
+                    .dispatcher(Dispatchers.IO)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = album.name,
+                error = painterResource(R.drawable.unknown_thumb),
+                placeholder = painterResource(R.drawable.unknown_thumb),
+                contentScale = ContentScale.Crop
+            )
+            Text(
+                text = album.name,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                fontSize = 14.sp,
+                lineHeight = 14.sp,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+            )
+        }
     }
 }

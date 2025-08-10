@@ -3,10 +3,7 @@ package com.example.musicplayer.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
-import android.os.Bundle
 import android.util.Log
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.musicplayer.MusicPlayerApplication
@@ -70,9 +67,5 @@ fun Cursor.nullableStringColumn(index: Int): String? = if (index == -1) null els
 fun Cursor.nullableLongColumn(index: Int): Long? = if (index == -1) null else this.getLong(index)
 
 fun floatPosition(pos: Long, duration: Long): Float = ((pos * 100) / duration).toFloat()
-
-fun LazyGridScope.offSetCells(count: Int) {
-    item(span = { GridItemSpan(count) }) {}
-}
 
 fun toPosition(percentage: Float, duration: Long): Long = (percentage / 100 * duration).toLong()

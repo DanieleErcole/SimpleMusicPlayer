@@ -31,11 +31,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowHeightSizeClass
 import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.musicplayer.R
 import com.example.musicplayer.services.MusicObserver
 import com.example.musicplayer.ui.components.dialogs.AddToPlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.ConfirmActionDialog
 import com.example.musicplayer.ui.components.dialogs.NewPlaylistDialog
+import com.example.musicplayer.ui.components.dialogs.PermissionDeniedDialog
 import com.example.musicplayer.ui.components.dialogs.RenamePlaylistDialog
 import com.example.musicplayer.ui.components.dialogs.SongInfoDialog
 import com.example.musicplayer.ui.components.slideInConditional
@@ -90,17 +92,24 @@ fun MusicPlayerApp(
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
 
-    var relaunchPermission by remember { mutableStateOf(false) }
+    val dialogsVm = viewModel<DialogsVM>(factory = DialogsVM.Factory)
+
     var hasPermission by remember {
         mutableStateOf(ctx.applicationContext.hasPermission(permission))
     }
     val permissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = { hasPermission = it }
+        onResult = {
+            hasPermission = it
+            if (!it)
+                dialogsVm.togglePermDialog()
+        }
     )
 
-    if (!hasPermission)
-        LaunchedEffect(Unit, relaunchPermission) { permissionsLauncher.launch(permission) }
+    LaunchedEffect(hasPermission) {
+        if (!hasPermission)
+            permissionsLauncher.launch(permission)
+    }
 
     LaunchedEffect(hasPermission) {
         if (appVm.canAutoScan() && hasPermission) {
@@ -128,7 +137,6 @@ fun MusicPlayerApp(
         }
     }
 
-    val dialogsVm = viewModel<DialogsVM>(factory = DialogsVM.Factory)
     val tracksVm = viewModel<TracksVM>(factory = TracksVM.Factory)
     val playingVm = viewModel<CurrentPlayingVM>(factory = CurrentPlayingVM.Factory)
     val playlistVm = viewModel<PlaylistsVM>(factory = PlaylistsVM.Factory)
@@ -144,6 +152,7 @@ fun MusicPlayerApp(
     }
 
     val isInLandscape = windowSizeClass.windowHeightSizeClass == WindowHeightSizeClass.COMPACT
+            || windowSizeClass.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
 
     Scaffold(
         snackbarHost = {
@@ -168,6 +177,7 @@ fun MusicPlayerApp(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) { innerPadding ->
+        PermissionDeniedDialog(dialogsVm = dialogsVm)
         ConfirmActionDialog(dialogsVm = dialogsVm)
         AddToPlaylistDialog(
             plVm = playlistVm,

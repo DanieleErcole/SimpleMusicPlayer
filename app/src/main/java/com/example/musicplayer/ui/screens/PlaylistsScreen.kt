@@ -7,13 +7,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -30,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -63,7 +61,6 @@ import com.example.musicplayer.ui.state.TrackListVM
 import com.example.musicplayer.utils.THUMBNAILS_GRID_COLUMNS
 import com.example.musicplayer.utils.THUMBNAILS_GRID_COUNT
 import com.example.musicplayer.utils.app
-import com.example.musicplayer.utils.offSetCells
 import kotlinx.coroutines.Dispatchers
 import kotlin.collections.first
 import kotlin.collections.ifEmpty
@@ -214,28 +211,20 @@ fun PlaylistGrid(
             )
         }
         Divider()
-
-        val bigImgSize = dimensionResource(R.dimen.grid_item_size)
-        BoxWithConstraints(
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(dimensionResource(R.dimen.grid_item_min_size)),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+            contentPadding = PaddingValues(dimensionResource(R.dimen.padding_small)),
             modifier = Modifier
+                .fillMaxSize()
                 .weight(.9f)
-                .padding(start = dimensionResource(R.dimen.padding_small), end = dimensionResource(R.dimen.padding_small))
         ) {
-            val columns by remember { derivedStateOf { (maxWidth / bigImgSize).toInt() } }
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                offSetCells(columns)
-                items(playlists.value) {
-                    PlaylistItem(
-                        playlist = it,
-                        onClick = { onSelectPlaylist(it.playlist) }
-                    )
-                }
-                offSetCells(columns)
+            items(playlists.value) {
+                PlaylistItem(
+                    playlist = it,
+                    onClick = { onSelectPlaylist(it.playlist) }
+                )
             }
         }
     }
@@ -247,63 +236,65 @@ fun PlaylistItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
-            .clip(shape = RoundedCornerShape(10.dp))
-    ) {
-        val thumbnails = playlist.toThumbsList().take(THUMBNAILS_GRID_COUNT)
-        val bigImgSize = dimensionResource(R.dimen.grid_item_size)
+    BoxWithConstraints {
+        Column(
+            modifier = modifier
+                .clickable(onClick = onClick)
+                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
+                .clip(shape = RoundedCornerShape(10.dp))
+        ) {
+            val thumbnails = playlist.toThumbsList().take(THUMBNAILS_GRID_COUNT)
+            val minWidth = this@BoxWithConstraints.minWidth
 
-        if (thumbnails.size > 1) {
-            val imgSize = (bigImgSize / THUMBNAILS_GRID_COLUMNS)
-            LazyVerticalGrid(
-                modifier = Modifier.size(bigImgSize),
-                columns = GridCells.Fixed(THUMBNAILS_GRID_COLUMNS)
-            ) {
-                items(thumbnails) {
-                    AsyncImage(
-                        modifier = Modifier.size(imgSize),
-                        model = ImageRequest.Builder(context = LocalContext.current)
-                            .data(it)
-                            .dispatcher(Dispatchers.IO)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = playlist.playlist.name,
-                        error = painterResource(R.drawable.unknown_thumb),
-                        placeholder = painterResource(R.drawable.unknown_thumb),
-                        contentScale = ContentScale.Crop
-                    )
+            if (thumbnails.size > 1) {
+                val imgSize = (minWidth / THUMBNAILS_GRID_COLUMNS)
+                LazyVerticalGrid(
+                    modifier = Modifier.size(minWidth),
+                    columns = GridCells.Fixed(THUMBNAILS_GRID_COLUMNS)
+                ) {
+                    items(thumbnails) {
+                        AsyncImage(
+                            modifier = Modifier.size(imgSize),
+                            model = ImageRequest.Builder(context = LocalContext.current)
+                                .data(it)
+                                .dispatcher(Dispatchers.IO)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = playlist.playlist.name,
+                            error = painterResource(R.drawable.unknown_thumb),
+                            placeholder = painterResource(R.drawable.unknown_thumb),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    items(count = THUMBNAILS_GRID_COUNT - thumbnails.size) {
+                        Image(
+                            modifier = Modifier.size(imgSize),
+                            painter = painterResource(R.drawable.no_img),
+                            contentDescription = "No image",
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
-                items(count = THUMBNAILS_GRID_COUNT - thumbnails.size) {
-                    Image(
-                        modifier = Modifier.size(imgSize),
-                        painter = painterResource(R.drawable.no_img),
-                        contentDescription = "No image",
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        } else AsyncImage(
-            modifier = Modifier.size(bigImgSize),
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(thumbnails.ifEmpty { null }?.first())
-                .dispatcher(Dispatchers.IO)
-                .crossfade(true)
-                .build(),
-            contentDescription = playlist.playlist.name,
-            error = painterResource(R.drawable.unknown_thumb),
-            placeholder = painterResource(R.drawable.unknown_thumb),
-            contentScale = ContentScale.Crop
-        )
-        Text(
-            text = playlist.playlist.name,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-            fontSize = 14.sp,
-            lineHeight = 14.sp,
-            modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-        )
+            } else AsyncImage(
+                modifier = Modifier.size(minWidth),
+                model = ImageRequest.Builder(context = LocalContext.current)
+                    .data(thumbnails.ifEmpty { null }?.first())
+                    .dispatcher(Dispatchers.IO)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = playlist.playlist.name,
+                error = painterResource(R.drawable.unknown_thumb),
+                placeholder = painterResource(R.drawable.unknown_thumb),
+                contentScale = ContentScale.Crop
+            )
+            Text(
+                text = playlist.playlist.name,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                fontSize = 14.sp,
+                lineHeight = 14.sp,
+                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+            )
+        }
     }
 }

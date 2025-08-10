@@ -2,10 +2,8 @@ package com.example.musicplayer.ui.state
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.musicplayer.MusicPlayerApplication
 import com.example.musicplayer.data.TrackWithAlbum
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +42,9 @@ class DialogsVM : ViewModel() {
     private val _renameDialog = MutableStateFlow<RenameDialogState?>(null)
     val renameDialog = _renameDialog.asStateFlow()
 
+    private val _permDialog = MutableStateFlow(false)
+    val permDialog = _permDialog.asStateFlow()
+
     fun setConfirmDialog(title: String? = null, text: String? = null, action: (() -> Unit)? = null) =
         _confirmDialog.update {
             if (action != null && title != null)
@@ -67,13 +68,11 @@ class DialogsVM : ViewModel() {
                 RenameDialogState(playlist, action)
             else null
         }
+    fun togglePermDialog() = _permDialog.update { !_permDialog.value }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
-                DialogsVM()
-            }
+            initializer { DialogsVM() }
         }
     }
 
