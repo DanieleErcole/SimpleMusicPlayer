@@ -3,10 +3,12 @@ package com.example.musicplayer.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -61,6 +64,7 @@ fun QueueScreen(
     dialogsVm: DialogsVM,
     horizontalLayout: Boolean,
 ) {
+    val ctx = LocalContext.current
     val update = vm.update.collectAsStateWithLifecycle()
     var tracks by remember { mutableStateOf(emptyList<ReorderableQueueItem>()) }
 
@@ -97,31 +101,38 @@ fun QueueScreen(
     Column(
         modifier = modifier.padding(top = dimensionResource(R.dimen.padding_small))
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = dimensionResource(R.dimen.padding_medium))
         ) {
-            Text(
-                text = stringResource(R.string.queue_page),
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                lineHeight = 18.sp,
-                modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium))
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.queue_page),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    lineHeight = 18.sp,
+                )
+                TransparentButton(
+                    onClick = { dialogsVm.setConfirmDialog(title = ctx.getString(R.string.clear_queue_title)) { vm.clearQueue() } },
+                    painter = painterResource(R.drawable.delete),
+                    contentDescription = "Clear queue",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
+                )
+            }
+
             val cur = tracks.find { it.track.queuedItem.isCurrent }
             Text(
                 text = "${(cur?.position)?.plus(1) ?: 0} / ${tracks.size}",
                 fontSize = 12.sp,
-                lineHeight = 14.sp
-            )
-            val dTitle = stringResource(R.string.clear_queue_title)
-            TransparentButton(
-                onClick = { dialogsVm.setConfirmDialog(title = dTitle) { vm.clearQueue() } },
-                painter = painterResource(R.drawable.delete),
-                contentDescription = "Clear queue",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                lineHeight = 14.sp,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
         AnimatedVisibility(selectionMode) {
@@ -197,7 +208,8 @@ fun QueueScreen(
                             .clip(RoundedCornerShape(10.dp))
                             .border(
                                 1.dp,
-                                if (item.track.queuedItem.isCurrent) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                if (item.track.queuedItem.isCurrent) MaterialTheme.colorScheme.primary
+                                else Color.Transparent,
                                 RoundedCornerShape(10.dp)
                             )
                     )
