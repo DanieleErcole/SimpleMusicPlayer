@@ -73,9 +73,12 @@ fun AddToPlaylistDialog(
                             fontSize = 14.sp,
                             lineHeight = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                            modifier = Modifier.padding(
+                                start = dimensionResource(R.dimen.padding_small),
+                                bottom = dimensionResource(R.dimen.padding_medium)
+                            )
                         )
-                        Divider(modifier = Modifier.padding(bottom = 8.dp))
+                        Divider(modifier = Modifier.padding(bottom = dimensionResource(R.dimen.padding_small)))
                         LazyColumn(
                             verticalArrangement = Arrangement.SpaceEvenly
                         ) {
@@ -91,7 +94,6 @@ fun AddToPlaylistDialog(
                                     text = pl.name,
                                     isChecked = itemsState[pl.playlistId] ?: false,
                                     tint = MaterialTheme.colorScheme.outline,
-                                    Modifier.padding(vertical = 2.dp)
                                 )
                             }
                         }

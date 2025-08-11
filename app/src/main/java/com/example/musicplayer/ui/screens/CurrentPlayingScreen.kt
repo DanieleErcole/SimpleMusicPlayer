@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -106,14 +107,19 @@ fun CurrentPlayingScreen(
                     fontSize = 16.sp,
                     lineHeight = 16.sp,
                     color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.padding(top = 6.dp, bottom = 6.dp)
+                    modifier = Modifier
+                        .padding(vertical = 6.dp, horizontal = dimensionResource(R.dimen.padding_medium))
+                        .basicMarquee(initialDelayMillis = 200)
                 )
                 Text(
                     text = current.album.name,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 16.sp,
                     lineHeight = 16.sp,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier
+                        .padding(horizontal = dimensionResource(R.dimen.padding_medium))
+                        .basicMarquee(initialDelayMillis = 400)
                 )
                 Spacer(modifier.fillMaxWidth().height(10.dp))
                 UpperToolbar(
@@ -152,21 +158,15 @@ fun CurrentPlayingScreen(
         else
             Column(
                 modifier = modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 thumb(
                     Modifier
-                        .fillMaxSize()
-                        .weight(.5f)
+                        .wrapContentSize()
                         .padding(horizontal = 40.dp)
                 )
-                content(Modifier)
-                Spacer(
-                    modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                )
+                content(Modifier.wrapContentSize())
             }
     } ?: NothingPlaying()
 }
@@ -381,6 +381,10 @@ fun NothingPlaying(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        Text(text = stringResource(R.string.nothing_playing), fontSize = 20.sp)
+        Text(
+            text = stringResource(R.string.nothing_playing),
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -253,9 +252,7 @@ fun SelectionToolbar(
                 contentDescription = "Select/Deselect all",
                 tint = MaterialTheme.colorScheme.primary,
                 fullSizeIcon = true,
-                modifier = Modifier
-                    .width(26.dp)
-                    .height(26.dp)
+                modifier = Modifier.size(26.dp)
             )
             Text(
                 text = "$selectionSize ${stringResource(R.string.selection_counter)}",
