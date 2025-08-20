@@ -63,10 +63,10 @@ class PlayerController(
         Log.e(this::class.simpleName, "Playback error: $error")
         playerScope.launch {
             if (error.cause is IOException) {
-                musicRepo.currentPlaying()?.let {
-                    musicRepo.deleteTrack(it.track.internal)
-                }
                 val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
+                musicRepo.currentPlaying()?.let {
+                    musicRepo.deleteAndPlayNextPos(it.queuedItem.position)
+                }
                 _errorFlow.emit("Failed to load the track at $path")
             } else {
                 _errorFlow.emit("Unknown error: ${error.cause}")

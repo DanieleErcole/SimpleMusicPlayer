@@ -23,10 +23,9 @@ class MusicScanner(private val musicRepo: MusicRepository) {
 
         val scannedTracks = scanMusic(ctx)
 
-        // Delete from the db all the tracks that are present but are not stored in the scanned directories anymore
+        // Delete from the db all the tracks that are present but are not stored in the media storage anymore
         // If a track has been moved to another scanned location its id will change (MediaStore behaviour), I treat it like it's another track entirely
         // by deleting its previous version and adding the new one at the new location
-        // This works also in the case of a directory removal from the scanned list
         musicRepo.deleteTrackBlk(tracks.filter {
             scannedTracks.find { (track) -> track.trackId == it.trackId } == null
         })

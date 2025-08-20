@@ -41,8 +41,8 @@ fun formatInstantToHuman(i: Instant): String = ZonedDateTime
     .ofInstant(i, ZoneId.systemDefault())
     .format(DateTimeFormatter.ofPattern("dd MMMM, yyyy HH:mm"))
 
-fun TrackWithAlbum.toMediaItem(): MediaItem {
-    return MediaItem.Builder()
+fun TrackWithAlbum.toMediaItem(): MediaItem =
+    MediaItem.Builder()
         .setUri(this.internal.location)
         .setMediaMetadata(
             MediaMetadata.Builder()
@@ -60,7 +60,6 @@ fun TrackWithAlbum.toMediaItem(): MediaItem {
                 .build()
         )
         .build()
-}
 
 fun Cursor.nullableIntColumn(index: Int): Int? = if (index == -1) null else this.getInt(index)
 fun Cursor.nullableStringColumn(index: Int): String? = if (index == -1) null else this.getString(index)

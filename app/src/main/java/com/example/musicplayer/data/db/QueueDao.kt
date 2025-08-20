@@ -77,7 +77,7 @@ interface QueueDao {
     }
 
     @Transaction
-    suspend fun finishAndPlayNextPos(nextPos: Int, doNothing: Boolean) =
+    suspend fun finishAndPlayNextPos(nextPos: Int, doNothing: Boolean) {
         currentPlaying()?.let {
             track(nextPos)?.let {
                 finish()
@@ -87,6 +87,17 @@ interface QueueDao {
                     finish()
             }
         }
+    }
+
+    @Transaction
+    suspend fun deleteAndPlayNextPos(nextPos: Int) {
+        currentPlaying()?.let {
+            deleteAndRefresh(it.queuedItem)
+            track(nextPos - 1)?.let {
+                play(it.queuedItem)
+            }
+        }
+    }
 
     @Transaction
     suspend fun replaceQueue(new: List<QueueItem>) {
