@@ -63,10 +63,11 @@ class PlayerController(
         Log.e(this::class.simpleName, "Playback error: $error")
         playerScope.launch {
             if (error.cause is IOException) {
-                val path = musicRepo.currentPlaying()?.track?.internal?.location ?: "unknown"
-                musicRepo.currentPlaying()?.let {
-                    musicRepo.deleteAndPlayNextPos(it.queuedItem.position)
-                }
+                val path = musicRepo.currentPlaying()?.let {
+                    controller.removeMediaItem(it.queuedItem.position)
+                    musicRepo.deleteCurrentAndPlayNextPos()
+                    it.track.internal.location
+                } ?: "unknown"
                 _errorFlow.emit("Failed to load the track at $path")
             } else {
                 _errorFlow.emit("Unknown error: ${error.cause}")
@@ -101,12 +102,10 @@ class PlayerController(
         if (musicRepo.currentPlaying() == null || mustPlay) {
             val first = mutList.removeAt(0)
             val size = musicRepo.queueSize()
-            musicRepo.queueAndPlay(
+            musicRepo.queue(
                 QueueItem(
                     track = first.internal.trackId,
-                    position = size,
-                    isCurrent = true,
-                    lastPosition = null
+                    position = size
                 )
             )
 
@@ -120,8 +119,7 @@ class PlayerController(
                 QueueItem(
                     track = item.internal.trackId,
                     position = musicRepo.queueSize() + pos,
-                    isCurrent = false,
-                    lastPosition = null
+                    isCurrent = false
                 )
             })
             controller.addMediaItems(mutList.map { it.toMediaItem() })
@@ -133,14 +131,13 @@ class PlayerController(
             QueueItem(
                 track = item.internal.trackId,
                 position = pos,
-                isCurrent = item.internal.trackId == newCurrent,
-                lastPosition = null
+                isCurrent = false
             )
         }
 
         musicRepo.replaceQueue(items)
 
-        val curPos = items.first { it.isCurrent }.position
+        val curPos = items.first { it.track == newCurrent }.position
         controller.setMediaItems(
             new.map { it.toMediaItem() },
             curPos,

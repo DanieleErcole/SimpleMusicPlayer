@@ -59,22 +59,22 @@ class QueueVM(
     fun playTrack(pos: Int) {
         viewModelScope.launch {
             playerController.playTrack(pos)
+            updateUIQueue()
         }
-        updateUIQueue()
     }
 
     fun queueAll(tracks: List<TrackWithAlbum>, mustPlay: Boolean = false) {
         viewModelScope.launch {
             playerController.queueAll(tracks, mustPlay = mustPlay)
+            updateUIQueue()
         }
-        updateUIQueue()
     }
 
     fun dequeueAll(items: List<QueuedTrack>) {
         viewModelScope.launch {
             playerController.dequeue(items.map { it.queuedItem })
+            updateUIQueue()
         }
-        updateUIQueue()
     }
 
     companion object {

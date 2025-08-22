@@ -140,9 +140,9 @@ data class QueueItem(
     @ColumnInfo(name = "position")
     val position: Int,
     @ColumnInfo(name = "isCurrent")
-    val isCurrent: Boolean,
+    val isCurrent: Boolean = false,
     @ColumnInfo(name = "lastPosition")
-    val lastPosition: Long? // If position != null the track is the currently played one
+    val lastPosition: Long? = null // If position != null the track is the currently played one
 )
 
 data class QueuedTrack(

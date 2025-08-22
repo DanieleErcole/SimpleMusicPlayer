@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.musicplayer.data.QueueItem
 import com.example.musicplayer.data.QueuedTrack
+import com.example.musicplayer.data.Track
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 
@@ -30,10 +31,6 @@ interface QueueDao {
     fun currentPlayingFlow(): Flow<QueuedTrack?>
     @Query("UPDATE queue SET position = position - 1 WHERE position > :removedPos")
     suspend fun refreshPositionsOnRemove(removedPos: Int)
-    @Query("UPDATE queue SET position = position - 1 WHERE position > :fromPos AND position <= :toPos")
-    suspend fun refreshPositionsOnMoveGreater(fromPos: Int, toPos: Int)
-    @Query("UPDATE queue SET position = position + 1 WHERE position >= :toPos AND position < :fromPos")
-    suspend fun refreshPositionsOnMoveLower(fromPos: Int, toPos: Int)
     @Query("UPDATE queue SET position = :new WHERE position = :old")
     suspend fun updatePos(old: Int, new: Int)
 
@@ -60,6 +57,8 @@ interface QueueDao {
     @Delete
     suspend fun delete(item: QueueItem)
     @Delete
+    suspend fun deleteTrack(t: Track)
+    @Delete
     suspend fun deleteBlk(items: List<QueueItem>)
 
     @Transaction
@@ -69,11 +68,10 @@ interface QueueDao {
     }
 
     @Transaction
-    suspend fun queueAndPlay(item: QueueItem) {
-        insert(item)
-        if (size() > 0) // If I call this and something is playing I play it instantly without replacing it
-            finish()
-        play(item)
+    suspend fun play(pos: Int) {
+        track(pos)?.queuedItem?.let {
+            play(it)
+        }
     }
 
     @Transaction
@@ -90,10 +88,15 @@ interface QueueDao {
     }
 
     @Transaction
-    suspend fun deleteAndPlayNextPos(nextPos: Int) {
+    suspend fun deleteCurrentAndPlayNextPos() {
         currentPlaying()?.let {
+            val curPos = it.queuedItem.position
+            val size = size()
+
             deleteAndRefresh(it.queuedItem)
-            track(nextPos - 1)?.let {
+            deleteTrack(it.track.internal)
+
+            track(if (curPos == size - 1) curPos - 1 else curPos)?.let {
                 play(it.queuedItem)
             }
         }
@@ -103,9 +106,6 @@ interface QueueDao {
     suspend fun replaceQueue(new: List<QueueItem>) {
         clear()
         insertBlk(new)
-        currentPlaying()?.let {
-            play(it.queuedItem)
-        }
     }
 
     @Transaction
@@ -129,9 +129,7 @@ interface QueueDao {
     suspend fun moveTrack(from: Int, to: Int) {
         // Set the item to -1 because it could be the same track as the one in the position it's moving to (position, trackId are primary key)
         updatePos(from, -1)
-        if (from < to)
-            refreshPositionsOnMoveGreater(from, to)
-        else refreshPositionsOnMoveLower(from, to)
+        updatePos(to, from)
         updatePos(-1, to)
     }
 

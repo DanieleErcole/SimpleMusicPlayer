@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,9 +51,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 data class ReorderableDragHandle(
     val scope: ReorderableCollectionItemScope,
-    val dragEnabled: Boolean,
-    val onDragStart: () -> Unit,
-    val onDragEnd: () -> Unit,
+    val dragEnabled: Boolean
 )
 
 @Composable
@@ -77,9 +74,6 @@ fun QueueScreen(
         }
     }
 
-    var fromPos by remember { mutableIntStateOf(-1) }
-    var toPos by remember { mutableIntStateOf(-1) }
-
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         tracks = tracks.toMutableList().apply {
@@ -88,7 +82,7 @@ fun QueueScreen(
             removed.move(to.index)
             add(to.index, removed)
         }
-        toPos = to.index
+        vm.moveTrack(from.index, to.index)
     }
 
     var borderVisible by remember { mutableStateOf(false) }
@@ -199,9 +193,7 @@ fun QueueScreen(
                         onDequeueClick = { vm.dequeueAll(listOf(item.track)) },
                         dragHandle = ReorderableDragHandle(
                             scope = this,
-                            dragEnabled = !selectionMode,
-                            onDragStart = { fromPos = item.position },
-                            onDragEnd = { vm.moveTrack(fromPos, toPos) }
+                            dragEnabled = !selectionMode
                         ),
                         horizontalLayout = horizontalLayout,
                         modifier = Modifier

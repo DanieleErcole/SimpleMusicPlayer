@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
 class PlayerService : MediaSessionService(), Callback, Player.Listener {
@@ -86,11 +85,15 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         session?.player?.let { player ->
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
-                playerScope.launch {
+            playerScope.launch {
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
+                    musicRepo.setPlay(player.currentMediaItemIndex)
+                    Log.i(PlayerService::class.simpleName, "Playing ${player.currentMediaItemIndex}")
+                } else if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                     val currentIndex = player.currentMediaItemIndex
                     val isRepeatOff = player.repeatMode == Player.REPEAT_MODE_OFF
 
+                    Log.i(PlayerService::class.simpleName, "Transitioning to ${player.currentMediaItemIndex}")
                     musicRepo.finishAndPlayNextPos(
                         currentIndex,
                         doNothingToCurrent = isRepeatOff // Do nothing to current if the player is not in repeat mode, the player simply pauses
