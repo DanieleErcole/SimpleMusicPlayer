@@ -293,6 +293,7 @@ fun PlayerControls(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(dimensionResource(R.dimen.padding_small))
+                    .padding(end = dimensionResource(R.dimen.padding_small))
                     .width(200.dp)
                     .height(20.dp)
             ) {
@@ -300,7 +301,8 @@ fun PlayerControls(
                     text = "$intVolume",
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
-                    modifier = Modifier.width(dimensionResource(R.dimen.padding_big))
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.width(40.dp)
                 )
                 CustomSlider(
                     value = sliderPosition,

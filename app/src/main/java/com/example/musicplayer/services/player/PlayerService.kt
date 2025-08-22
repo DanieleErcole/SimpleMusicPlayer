@@ -104,7 +104,7 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
     }
 
     override fun onVolumeChanged(volume: Float) {
-        playerScope.launch { stateRepo.updateVolume(volume) }
+        playerScope.launch { stateRepo.updateVolume(volume * 100f) }
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
