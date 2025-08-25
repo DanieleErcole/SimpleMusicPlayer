@@ -1,4 +1,4 @@
-package com.example.musicplayer
+package com.example.musicplayer.dbTests
 
 import com.example.musicplayer.data.TrackAddedToPlaylist
 import com.example.musicplayer.data.db.AlbumDao

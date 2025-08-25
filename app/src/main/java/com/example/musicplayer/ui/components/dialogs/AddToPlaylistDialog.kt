@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,6 +68,7 @@ fun AddToPlaylistDialog(
                             .heightIn(max = maxHeight - if (horizontalLayout) 50.dp else 70.dp)
                             .background(MaterialTheme.colorScheme.surfaceContainer)
                             .padding(top = 12.dp, start = 12.dp, end = 12.dp)
+                            .testTag("AddToPlDialog")
                     ) {
                         Text(
                             text = if (tracks.size == 1) tracks.first().internal.title else "${tracks.size} songs",

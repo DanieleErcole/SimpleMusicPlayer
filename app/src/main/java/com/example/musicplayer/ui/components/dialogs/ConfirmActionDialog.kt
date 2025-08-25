@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,14 +38,16 @@ fun ConfirmActionDialog(
                     onClick = {
                         it.action()
                         dialogsVm.setConfirmDialog()
-                    }
+                    },
+                    modifier = Modifier.testTag(stringResource(R.string.yes))
                 ) {
                     Text(stringResource(R.string.yes))
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { dialogsVm.setConfirmDialog() }
+                    onClick = { dialogsVm.setConfirmDialog() },
+                    modifier = Modifier.testTag(stringResource(R.string.no))
                 ) {
                     Text(stringResource(R.string.no))
                 }

@@ -42,8 +42,8 @@ class QueueVM(
     fun clearQueue() {
         viewModelScope.launch {
             playerController.clearQueue()
+            updateUIQueue()
         }
-        updateUIQueue()
     }
 
     fun selectTrack(item: ReorderableQueueItem) =

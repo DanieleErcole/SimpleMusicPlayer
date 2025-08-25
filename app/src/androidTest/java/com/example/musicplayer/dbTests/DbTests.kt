@@ -1,4 +1,4 @@
-package com.example.musicplayer
+package com.example.musicplayer.dbTests
 
 import android.content.Context
 import androidx.room.Room

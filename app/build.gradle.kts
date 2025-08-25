@@ -52,18 +52,22 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    implementation("androidx.room:room-runtime:2.7.1")
-    ksp("androidx.room:room-compiler:2.7.1")
-    implementation("androidx.room:room-ktx:2.7.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
-    implementation("io.coil-kt:coil-compose:2.2.2")
-    implementation("androidx.navigation:navigation-compose:2.9.0")
-    implementation("androidx.media3:media3-exoplayer:1.7.1")
-    implementation("androidx.media3:media3-session:1.7.1")
-    implementation("androidx.media3:media3-extractor:1.7.1")
-    implementation("androidx.compose.material3.adaptive:adaptive:1.1.0")
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
+
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.datastore.preferences)
+    implementation(libs.coil.compose)
+    implementation(libs.navigation.compose)
+
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
+    implementation(libs.media3.extractor)
+
+    implementation(libs.compose.adaptive)
     implementation(libs.reorderable)
+    //implementation(libs.androidx.rules)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

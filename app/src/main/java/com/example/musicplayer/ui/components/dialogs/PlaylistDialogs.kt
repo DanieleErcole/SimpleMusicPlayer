@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -120,7 +121,7 @@ fun NewPlaylistDialog(
             btnLabel = stringResource(R.string.create_btn_label),
             onDismiss = { dialogsVM.setNewDialog() },
             onConfirm = { plVm.newPlaylist(it) },
-            modifier = modifier
+            modifier = modifier.testTag("NewPlaylistDialog")
         )
     }
 }
@@ -142,7 +143,7 @@ fun RenamePlaylistDialog(
                 plVm.renamePlaylist(pl.playlist, it)
                 pl.endAction(it)
             },
-            modifier = modifier
+            modifier = modifier.testTag("RenamePlaylistDialog")
         )
     }
 }

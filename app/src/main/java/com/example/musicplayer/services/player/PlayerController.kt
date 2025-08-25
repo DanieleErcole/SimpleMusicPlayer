@@ -148,8 +148,25 @@ class PlayerController(
     }
 
     suspend fun dequeue(items: List<QueueItem>) {
-        items.forEach { controller.removeMediaItem(it.position) }
-        musicRepo.dequeueAll(items)
+        val mutable = items.toMutableList()
+        val curIndex = mutable.indexOf(mutable.firstOrNull() { it.isCurrent })
+        if (curIndex != -1) mutable.removeAt(curIndex)
+
+        musicRepo.dequeueAll(mutable)
+        mutable.map { it.position }.reversed().forEach {
+            controller.removeMediaItem(it)
+        }
+
+        if (curIndex != -1) {
+            musicRepo.apply {
+                val cur = currentPlaying()!!.queuedItem
+                dequeueAll(listOf(cur))
+                controller.apply {
+                    removeMediaItem(cur.position)
+                    play()
+                }
+            }
+        }
     }
 
     suspend fun moveTrack(from: Int, to: Int) {

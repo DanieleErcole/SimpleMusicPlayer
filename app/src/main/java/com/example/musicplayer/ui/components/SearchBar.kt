@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.musicplayer.R
@@ -26,6 +27,6 @@ fun SearchInputField(
         },
         onChange = onChange,
         placeholderText = placeholder ?: stringResource(R.string.plholder_search),
-        modifier = modifier,
+        modifier = modifier.testTag("SearchBar"),
     )
 }

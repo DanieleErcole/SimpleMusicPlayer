@@ -76,6 +76,14 @@ enum class AppScreen(val index: Int, val icon: Int) {
 @Composable
 fun MusicPlayerApp(
     appVm: MusicPlayerVM,
+    tracksVm: TracksVM = viewModel(factory = TracksVM.Factory),
+    playingVm: CurrentPlayingVM = viewModel(factory = CurrentPlayingVM.Factory),
+    playlistVm: PlaylistsVM = viewModel(factory = PlaylistsVM.Factory),
+    queueVm: QueueVM = viewModel(factory = QueueVM.Factory),
+    albumsVm: AlbumsVM = viewModel(factory = AlbumsVM.Factory),
+    artistsVm: ArtistsVM = viewModel(factory = ArtistsVM.Factory),
+    dialogsVm: DialogsVM = viewModel(factory = DialogsVM.Factory),
+    settingsVm: SettingsVM = viewModel(factory = SettingsVM.Factory),
     navController: NavHostController = rememberNavController(),
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
 ) {
@@ -91,8 +99,6 @@ fun MusicPlayerApp(
 
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
-
-    val dialogsVm = viewModel<DialogsVM>(factory = DialogsVM.Factory)
 
     var hasPermission by remember {
         mutableStateOf(ctx.applicationContext.hasPermission(permission))
@@ -136,14 +142,6 @@ fun MusicPlayerApp(
             appVm.snackBarState.showSnackbar(message = errorMsg)
         }
     }
-
-    val tracksVm = viewModel<TracksVM>(factory = TracksVM.Factory)
-    val playingVm = viewModel<CurrentPlayingVM>(factory = CurrentPlayingVM.Factory)
-    val playlistVm = viewModel<PlaylistsVM>(factory = PlaylistsVM.Factory)
-    val queueVm = viewModel<QueueVM>(factory = QueueVM.Factory)
-    val albumsVm = viewModel<AlbumsVM>(factory = AlbumsVM.Factory)
-    val artistsVm = viewModel<ArtistsVM>(factory = ArtistsVM.Factory)
-    val settingsVm = viewModel<SettingsVM>(factory = SettingsVM.Factory)
 
     navController.addOnDestinationChangedListener { _, destination, _ ->
         val to = AppScreen.valueOf(destination.route ?: AppScreen.Playing.name)

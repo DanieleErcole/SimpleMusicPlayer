@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -115,6 +116,7 @@ fun TrackList(
                     fontSize = 18.sp,
                     lineHeight = 18.sp,
                     modifier = Modifier
+                        .testTag("PageTitle")
                         .padding(start = onBackClick?.let { dimensionResource(R.dimen.padding_small) } ?: 0.dp)
                 )
             }
@@ -191,6 +193,7 @@ fun TrackList(
         Divider()
         LazyColumn(
             modifier = Modifier
+                .testTag("TrackList")
                 .weight(.85f)
         ) {
             items(tracks.value) {
@@ -240,7 +243,7 @@ fun SelectionToolbar(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier
+        modifier = modifier.testTag("SelectionToolbar")
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
