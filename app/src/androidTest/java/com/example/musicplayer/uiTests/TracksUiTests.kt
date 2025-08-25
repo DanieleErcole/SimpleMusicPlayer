@@ -14,7 +14,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.requestFocus
-import androidx.compose.ui.test.withKeysDown
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.musicplayer.R
 import com.example.musicplayer.utils.app
@@ -34,7 +33,7 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun isInTracksScreenTest() = runTest {
+    fun isInTracksScreenTest() {
         composeTestRule.apply {
             onNodeWithTag("PageTitle").assertIsDisplayed()
             onNodeWithTag("TrackList").assertIsDisplayed()
@@ -53,7 +52,7 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun selectionModeActivatesTest() = runTest {
+    fun selectionModeActivatesTest() {
         composeTestRule.apply {
             onNodeWithTag("TrackList")
                 .onChildren()
@@ -65,7 +64,7 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun songInfoDialogOpenedTest() = runTest {
+    fun songInfoDialogOpenedTest() {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         composeTestRule.apply {
             onAllNodesWithContentDescription("Track options")
@@ -92,7 +91,7 @@ class TracksUiTests : UiTest() {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun searchTracksTest() = runTest {
+    fun searchTracksTest() {
         composeTestRule.apply {
             onNodeWithTag("SearchBar")
                 .requestFocus()
