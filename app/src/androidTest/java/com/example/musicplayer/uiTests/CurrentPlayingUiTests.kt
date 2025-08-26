@@ -1,0 +1,83 @@
+package com.example.musicplayer.uiTests
+
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.onChildren
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
+import com.example.musicplayer.R
+import com.example.musicplayer.data.Loop
+import com.example.musicplayer.utils.app
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Test
+import kotlin.apply
+
+@OptIn(ExperimentalTestApi::class)
+class CurrentPlayingUiTests : UiTest() {
+
+    fun playSong() {
+        composeTestRule.apply {
+            playSong(this)
+            waitUntilExactlyOneExists(hasContentDescription("Song artwork"), 10000)
+        }
+    }
+
+    @After
+    fun resetPlayerState() = runTest {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        app(ctx).playerStateRepository.updateLoop(Loop.None)
+        app(ctx).playerStateRepository.updateVolume(100f)
+        app(ctx).playerStateRepository.updatePaused(false)
+    }
+
+    @Test
+    fun isInitiallyEmpty() {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        composeTestRule.onNodeWithText(ctx.getString(R.string.nothing_playing))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun selectAndPlaySong() {
+        playSong()
+        composeTestRule.apply {
+            waitUntilExactlyOneExists(hasContentDescription("Song artwork"), 10000)
+            onNodeWithTag("SongTitle").assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun pauseAndResume() {
+        playSong()
+        composeTestRule.apply {
+            waitUntilExactlyOneExists(hasContentDescription("Song artwork"), 10000)
+            onNodeWithContentDescription("Pause").performClick()
+            waitUntilExactlyOneExists(hasContentDescription("Play"), 10000)
+            onNodeWithContentDescription("Play")
+                .assertIsDisplayed()
+                .performClick()
+            waitUntilExactlyOneExists(hasContentDescription("Pause"), 10000)
+            onNodeWithContentDescription("Pause").assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun changeLoopMode() {
+        playSong()
+        composeTestRule.apply {
+            waitUntilExactlyOneExists(hasContentDescription("Song artwork"), 10000)
+            onNodeWithContentDescription("Loop disabled").performClick()
+            onNodeWithTag("ContextMenu")
+                .onChildren()[1]
+                .performClick()
+            waitForIdle()
+            onNodeWithContentDescription("Loop queue").assertIsDisplayed()
+        }
+    }
+
+}

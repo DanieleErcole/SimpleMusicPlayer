@@ -1,6 +1,12 @@
 package com.example.musicplayer.uiTests
 
 import android.os.Environment
+import androidx.compose.ui.test.junit4.ComposeTestRule
+import androidx.compose.ui.test.onChildren
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.io.FileOutputStream
@@ -19,5 +25,16 @@ fun copyTestFileToDevice(fileName: String) {
         FileOutputStream(outputFile).use { outputStream ->
             inputStream.copyTo(outputStream)
         }
+    }
+}
+
+fun playSong(rule: ComposeTestRule) {
+    rule.apply {
+        onNodeWithContentDescription("Tracks page").performClick()
+        waitForIdle()
+        onNodeWithTag("TrackList")
+            .onChildren()
+            .onFirst()
+            .performClick()
     }
 }

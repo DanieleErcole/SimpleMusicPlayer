@@ -138,6 +138,7 @@ fun AddToPlaylistDialog(
                                 fontSize = 14.sp,
                                 lineHeight = TextUnit.Unspecified,
                                 enabled = itemsState.containsValue(true),
+                                modifier = Modifier.testTag("AddBtn")
                             )
                         }
                     }

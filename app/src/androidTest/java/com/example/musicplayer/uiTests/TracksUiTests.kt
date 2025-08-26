@@ -33,7 +33,7 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun isInTracksScreenTest() {
+    fun isInTracksScreen() {
         composeTestRule.apply {
             onNodeWithTag("PageTitle").assertIsDisplayed()
             onNodeWithTag("TrackList").assertIsDisplayed()
@@ -41,18 +41,19 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun trackListTest() = runTest {
+    fun trackListDisplayed() = runTest {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         val count = app(ctx).container.musicRepository.getAllTracks().size
 
         composeTestRule
             .onNodeWithTag("TrackList")
+            .assertIsDisplayed()
             .onChildren()
             .assertCountEquals(count)
     }
 
     @Test
-    fun selectionModeActivatesTest() {
+    fun selectionModeActivates() {
         composeTestRule.apply {
             onNodeWithTag("TrackList")
                 .onChildren()
@@ -64,7 +65,7 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun songInfoDialogOpenedTest() {
+    fun songInfoDialogOpened() {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         composeTestRule.apply {
             onAllNodesWithContentDescription("Track options")
@@ -77,7 +78,7 @@ class TracksUiTests : UiTest() {
     }
 
     @Test
-    fun addToPlaylistDialogDisplayedTest() = runTest {
+    fun addToPlaylistDialogDisplayed() = runTest {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         composeTestRule.apply {
             onAllNodesWithContentDescription("Track options")
@@ -91,7 +92,7 @@ class TracksUiTests : UiTest() {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun searchTracksTest() {
+    fun searchTracks() {
         composeTestRule.apply {
             onNodeWithTag("SearchBar")
                 .requestFocus()

@@ -106,6 +106,6 @@ fun CustomContextMenuCheckboxBtn(
                 onCheckedChange = null
             )
         },
-        modifier = modifier
+        modifier = modifier.testTag("CheckboxCtxMenuBtn")
     )
 }

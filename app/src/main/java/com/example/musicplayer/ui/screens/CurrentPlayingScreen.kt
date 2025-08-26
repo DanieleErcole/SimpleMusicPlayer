@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -76,7 +77,7 @@ fun CurrentPlayingScreen(
                         .dispatcher(Dispatchers.IO)
                         .crossfade(true)
                         .build(),
-                    contentDescription = current.internal.title,
+                    contentDescription = "Song artwork",
                     error = painterResource(R.drawable.unknown_thumb),
                     placeholder = painterResource(R.drawable.unknown_thumb),
                     contentScale = ContentScale.Crop
@@ -100,6 +101,7 @@ fun CurrentPlayingScreen(
                         .fillMaxWidth()
                         .padding(horizontal = dimensionResource(R.dimen.padding_medium))
                         .basicMarquee()
+                        .testTag("SongTitle")
                 )
                 Text(
                     text = current.internal.artist,
@@ -336,7 +338,7 @@ fun PlayerControls(
         TransparentButton(
             onClick = { vm.togglePauseResume() },
             painter = painterResource(if (paused.value) R.drawable.play_big else R.drawable.pause_big),
-            contentDescription = "Play/pause",
+            contentDescription = if (paused.value) "Play" else "Pause",
             tint = MaterialTheme.colorScheme.primary,
             fullSizeIcon = true,
             modifier = Modifier.size(big)
@@ -363,7 +365,11 @@ fun PlayerControls(
                 Loop.Queue -> R.drawable.repeat_queue
                 Loop.Track -> R.drawable.repeat_one
             }),
-            contentDescription = "Loop dialog",
+            contentDescription = when(loop.value) {
+                Loop.None -> "Loop disabled"
+                Loop.Queue -> "Loop queue"
+                Loop.Track -> "Loop track"
+            },
             tint = MaterialTheme.colorScheme.outline
         ) { closeMenu ->
             LoopDialog(

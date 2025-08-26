@@ -75,6 +75,7 @@ private fun TextInputDialog(
                             .background(MaterialTheme.colorScheme.primary)
                             .padding(bottom = 1.dp)
                             .background(MaterialTheme.colorScheme.surfaceContainer)
+                            .testTag("DialogTextInput")
                     )
                 }
                 Row(
@@ -100,6 +101,7 @@ private fun TextInputDialog(
                         fontSize = 14.sp,
                         lineHeight = TextUnit.Unspecified,
                         enabled = notEmpty,
+                        modifier = Modifier.testTag("Confirm")
                     )
                 }
             }

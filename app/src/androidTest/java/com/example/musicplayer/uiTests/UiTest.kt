@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.example.musicplayer.MainActivity
 import com.example.musicplayer.utils.app
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -18,12 +19,8 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 abstract class UiTest {
 
-    /*val album = testAlbum()
-
-    val tracks = listOf(
-        testTrack(0, album),
-        testTrack(1, album, "Artist1")
-    )*/
+    // If executed on a VM, its virtual SD card must be correctly configured as storage only on the same device
+    // otherwise the tracks won't appear on the device's MediaStorage
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
@@ -42,22 +39,10 @@ abstract class UiTest {
         copyTestFileToDevice("test1.mp3")
         copyTestFileToDevice("test2.mp3")
         app.scanner.scanDirectories(ctx)
-
-        /*app.userPreferencesRepository.updateAutoScan(false)
         app.container.musicRepository.apply {
-            newAlbum(album)
-            tracks.forEach { newTrack(it) }
-        }*/
-    }
-
-    /*@After
-    fun clearDb() = runTest {
-        val app = app(InstrumentationRegistry.getInstrumentation().targetContext)
-        app.container.musicRepository.apply {
-            deleteTrackBlk(tracks)
-            deleteAlbum(album)
+            getAllPlaylists().first().forEach { deletePlaylist(it) }
         }
-    }*/
+    }
 
     @After
     fun clearPlayer() = runTest {

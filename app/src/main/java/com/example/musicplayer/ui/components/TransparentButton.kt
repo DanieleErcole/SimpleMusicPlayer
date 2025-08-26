@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.TextUnit
 
 @Composable
@@ -92,7 +93,8 @@ fun TransparentBtnWithContextMenu(
         DropdownMenu(
             expanded = isContextMenuVisible,
             onDismissRequest = { isContextMenuVisible = false },
-            content = { content({ isContextMenuVisible = false }) }
+            content = { content({ isContextMenuVisible = false }) },
+            modifier = Modifier.testTag("ContextMenu")
         )
     }
 }
