@@ -4,10 +4,10 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
+import com.example.musicplayer.ui.AppScreen
 import com.example.musicplayer.utils.app
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -16,12 +16,7 @@ import org.junit.Test
 class AlbumsUiTests : UiTest() {
 
     @Before
-    fun navigateToAlbumsScreen() {
-        composeTestRule.apply {
-            onNodeWithContentDescription("Albums page").performClick()
-            waitForIdle()
-        }
-    }
+    fun navigateToAlbumsScreen() = navigateTo(AppScreen.Albums, composeTestRule)
 
     @Test
     fun isAlbumsListDisplayed() = runTest {

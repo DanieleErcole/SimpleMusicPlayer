@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -174,6 +175,7 @@ fun QueueScreen(
             state = lazyListState,
             modifier = Modifier
                 .weight(.8f)
+                .testTag("QueueList")
         ) {
             items(tracks, key = { it.hashCode() }) { item ->
                 ReorderableItem(reorderableLazyListState, key = item.hashCode()) { isDragging ->
@@ -204,6 +206,7 @@ fun QueueScreen(
                                 else Color.Transparent,
                                 RoundedCornerShape(10.dp)
                             )
+                            .testTag(if (item.track.queuedItem.isCurrent) "Current" else "QueueItem")
                     )
                 }
             }

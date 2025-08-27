@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
+import com.example.musicplayer.ui.AppScreen
 import java.io.File
 import java.io.FileOutputStream
 
@@ -28,10 +29,16 @@ fun copyTestFileToDevice(fileName: String) {
     }
 }
 
+fun navigateTo(page: AppScreen, rule: ComposeTestRule) {
+    rule.apply {
+        onNodeWithContentDescription("${page.name} page").performClick()
+        waitForIdle()
+    }
+}
+
 fun playSong(rule: ComposeTestRule) {
     rule.apply {
-        onNodeWithContentDescription("Tracks page").performClick()
-        waitForIdle()
+        navigateTo(AppScreen.Tracks, this)
         onNodeWithTag("TrackList")
             .onChildren()
             .onFirst()

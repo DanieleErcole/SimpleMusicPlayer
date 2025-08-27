@@ -370,7 +370,9 @@ fun TrackItem(
             IconButton(
                 onClick = {},
                 modifier = with(handle.scope) {
-                    Modifier.draggableHandle(enabled = handle.dragEnabled)
+                    Modifier
+                        .draggableHandle(enabled = handle.dragEnabled)
+                        .testTag("DragHandle")
                 },
             ) {
                 Icon(

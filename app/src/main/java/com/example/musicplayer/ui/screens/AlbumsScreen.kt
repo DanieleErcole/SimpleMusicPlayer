@@ -99,7 +99,9 @@ fun AlbumsScreen(
                     painter = painterResource(R.drawable.more_horiz),
                     contentDescription = "Album options",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(dimensionResource(R.dimen.icon_small))
+                    modifier = Modifier
+                        .size(dimensionResource(R.dimen.icon_small))
+                        .testTag("AlbumOptions")
                 ) { closeMenu ->
                     CustomContextMenuBtn(
                         onClick = {
@@ -199,6 +201,7 @@ fun AlbumItem(
                 .clickable(onClick = onClick)
                 .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(10.dp))
                 .clip(shape = RoundedCornerShape(10.dp))
+                .testTag(album.name)
         ) {
             AsyncImage(
                 modifier = Modifier

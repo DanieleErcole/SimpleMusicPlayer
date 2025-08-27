@@ -40,15 +40,8 @@ class PlaylistsUiTest : UiTest() {
         }
     }
 
-    fun navigateTo(page: AppScreen) {
-        composeTestRule.apply {
-            onNodeWithContentDescription("${page.name} page").performClick()
-            waitForIdle()
-        }
-    }
-
     @Before
-    fun navigateToPlaylistsScreen() = navigateTo(AppScreen.Playlists)
+    fun navigateToPlaylistsScreen() = navigateTo(AppScreen.Playlists, composeTestRule)
 
     @After
     fun clearPlaylists() = runTest {
@@ -82,7 +75,7 @@ class PlaylistsUiTest : UiTest() {
         newPlaylist(playlistName)
 
         composeTestRule.apply {
-            navigateTo(AppScreen.Tracks)
+            navigateTo(AppScreen.Tracks, this)
             onAllNodesWithContentDescription("Track options")
                 .onFirst()
                 .performClick()
@@ -91,7 +84,7 @@ class PlaylistsUiTest : UiTest() {
             onNodeWithTag("CheckboxCtxMenuBtn").performClick()
             onNodeWithTag("AddBtn").performClick()
             waitForIdle()
-            navigateTo(AppScreen.Playlists)
+            navigateTo(AppScreen.Playlists, this)
             onNodeWithTag("PlaylistList")
                 .onChildren()
                 .onFirst()

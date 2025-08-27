@@ -22,6 +22,8 @@ abstract class UiTest {
     // If executed on a VM, its virtual SD card must be correctly configured as storage only on the same device
     // otherwise the tracks won't appear on the device's MediaStorage
 
+    lateinit var testAlbumName: String
+
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
@@ -38,9 +40,11 @@ abstract class UiTest {
         )
         copyTestFileToDevice("test1.mp3")
         copyTestFileToDevice("test2.mp3")
+
         app.scanner.scanDirectories(ctx)
         app.container.musicRepository.apply {
             getAllPlaylists().first().forEach { deletePlaylist(it) }
+            testAlbumName = getAllTracks().first { it.internal.location.contains("test1") }.album.name
         }
     }
 

@@ -8,7 +8,6 @@ import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -16,6 +15,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.requestFocus
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.musicplayer.R
+import com.example.musicplayer.ui.AppScreen
 import com.example.musicplayer.utils.app
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -25,12 +25,7 @@ import kotlin.apply
 class TracksUiTests : UiTest() {
 
     @Before
-    fun navigateToTracksScreen() {
-        composeTestRule.apply {
-            onNodeWithContentDescription("Tracks page").performClick()
-            waitForIdle()
-        }
-    }
+    fun navigateToTracksScreen() = navigateTo(AppScreen.Tracks, composeTestRule)
 
     @Test
     fun isInTracksScreen() {
