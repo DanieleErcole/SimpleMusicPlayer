@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 @OptIn(UnstableApi::class)
 class PlayerService : MediaSessionService(), Callback, Player.Listener {
 
-    private var session: MediaSession? = null
+    private lateinit var session: MediaSession
 
     val musicRepo: MusicRepository by lazy {
         val db = AppDatabase.getDatabase(applicationContext)
@@ -84,22 +84,29 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-        session?.player?.let { player ->
+        session.player.apply {
             playerScope.launch {
                 if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
-                    musicRepo.setPlay(player.currentMediaItemIndex)
-                    Log.i(PlayerService::class.simpleName, "Playing ${player.currentMediaItemIndex}")
+                    musicRepo.setPlay(currentMediaItemIndex)
+                    Log.i(PlayerService::class.simpleName, "Playing $currentMediaItemIndex")
                 } else if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
-                    val currentIndex = player.currentMediaItemIndex
-                    val isRepeatOff = player.repeatMode == Player.REPEAT_MODE_OFF
+                    val currentIndex = currentMediaItemIndex
+                    val isRepeatOff = repeatMode == Player.REPEAT_MODE_OFF
 
-                    Log.i(PlayerService::class.simpleName, "Transitioning to ${player.currentMediaItemIndex}")
+                    Log.i(PlayerService::class.simpleName, "Transitioning to $currentMediaItemIndex")
                     musicRepo.finishAndPlayNextPos(
                         currentIndex,
                         doNothingToCurrent = isRepeatOff // Do nothing to current if the player is not in repeat mode, the player simply pauses
                     )
                 }
             }
+        }
+    }
+
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        session.player.apply {
+            if (playbackState == Player.STATE_ENDED && repeatMode == Player.REPEAT_MODE_OFF)
+                playerScope.launch { stateRepo.updatePaused(true) }
         }
     }
 
@@ -112,7 +119,7 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
             if (isPlaying) {
                 if (stateRepo.getPlayerState().paused)
                     stateRepo.updatePaused(false)
-            } else if (session?.player?.playbackState == Player.STATE_READY) // Paused
+            } else if (session.player.playbackState == Player.STATE_READY) // Paused
                 stateRepo.updatePaused(true)
         }
     }
@@ -149,10 +156,9 @@ class PlayerService : MediaSessionService(), Callback, Player.Listener {
     override fun onDestroy() {
         super.onDestroy()
         Log.i(this::class.simpleName, "Shutting down, releasing player and session...")
-        session?.run {
+        session.apply {
             player.release()
             release()
-            session = null
         }
     }
 

@@ -100,6 +100,7 @@ fun QueueScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensionResource(R.dimen.padding_medium))
+                .padding(bottom = if (!selectionMode) 8.dp else 0.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
