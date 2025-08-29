@@ -40,7 +40,6 @@ interface MusicRepository {
     suspend fun queueAll(items: List<QueueItem>)
     suspend fun dequeueAll(items: List<QueueItem>)
     suspend fun finishAndPlayNextPos(nextPos: Int, doNothingToCurrent: Boolean = false)
-    suspend fun deleteCurrentAndPlayNextPos()
     suspend fun replaceQueue(new: List<QueueItem>)
     suspend fun moveTrack(from: Int, to: Int)
 }

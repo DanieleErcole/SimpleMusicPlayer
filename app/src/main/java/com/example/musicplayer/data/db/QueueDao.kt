@@ -88,21 +88,6 @@ interface QueueDao {
     }
 
     @Transaction
-    suspend fun deleteCurrentAndPlayNextPos() {
-        currentPlaying()?.let {
-            val curPos = it.queuedItem.position
-            val size = size()
-
-            deleteAndRefresh(it.queuedItem)
-            deleteTrack(it.track.internal)
-
-            track(if (curPos == size - 1) curPos - 1 else curPos)?.let {
-                play(it.queuedItem)
-            }
-        }
-    }
-
-    @Transaction
     suspend fun replaceQueue(new: List<QueueItem>) {
         clear()
         insertBlk(new)

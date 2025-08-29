@@ -64,8 +64,8 @@ class PlayerController(
         playerScope.launch {
             if (error.cause is IOException) {
                 val path = musicRepo.currentPlaying()?.let {
+                    musicRepo.deleteTrack(it.track.internal)
                     controller.removeMediaItem(it.queuedItem.position)
-                    musicRepo.deleteCurrentAndPlayNextPos()
                     it.track.internal.location
                 } ?: "unknown"
                 _errorFlow.emit("Failed to load the track at $path")
