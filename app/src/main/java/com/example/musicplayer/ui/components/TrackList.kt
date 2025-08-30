@@ -383,7 +383,7 @@ fun TrackItem(
         }
         Box(
             modifier = Modifier
-                .weight(if (horizontalLayout) .05f else .15f)
+                .weight(if (horizontalLayout) .06f else .15f)
                 .aspectRatio(1f)
         ) {
             AsyncImage(
@@ -418,7 +418,7 @@ fun TrackItem(
             }
         }
         Column(
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
                 .weight(.75f)
