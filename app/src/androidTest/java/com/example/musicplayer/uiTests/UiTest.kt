@@ -38,8 +38,8 @@ abstract class UiTest {
                 if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO
                 else Manifest.permission.READ_EXTERNAL_STORAGE
         )
-        copyTestFileToDevice("test1.mp3")
-        copyTestFileToDevice("test2.mp3")
+        copyTestFileToDevice("test1.ogg")
+        copyTestFileToDevice("test2.ogg")
 
         app.scanner.scanDirectories(ctx)
         app.container.musicRepository.apply {
