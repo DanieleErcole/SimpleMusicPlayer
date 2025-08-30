@@ -10,8 +10,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.SessionToken
 import com.example.musicplayer.services.player.PlayerService
@@ -60,11 +58,4 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MusicPlayerTheme {
-    }
 }
