@@ -31,8 +31,7 @@ private val screens = listOf(
 @Composable
 fun AppBar(
     modifier: Modifier = Modifier,
-    navController: NavController,
-    thinNavBar: Boolean = false
+    navController: NavController
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = AppScreen.valueOf(
@@ -47,7 +46,7 @@ fun AppBar(
             .background(MaterialTheme.colorScheme.outlineVariant)
             .padding(top = 1.dp)
             .background(MaterialTheme.colorScheme.background)
-            .height(if (thinNavBar) 50.dp else 100.dp)
+            .height(50.dp)
     ) {
         items(screens) {
             val inPage = currentScreen.name == it.name
