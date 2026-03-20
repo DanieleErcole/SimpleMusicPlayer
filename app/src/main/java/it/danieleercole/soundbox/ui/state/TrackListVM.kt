@@ -1,0 +1,67 @@
+package it.danieleercole.soundbox.ui.state
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import it.danieleercole.soundbox.data.TrackFilter
+import it.danieleercole.soundbox.data.TrackWithAlbum
+import it.danieleercole.soundbox.services.player.PlayerController
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class TrackListVM(
+    trackSrc: TrackFilter,
+    private val playerController: PlayerController
+) : ViewModel() {
+
+    private val _searchString = MutableStateFlow("")
+    val searchString = _searchString.asStateFlow()
+
+    private val _selectedTracks = MutableStateFlow<Set<Long>>(emptySet())
+    val selectedTracks = _selectedTracks.asStateFlow()
+
+    private val trackSource = MutableStateFlow(trackSrc)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tracks = _searchString.flatMapLatest { search ->
+        trackSource.flatMapLatest { source ->
+            source.collectTracks(search)
+        }
+    }.stateIn(
+        initialValue = emptyList(),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000)
+    )
+
+    fun updateSearchString(str: String) = _searchString.update { str }
+
+    fun setTrackSource(trackSrc: TrackFilter) = trackSource.update { trackSrc }
+
+    fun selectTrack(id: Long) =
+        _selectedTracks.update {
+            if (it.contains(id))
+                it - id
+            else it + id
+        }
+
+    fun clearSelection() = _selectedTracks.update { emptySet() }
+    fun selectList(tracks: Set<Long>) = _selectedTracks.update { tracks }
+
+    fun replaceQueue(tracks: List<TrackWithAlbum>, currentId: Long) {
+        viewModelScope.launch {
+            playerController.replaceQueue(tracks, currentId)
+        }
+    }
+
+    fun queueAll(tracks: List<TrackWithAlbum>, mustPlay: Boolean = false) {
+        viewModelScope.launch {
+            playerController.queueAll(tracks, mustPlay = mustPlay)
+        }
+    }
+
+}

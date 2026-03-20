@@ -1,0 +1,70 @@
+package it.danieleercole.soundbox.ui.state
+
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import it.danieleercole.soundbox.MusicPlayerApplication
+import it.danieleercole.soundbox.data.UserPreferencesRepository
+import it.danieleercole.soundbox.services.MusicScanner
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class SettingsVM(
+    private val prefsRepo: UserPreferencesRepository,
+    private val scanner: MusicScanner
+) : ViewModel() {
+
+    val autoScan = prefsRepo.autoScan
+        .stateIn(
+            initialValue = true,
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    val autoPlay = prefsRepo.autoPlay
+        .stateIn(
+            initialValue = false,
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    fun rescan(ctx: Context) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                scanner.scanDirectories(ctx)
+            }
+        }
+    }
+
+    fun toggleAutoScan() {
+        viewModelScope.launch {
+            prefsRepo.updateAutoScan(!autoScan.value)
+        }
+    }
+
+    fun toggleAutoPlay() {
+        viewModelScope.launch {
+            prefsRepo.updateAutoPlay(!autoPlay.value)
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MusicPlayerApplication)
+                SettingsVM(
+                    prefsRepo = application.userPreferencesRepository,
+                    scanner = application.scanner
+                )
+            }
+        }
+    }
+
+}

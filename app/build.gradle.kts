@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,9 +7,23 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists())
+    localProperties.load(localPropertiesFile.inputStream())
+
 android {
     namespace = "it.danieleercole.soundbox"
     compileSdk = 35
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(localProperties.getProperty("release.keystore.path") ?: "")
+            storePassword = localProperties.getProperty("release.keystore.password")
+            keyAlias = localProperties.getProperty("release.key.alias")
+            keyPassword = localProperties.getProperty("release.key.password")
+        }
+    }
 
     defaultConfig {
         applicationId = "it.danieleercole.soundbox"
@@ -21,12 +37,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
