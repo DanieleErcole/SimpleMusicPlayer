@@ -1,10 +1,10 @@
-package com.example.musicplayer.dbTests
+package it.danieleercole.soundbox.dbTests
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.musicplayer.data.db.AppDatabase
+import it.danieleercole.soundbox.data.db.AppDatabase
 import org.junit.After
 import org.junit.Before
 import org.junit.runner.RunWith

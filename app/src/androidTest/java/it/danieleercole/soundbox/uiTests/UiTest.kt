@@ -1,12 +1,12 @@
-package com.example.musicplayer.uiTests
+package it.danieleercole.soundbox.uiTests
 
 import android.Manifest
 import android.os.Build
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.musicplayer.MainActivity
-import com.example.musicplayer.utils.app
+import it.danieleercole.soundbox.MainActivity
+import it.danieleercole.soundbox.utils.app
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

@@ -1,9 +1,9 @@
-package com.example.musicplayer.dbTests
+package it.danieleercole.soundbox.dbTests
 
-import com.example.musicplayer.data.TrackAddedToPlaylist
-import com.example.musicplayer.data.db.AlbumDao
-import com.example.musicplayer.data.db.PlaylistDao
-import com.example.musicplayer.data.db.TrackDao
+import it.danieleercole.soundbox.data.TrackAddedToPlaylist
+import it.danieleercole.soundbox.data.db.AlbumDao
+import it.danieleercole.soundbox.data.db.PlaylistDao
+import it.danieleercole.soundbox.data.db.TrackDao
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

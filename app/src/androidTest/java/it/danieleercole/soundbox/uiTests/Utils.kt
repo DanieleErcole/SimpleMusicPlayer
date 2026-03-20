@@ -1,4 +1,4 @@
-package com.example.musicplayer.uiTests
+package it.danieleercole.soundbox.uiTests
 
 import android.os.Environment
 import androidx.compose.ui.test.junit4.ComposeTestRule
@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.musicplayer.ui.AppScreen
+import it.danieleercole.soundbox.ui.AppScreen
 import java.io.File
 import java.io.FileOutputStream
 

@@ -1,9 +1,9 @@
-package com.example.musicplayer.dbTests
+package it.danieleercole.soundbox.dbTests
 
-import com.example.musicplayer.data.Album
-import com.example.musicplayer.data.Playlist
-import com.example.musicplayer.data.Track
-import com.example.musicplayer.utils.DefaultAlbum
+import it.danieleercole.soundbox.data.Album
+import it.danieleercole.soundbox.data.Playlist
+import it.danieleercole.soundbox.data.Track
+import it.danieleercole.soundbox.utils.DefaultAlbum
 import java.time.Instant
 
 fun testPlaylist(id: Long): Playlist = Playlist(

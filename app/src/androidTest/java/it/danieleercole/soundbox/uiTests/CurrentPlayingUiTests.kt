@@ -1,4 +1,4 @@
-package com.example.musicplayer.uiTests
+package it.danieleercole.soundbox.uiTests
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
@@ -11,10 +11,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.musicplayer.R
-import com.example.musicplayer.data.Loop
-import com.example.musicplayer.ui.AppScreen
-import com.example.musicplayer.utils.app
+import it.danieleercole.soundbox.R
+import it.danieleercole.soundbox.data.Loop
+import it.danieleercole.soundbox.ui.AppScreen
+import it.danieleercole.soundbox.utils.app
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
