@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.data.ListContext
 import com.example.musicplayer.data.ListMode
 import com.example.musicplayer.data.TrackFilter

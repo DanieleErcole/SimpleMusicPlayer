@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.data.ListContext
 import com.example.musicplayer.data.ListMode
 import com.example.musicplayer.data.TrackFilter

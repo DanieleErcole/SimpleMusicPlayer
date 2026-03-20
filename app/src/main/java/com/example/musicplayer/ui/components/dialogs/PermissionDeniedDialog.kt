@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.ui.state.DialogsVM
 
 @Composable

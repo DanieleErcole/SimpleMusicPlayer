@@ -47,7 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.AppScreen
 import com.example.musicplayer.ui.screens.ReorderableDragHandle

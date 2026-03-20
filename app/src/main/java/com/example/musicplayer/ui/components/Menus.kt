@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 
 @Composable
 fun CustomContextMenuBtn(

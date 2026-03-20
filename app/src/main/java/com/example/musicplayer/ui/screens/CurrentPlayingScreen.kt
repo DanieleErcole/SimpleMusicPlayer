@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.data.Loop
 import com.example.musicplayer.data.TrackWithAlbum
 import com.example.musicplayer.ui.components.CustomSlider

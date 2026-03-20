@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.ui.components.Divider
 import com.example.musicplayer.ui.components.SelectionToolbar
 import com.example.musicplayer.ui.components.TrackItem

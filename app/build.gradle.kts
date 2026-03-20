@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.musicplayer"
+    namespace = "it.danieleercole.soundbox"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.musicplayer"
+        applicationId = "it.danieleercole.soundbox"
         minSdk = 29
         targetSdk = 35
         versionCode = 1

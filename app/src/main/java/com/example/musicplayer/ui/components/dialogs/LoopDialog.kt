@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.data.Loop
 import com.example.musicplayer.ui.components.CustomContextMenuRadioBtn
 import com.example.musicplayer.ui.state.CurrentPlayingVM

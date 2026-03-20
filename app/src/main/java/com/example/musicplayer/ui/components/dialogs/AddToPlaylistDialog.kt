@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.musicplayer.R
+import it.danieleercole.soundbox.R
 import com.example.musicplayer.ui.components.CustomContextMenuCheckboxBtn
 import com.example.musicplayer.ui.components.TransparentButton
 import com.example.musicplayer.ui.components.Divider
