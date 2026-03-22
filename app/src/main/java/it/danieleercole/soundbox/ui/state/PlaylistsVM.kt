@@ -1,6 +1,6 @@
 package it.danieleercole.soundbox.ui.state
 
-import androidx.lifecycle.ViewModel
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 
-class PlaylistsVM(private val musicRepo: MusicRepository) : ViewModel() {
+class PlaylistsVM(
+    private val musicRepo: MusicRepository
+) : ScrollableViewModel<LazyGridState>(LazyGridState()) {
 
     private val _searchString = MutableStateFlow("")
     val searchString = _searchString.asStateFlow()

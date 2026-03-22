@@ -131,6 +131,7 @@ fun ArtistsList(
 ) {
     val searchStr = vm.searchString.collectAsStateWithLifecycle()
     val artists = vm.artists.collectAsStateWithLifecycle()
+    val scrollState = vm.scrollState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -150,6 +151,7 @@ fun ArtistsList(
         )
         Divider()
         LazyColumn(
+            state = scrollState.value,
             modifier = Modifier
                 .weight(.9f)
         ) {

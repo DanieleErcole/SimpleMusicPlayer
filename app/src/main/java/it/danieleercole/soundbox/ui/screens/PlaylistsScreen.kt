@@ -182,6 +182,7 @@ fun PlaylistGrid(
 ) {
     val searchStr = plVm.searchString.collectAsStateWithLifecycle()
     val playlists = plVm.filteredPlaylist.collectAsStateWithLifecycle()
+    val scrollState = plVm.scrollState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -216,6 +217,7 @@ fun PlaylistGrid(
         }
         Divider()
         LazyVerticalGrid(
+            state = scrollState.value,
             columns = GridCells.Adaptive(dimensionResource(R.dimen.grid_item_min_size)),
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),

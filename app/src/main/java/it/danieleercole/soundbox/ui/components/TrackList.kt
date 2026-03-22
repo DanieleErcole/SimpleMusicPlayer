@@ -82,15 +82,16 @@ fun TrackList(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .padding(horizontal = dimensionResource(R.dimen.padding_medium))
                 .fillMaxWidth()
                 .wrapContentHeight()
         ) {
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
                 onBackClick?.let {
                     BackHandler(
@@ -121,7 +122,7 @@ fun TrackList(
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
+                modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_small))
             ) {
                 filters?.invoke()
                 objectToolsBtn?.invoke(tracks.value)

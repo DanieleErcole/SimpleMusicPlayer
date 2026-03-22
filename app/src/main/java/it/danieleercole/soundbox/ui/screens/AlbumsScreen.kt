@@ -151,6 +151,7 @@ fun AlbumGrid(
 ) {
     val searchStr = albumsVM.searchString.collectAsStateWithLifecycle()
     val albums = albumsVM.albums.collectAsStateWithLifecycle()
+    val scrollState = albumsVM.scrollState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -170,6 +171,7 @@ fun AlbumGrid(
         )
         Divider()
         LazyVerticalGrid(
+            state = scrollState.value,
             columns = GridCells.Adaptive(dimensionResource(R.dimen.grid_item_min_size)),
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
